@@ -5,31 +5,32 @@ import curses
 
 
 
-def get_param(prompt_string):
-    screen.clear()
-    screen.border(0)
-    screen.addstr(2, 2, prompt_string)
+def get_param(screen,y,x, prompt_string):
+
+    screen.addstr(y, x, prompt_string)
     screen.refresh()
-    input = screen.getstr(10, 10, 60)
+    input = screen.getstr(21, 4, 60)
     return input
 
-def execute_cmd(cmd_string):
+def execute_cmd(screen, cmd_string):
+    curses.endwin()
     os.system("clear")
     a = os.system(cmd_string)
     print ""
     if a == 0:
-        print "Command executed correctly"
-        print cmd_string
+        print  cmd_string + " executed correctly"
+
     else:
-        print "Command terminated with error"
+        print cmd_string + " terminated with error"
     raw_input("Press enter")
     print ""
     
+def getmax(lines): return max([len(str(l)) for l in lines])
+
 
 def main(screen):
-    global stdscr
-    stdscr = screen
- 
+    pad = curses.newpad(100, 900)
+    pad.refresh( 0,0, 5,5, 20,75)
     if curses.has_colors():
 
         bg = curses.COLOR_WHITE
@@ -68,60 +69,46 @@ def main(screen):
         x = screen.getstr(18,4, 2)
 
         if x == "1" :
-            package = get_param("Enter the package name")
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("dpkg -s " + package)
+            package = get_param(screen, 20, 4, "Enter the package name")
+            execute_cmd(screen,"dpkg -s " + package)
+
         if x == "2" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("dpkg -l")
+            execute_cmd(screen, "dpkg -l")
+
         if x == "3" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("df -h")
+            execute_cmd(screen, "df -h")
+
         if x == "4" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("free -m")
+            execute_cmd(screen, "free -m")
+
         if x == "5" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("ifconfig")
+            execute_cmd(screen, "ifconfig")
+
         if x == "6" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("iwconfig")
+            execute_cmd(screen, "iwconfig")
+
         if x == "7" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("sudo iwlist scan")
+            execute_cmd(screen, "sudo iwlist scan")
+
         if x == "8" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("sudo /etc/init.d/networking restart")
+            execute_cmd(screen, "sudo /etc/init.d/networking restart")
+
         if x == "9" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("lsb_release -a")
+            execute_cmd(screen, "lsb_release -a")
+
         if x == "10" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("uname -a")
+            execute_cmd(screen, "uname -a")
+
         if x == "11" :
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("sudo apt-get update && sudo apt-get upgrade")
+            execute_cmd(screen, "sudo apt-get update && sudo apt-get upgrade")
+
         if x == "12" :
-            package = get_param("Enter the package name")
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("apt-cache search " + package)
+            package = get_param(screen, 20, 4,"Enter the package name")
+            execute_cmd(screen, "apt-cache search " + package)
+
         if x == "13" :
-            package = get_param("Enter the file name")
-            curses.nocbreak(); screen.keypad(0); curses.echo()
-            curses.endwin()
-            execute_cmd("locate " + package)
+            package = get_param(screen, 20, 4,"Enter the file name")
+            execute_cmd(screen, "locate " + package)
 
 
 curses.wrapper(main)
