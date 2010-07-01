@@ -112,8 +112,8 @@ def showdata(screen,data):
     while inkey != 48:
         pad.refresh(y,x,1,1,wy,wx)
         inkey = screen.getch(wz,2)
-#        print inkey ###used to find keycodes for assignment to var
-####### lowercase a-z ##########
+#        print inkey  #used to find keycodes for assignment to var
+# 1 = 49 add a command 259 & 258 up and down arrows
         if inkey==49:addcommand()                
         elif inkey==259:y=max(y-1,0)
         elif inkey==258:y=min(y+1,max_y)
@@ -122,7 +122,8 @@ def showdata(screen,data):
         elif inkey=='KEY_NPAGE':y=min(y+wy,max_y)
         elif inkey=='KEY_PPAGE':y=max(y-wy,0)
         elif inkey=='KEY_HOME':y=0
-        elif inkey=='KEY_END':y=max_y
+        elif inkey=='KEY_END':y=max_y 
+        ####### lowercase a-z ##########
         elif inkey==97:execute_cmd(screen, "dpkg -l")
         elif inkey==98:execute_cmd(screen, "df -h")
         elif inkey==99:execute_cmd(screen, "free -m")
@@ -200,27 +201,16 @@ def menu(screen):
         \n n - List Folders Contents \
         \n o - Move (Rename) Files \n p - Copy Files   \
         \n q - attached PCI devices \n r - Show disk space   \
-        \n s - List installed packages \n t - Show disk space   \
-        \n u - List installed packages \n v - Show disk space   \
-        \n w - List installed packages \n x - Show disk space   \
-        \n y - List installed packages \n z - Show disk space    \
-        \n 1 - List installed packages \n 2 - Show disk space   \
-        \n 3 - List installed packages \n 4 - Show disk space   \
-        \n 5 - List installed packages \n 6 - Show disk space   \
-        \n 7 - List installed packages \n 8 - Show disk space  \
-        \n 9 - List installed packages \n 0 - Exit \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \
-        \n 2 - List installed packages \n 3 - Show disk space \n"
+        \n s - open \n t - open   \
+        \n u - open \n v - open   \
+        \n w - open \n x - open   \
+        \n y - open \n z - open    \
+        \n 1 - Add a command to dict \n 2 - open   \
+        \n 3 - open \n 4 - open   \
+        \n 5 - open \n 6 - open   \
+        \n 7 - open \n 8 - open  \
+        \n 9 - open \n 0 - Exit "
+
 
         screen.refresh()
        
@@ -259,7 +249,7 @@ def addcommand():
         file = open(cheatsheet, 'a')
         num_lines = len(open(cheatsheet).readlines())
         if len(argv) > 3:
-            file.write(str((num_lines + 1)) + ": " + argv[2] + " {{{" + argv[3] + "}}}" + "\n")
+            file.write(str(command_letter(num_lines)) + ": " + argv[2] + " {{{" + argv[3] + "}}}" + "\n")
             print "Stored: %s: %s, with key {{{%s}}}" % (num_lines + 1, argv[2], argv[3])
             file.close()
             sys.exit()
@@ -358,6 +348,64 @@ def addcommand():
             print argv[itr]
             itr += 1
                 
+
+def command_letter(num_lines):
+
+    new_line = num_lines + 1
+
+if new_line = 1
+    comcam = 'A'
+elif new_line = 2
+    comcam = 'B'
+elif new_line = 3
+    com_cam = 'C'
+elif new_line = 4
+    comcam = 'D'
+elif new_line = 5
+    com_cam = 'E'
+elif new_line = 6
+    comcam = 'F'
+elif new_line = 7
+    com_cam = 'G'
+elif new_line = 8
+    comcam = 'H'
+elif new_line = 9
+    com_cam = 'I'
+elif new_line = 10
+    comcam = 'J'
+elif new_line = 11
+    com_cam = 'K'
+elif new_line = 12
+    comcam = 'L'
+elif new_line = 13
+    com_cam = 'M'
+elif new_line = 14
+    comcam = 'N'
+elif new_line = 15
+    comcam = 'O'
+elif new_line = 16
+    comcam = 'P'
+elif new_line = 17
+    comcam = 'Q'
+elif new_line = 18
+    comcam = 'R'
+elif new_line = 19
+    comcam = 'S'
+elif new_line = 20
+    comcam = 'T'
+elif new_line = 21
+    comcam = 'U'
+elif new_line = 22
+    comcam = 'V'
+elif new_line = 23
+    comcam = 'W'
+elif new_line = 24
+    comcam = 'X'
+elif new_line = 25
+    comcam = 'Y'
+elif new_line = 26
+    comcam = 'Z'
+
 
 
 
