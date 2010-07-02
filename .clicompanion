@@ -1,0 +1,17 @@
+dpkg -l: package : Find version of a package
+df -h : : file system disk space usage
+free -m : : show RAM usage
+iwconfig : : Display network information
+sudo iwlist : : scan Scan Wireless networks
+sudo /etc/init.d/networking restart : : Reset the Network
+lsb_release -a : : What version of Ubuntu do I have?
+uname -a : : What kernel am I running
+sudo apt-get update && sudo apt-get upgrade : : Refresh update info and update all packages 
+apt-cache search :package : Find information on a package (not installed)
+sudo lshw : : List hardware 
+cat :path: Read File & Print to Standard Output
+ls :path : List Folders Contents
+mv :path : Move (Rename) Files
+cp :path : Copy Files
+sudo lspci : : attached PCI devices
+df -h : : Show disk space

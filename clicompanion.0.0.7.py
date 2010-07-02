@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 #
-# [SNIPPET_NAME: Tree Model Filter]
-# [SNIPPET_CATEGORIES: PyGTK]
-# [SNIPPET_DESCRIPTION: A tree model filter example]
-# [SNIPPET_DOCS: http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html, http://www.pygtk.org/docs/pygtk/class-gtktreemodelfilter.html]
 
-# example treemodelfilter.py
+
+# IMPORTANT need to move the .cheatsheet file to your $HOME
 
 import pygtk
 pygtk.require('2.0')
@@ -17,37 +14,14 @@ import gobject
 states = []
 x = ''
 text=""
-cheatsheet = os.path.expanduser("~/.cheatsheet")
+cheatsheet = os.path.expanduser("~/.clicompanion")
 
-'''
-bugdata="""dpkg -l: package : Find version of a package
-df -h : : List installed packages
-free -m : : show RAM usage
-iwconfig : : Display network information
-sudo iwlist : : scan Scan Wireless networks
-sudo /etc/init.d/networking restart : : Reset the Network
-lsb_release -a : : What version of Ubuntu do I have?
-uname -a : : What kernel am I running
-sudo apt-get update && sudo apt-get upgrade : : Refresh update info and update all packages 
-apt-cache search :package : Find information on a package (not installed)
-sudo lshw : : List hardware 
-cat :path: Read File & Print to Standard Output
-ls :path : List Folders Contents
-mv :path : Move (Rename) Files
-cp :path : Copy Files
-sudo lspci : : attached PCI devices
-df -h : : Show disk space"""
-'''
 
 class Companion:
     with open(cheatsheet, "r") as cheatfile:
         bugdata=cheatfile.read()
-        
         cheatfile.close()
     
-    print bugdata
-    
-
 
     # create the terminal
     v = vte.Terminal()
@@ -63,10 +37,9 @@ class Companion:
         return False
         
         
-
+    # if a command needs more info this gets user input like a file path
     def get_info(self, widget, data=None):
         global x
-
         p = int(x[0][0])
 
         # Create Dialog object
