@@ -98,19 +98,17 @@ class Companion:
         dialog.set_markup("Add a command to your clicompanion dictionary")
 
         #create the text input field
-        entry = gtk.Entry()
+        entry1 = gtk.Entry()
         entry2 = gtk.Entry()
         entry3 = gtk.Entry()
         #allow the user to press enter to do ok
-        entry.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+        entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
 
-        #create a horizontal box to pack the entry and a 'command' label
-
-        
+        #create the three labels
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label("Command"), False, 5, 5)
-        hbox1.pack_start(entry, False, 5, 5)
+        hbox1.pack_start(entry1, False, 5, 5)
         
         hbox1.pack_start(gtk.Label("User Input"), False, 5, 5)
         hbox1.pack_start(entry2, False, 5, 5)
@@ -123,23 +121,27 @@ class Companion:
         #some secondary text
         dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
         
-        
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
         dialog.vbox.pack_end(hbox1, True, True, 0)
 
         dialog.show_all()
 
-
         # Show the dialog
         dialog.run()
         
         #user text assigned to a variable
-        text = entry.get_text()
+        text1 = entry1.get_text()
+        text2 = entry2.get_text()
+        text3 = entry3.get_text()
+        # open flat file that contains the command dictionary
+        with open(cheatsheet, "a") as cheatfile:
+            cheatfile.write(text1+" : "+text2+" : "+text3+'\n')
+            cheatfile.close()
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
-        return text
+        #return text
 
     def run_command(self, widget, data=None):
         global x
