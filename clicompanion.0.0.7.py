@@ -138,7 +138,7 @@ class Companion:
         text3 = entry3.get_text()
         # open flat file that contains the command dictionary
         with open(cheatsheet, "a") as cheatfile:
-            cheatfile.write(text1+" : "+text2+" : "+text3+'\n')
+            cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
             cheatfile.close()
             
         self.window.show_all()
@@ -156,7 +156,7 @@ class Companion:
         if not self.liststore[p][1] == " ":
             print "user input"
             text = Companion.get_info(self, text)
-            print text
+            #print text #debug
             Companion.v.feed_child(a+" "+text+"\n")
             Companion.v.show()
         else:
