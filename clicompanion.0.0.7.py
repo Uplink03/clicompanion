@@ -1,6 +1,24 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
-# IMPORTANT need to move the .cheatsheet file to your $HOME
+# clicompanion.py - commandline tool.
+#
+# Copyright 2010 Duane Hinnen
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# IMPORTANT: you need to move the .cheatsheet file to your $HOME
+#
 import os
 import webbrowser
 
@@ -10,7 +28,6 @@ import vte
 
 pygtk.require('2.0')
 
-
 states = []
 x = ''
 text=""
@@ -18,11 +35,6 @@ cheatsheet = os.path.expanduser("~/.clicompanion")
 
 
 class Companion:
-    # open flat file that contains the command dictionary
-    with open(cheatsheet, "r") as cheatfile:
-        bugdata=cheatfile.read()
-        cheatfile.close()
-    
 
     # create the terminal
     v = vte.Terminal()
@@ -30,16 +42,13 @@ class Companion:
     # fork_command() will run a command, in this case it shows a prompt
     v.fork_command('bash')
 
-
-
     # close the window and quit
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
         return False
         
-        
     # Info Dialog Box    
-    # if a command needs more info this gets user input EX: a package name
+    # if a command needs more info EX: a package name
     def get_info(self, widget, data=None):
         global x
         p = int(x[0][0])
@@ -60,7 +69,6 @@ class Companion:
         #allow the user to press enter to do ok
         entry.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
-
         #create a horizontal box to pack the entry and a label
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(self.liststore[p][1]+":"), False, 5, 5)
@@ -70,7 +78,6 @@ class Companion:
         #add it and show it
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
-
 
         # Show the dialog
         dialog.run()
@@ -82,11 +89,9 @@ class Companion:
         dialog.destroy()
         return text
 
-
     def responseToDialog(self, text, dialog, response):
 	    dialog.response(response)
-	    
-	    
+	
     def add_command(self, widget, data=None):
         # Create Dialog object
         dialog = gtk.MessageDialog(
@@ -95,7 +100,7 @@ class Companion:
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_OK,
             None)
-        
+
         # ask for input. Use column 2 for what is required
         dialog.set_markup("Add a command to your clicompanion dictionary")
 
@@ -105,7 +110,6 @@ class Companion:
         entry3 = gtk.Entry()
         #allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
-
 
         #create the three labels
         hbox1 = gtk.HBox()
@@ -118,8 +122,7 @@ class Companion:
         hbox2 = gtk.HBox()
         hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
-
-        
+    
         #some secondary text
         dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
         
@@ -140,48 +143,64 @@ class Companion:
         with open(cheatsheet, "a") as cheatfile:
             cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
             cheatfile.close()
+            self.update()
             
-        self.window.show_all()
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
         #return text
-
+        
+    #send the command to the terminal
     def run_command(self, widget, data=None):
         global x
         text = ""
         p = int(x[0][0])
         
         a = states[p]
-        if not self.liststore[p][1] == " ":
-            print "user input"
+        if not self.liststore[p][1] == " ": # command with user input
             text = Companion.get_info(self, text)
             #print text #debug
             Companion.v.feed_child(a+" "+text+"\n")
             Companion.v.show()
-        else:
+        else: # command that has no user input
             Companion.v.feed_child(a+"\n")
             Companion.v.show()
-            
+     
     def open_site(self, widget, data=None):
+        #open the website that is the help file
         siteOpen = webbrowser.open("http://okiebuntu.homelinux.com")
         return siteOpen
+        
+    def update(self):
+        # open file containing command dictionary and put it in a variable
+        with open(cheatsheet, "r") as cheatfile:
+            bugdata=cheatfile.read()
+            cheatfile.close()
+    
+        global states
+        # add bug data from .clicompanion to the liststore
+        self.states = []
+        for line in bugdata.splitlines():
+            l = line.split(':',2)
+            states.append(l[0])
+            self.liststore.append([l[0],l[1],l[2]])
         
     def __init__(self):
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-
-        self.window.set_title("CLI Companion")
-                
+        self.window.set_title("CLI Companion")              
         # Sets the border width of the window.
         self.window.set_border_width(10)
-
+        #set the size of the window
         self.window.set_size_request(650, 450)
+        #Sets the position of the window relative to the screen
+        self.window.set_position(gtk.WIN_POS_CENTER)
 
         self.window.connect("delete_event", self.delete_event)
 
         # create a liststore with three string columns
-        self.liststore = gtk.ListStore(str, str, str)
+        self.liststore = gtk.ListStore(str, str, str)        
+        self.update()
         
         #this was for the search
         self.modelfilter = self.liststore.filter_new()
@@ -208,16 +227,7 @@ class Companion:
                                                 True)
             # set the cell attributes to the appropriate liststore column
             self.treeview.columns[n].set_attributes(
-                self.treeview.columns[n].cell, text=n)
-
-
-        global states
-        # add bug data from .clicompanion to the liststore
-        self.states = []
-        for line in self.bugdata.splitlines():
-            l = line.split(':',2)
-            states.append(l[0])
-            self.liststore.append([l[0],l[1],l[2]])
+                self.treeview.columns[n].cell, text=n)           
 
         self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         self.treeview.get_selection().connect('changed',lambda s: mark_selected(s))      
@@ -226,8 +236,7 @@ class Companion:
             (model,pathlist)=treeselection.get_selected_rows()
             global x
             x = pathlist
-            print pathlist
-
+            #print pathlist #debug
 
         # make ui layout
         self.vbox = gtk.VBox()
@@ -236,52 +245,44 @@ class Companion:
         self.scrolledwindow.set_size_request(400, 250)
         
         def buttonBox(self, spacing, layout):
+            #button box at bottom of main window
             frame = gtk.Frame()
-
-
             bbox = gtk.HButtonBox()
-
-
             bbox.set_border_width(5)
             frame.add(bbox)
 
             # Set the appearance of the Button Box
             bbox.set_layout(layout)
             bbox.set_spacing(spacing)
-
+            # OK button
             buttonOk = gtk.Button(stock=gtk.STOCK_OK)
             bbox.add(buttonOk)
             buttonOk.connect("clicked", self.run_command)
-            
-            buttonOk = gtk.Button(stock=gtk.STOCK_ADD)
-            bbox.add(buttonOk)
-            buttonOk.connect("clicked", self.add_command)
-            
+            # Add button
+            buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
+            bbox.add(buttonAdd)
+            buttonAdd.connect("clicked", self.add_command)
+            # Cancel button
             buttonCancel = gtk.Button(stock=gtk.STOCK_CANCEL)
             bbox.add(buttonCancel)
             buttonCancel.connect("clicked", self.delete_event)
-            
-
+            #Help Button
             buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
             bbox.add(buttonHelp)
             buttonHelp.connect("clicked", self.open_site)
             
             return frame
-        
-        ## create run command button ##
-        #button = gtk.Button("Run Command")
+
         
         self.vbox.pack_start(self.scrolledwindow)
         self.vbox.pack_start(self.v, True, True, 0)
         self.vbox.pack_start(buttonBox( self, 10, gtk.BUTTONBOX_END), True, True, 5)
-
 
         self.scrolledwindow.add(self.treeview)
         self.window.add(self.vbox)
 
         self.window.show_all()
         return
-
 
 def main():
     gtk.main()
