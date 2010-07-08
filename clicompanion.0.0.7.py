@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 #
 # IMPORTANT need to move the .cheatsheet file to your $HOME
-
-import pygtk
-pygtk.require('2.0')
-import gtk
-import vte
 import os
 import webbrowser
+
+import gtk
+import pygtk
+import vte
+
+pygtk.require('2.0')
+
 
 states = []
 x = ''
@@ -37,7 +39,7 @@ class Companion:
         
         
     # Info Dialog Box    
-    # if a command needs more info this gets user input like a file path
+    # if a command needs more info this gets user input EX: a package name
     def get_info(self, widget, data=None):
         global x
         p = int(x[0][0])
@@ -50,7 +52,7 @@ class Companion:
             gtk.BUTTONS_OK,
             None)
         
-        # ask for input. Use column 2 for what is required
+        # Primary text
         dialog.set_markup("This command requires more information")
 
         #create the text input field
@@ -117,7 +119,7 @@ class Companion:
         hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
 
-        #hbox1.pack_end(entry)
+        
         #some secondary text
         dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
         
@@ -138,6 +140,8 @@ class Companion:
         with open(cheatsheet, "a") as cheatfile:
             cheatfile.write(text1+" : "+text2+" : "+text3+'\n')
             cheatfile.close()
+            
+        self.window.show_all()
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
@@ -176,7 +180,7 @@ class Companion:
 
         self.window.connect("delete_event", self.delete_event)
 
-        # create a liststore with one string column to use as the model
+        # create a liststore with three string columns
         self.liststore = gtk.ListStore(str, str, str)
         
         #this was for the search
