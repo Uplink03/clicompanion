@@ -29,7 +29,7 @@ import vte
 pygtk.require('2.0')
 
 states = []
-x = ''
+row = ''
 text=""
 cheatsheet = os.path.expanduser("~/.clicompanion")
 
@@ -37,10 +37,10 @@ cheatsheet = os.path.expanduser("~/.clicompanion")
 class Companion:
 
     # create the terminal
-    v = vte.Terminal()
-    v.set_size_request(400, 150)
+    vte = vte.Terminal()
+    vte.set_size_request(400, 150)
     # fork_command() will run a command, in this case it shows a prompt
-    v.fork_command('bash')
+    vte.fork_command('bash')
 
     # close the window and quit
     def delete_event(self, widget,  data=None):
@@ -50,8 +50,8 @@ class Companion:
     # Info Dialog Box    
     # if a command needs more info EX: a package name
     def get_info(self, widget, data=None):
-        global x
-        p = int(x[0][0])
+        global row
+        row_int = int(row[0][0])
 
         # Create Dialog object
         dialog = gtk.MessageDialog(
@@ -71,10 +71,10 @@ class Companion:
 
         #create a horizontal box to pack the entry and a label
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label(self.liststore[p][1]+":"), False, 5, 5)
+        hbox.pack_start(gtk.Label(self.liststore[row_int][1]+":"), False, 5, 5)
         hbox.pack_end(entry)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a "+self.liststore[p][1])
+        dialog.format_secondary_markup("Please provide a "+self.liststore[row_int][1])
         #add it and show it
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
@@ -152,19 +152,20 @@ class Companion:
         
     #send the command to the terminal
     def run_command(self, widget, data=None):
-        global x
+        global row
         text = ""
-        p = int(x[0][0])
+        row_int = int(row[0][0])
         
-        a = states[p]
-        if not self.liststore[p][1] == " ": # command with user input
+        cmnd = states[row_int]
+        if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
             #print text #debug
-            Companion.v.feed_child(a+" "+text+"\n")
-            Companion.v.show()
+            Companion.vte.feed_child(cmnd+" "+text+"\n")
+            Companion.vte.show()
         else: # command that has no user input
-            Companion.v.feed_child(a+"\n")
-            Companion.v.show()
+            Companion.vte.feed_child(cmnd+"\n")
+            Companion.vte.show()
+            Companion.vte.grab_focus()
      
     def open_site(self, widget, data=None):
         #open the website that is the help file
@@ -234,8 +235,8 @@ class Companion:
         
         def mark_selected(treeselection):
             (model,pathlist)=treeselection.get_selected_rows()
-            global x
-            x = pathlist
+            global row
+            row = pathlist
             #print pathlist #debug
 
         # make ui layout
@@ -275,12 +276,12 @@ class Companion:
 
         
         self.vbox.pack_start(self.scrolledwindow)
-        self.vbox.pack_start(self.v, True, True, 0)
+        self.vbox.pack_start(self.vte, True, True, 0)
         self.vbox.pack_start(buttonBox( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
         self.scrolledwindow.add(self.treeview)
         self.window.add(self.vbox)
-
+        self.vte.grab_focus()
         self.window.show_all()
         return
 
