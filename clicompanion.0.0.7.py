@@ -171,7 +171,7 @@ class Companion:
     def run_command(self, widget, data=None):
         #global row
         text = ""
-        row_int = int(row[0][0]) # removes everything but number. Before: [5,]
+        row_int = int(row[0][0]) # removes everything but number from EX: [5,]
         
         cmnd = states[row_int] #states is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
@@ -186,9 +186,17 @@ class Companion:
      
      #open the website that is the help file
     def open_site(self, widget, data=None):
+        '''
         siteOpen = webbrowser.open("http://okiebuntu.homelinux.com")
         return siteOpen
-      
+        '''
+        row_int = int(row[0][0]) # removes everything but number from EX: [5,]
+        cmnd = states[row_int] #states is where commands are store
+        splitcommand=cmnd.split(" ")
+        Companion.vte.feed_child("man "+splitcommand[0]+"\n") #send command
+        Companion.vte.show()
+
+        
     # open file containing command dictionary and put it in a variable
     def update(self):
         with open(cheatsheet, "r") as cheatfile:
@@ -198,11 +206,13 @@ class Companion:
         #global states
         # add bug data from .clicompanion to the liststore
         self.states = []
-        for line in bugdata.splitlines():
+        for line in sorted(bugdata.splitlines()):
             l = line.split(':',2)
             states.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
+  
         
+            
     def __init__(self):
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
