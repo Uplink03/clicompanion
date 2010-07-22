@@ -32,9 +32,15 @@ states = []
 row = ''
 #text=""
 cheatsheet = os.path.expanduser("~/.clicompanion")
+CONFIG_ORIG = "/usr/clicompanion.d/clicompanion.config"
 
 
 class Companion:
+    
+    if os.path.isfile (cheatsheet):
+        pass
+    else:
+        os.system ("copy %s %s" % (CONFIG_ORIG, cheatsheet))    
 
     # create the terminal
     vte = vte.Terminal()
