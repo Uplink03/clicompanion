@@ -32,7 +32,11 @@ ROW = ''
 #text=""
 CHEATSHEET = os.path.expanduser("~/.clicompanion")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
-
+iter1=""
+iter2=""
+iter3=""
+iter4=""
+text4=""
 
 class Companion:
 
@@ -99,6 +103,7 @@ class Companion:
 	
     # Add command dialog box
     def add_command(self, widget, data=None):
+        global iter4
         # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
@@ -129,6 +134,18 @@ class Companion:
         hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
     
+    
+        combobox = gtk.combo_box_new_text()
+        hbox2.add(combobox)
+        combobox.append_text('select a category')
+        combobox.append_text('package managment')
+        combobox.append_text('system managment')
+        combobox.append_text('misc. commands')
+        combobox.connect('changed', self.changed_cb)
+        combobox.set_active(0)
+
+        
+        
         #some secondary text
         dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
         
@@ -143,21 +160,40 @@ class Companion:
         text1 = entry1.get_text()
         text2 = entry2.get_text()
         text3 = entry3.get_text()
+
         
         # open flat file that contains the commands and add the new command
         with open(CHEATSHEET, "a") as cheatfile:
             if text1 != "":
-                cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
+                cheatfile.write(text1+" :"+text2+" : "+text3+" : "+text4+"\n")
                 cheatfile.close()
-                l = str(text1+" :"+text2+" : "+text3)
-                ls = l.split(':',2)
+                l = str(text1+" :"+text2+" : "+text3+" : "+text4+"\n")
+                ls = l.split(':',3)
                 STATES.append(ls[0])
-                self.liststore.append([ls[0],ls[1],ls[2]])
+                self.treestore.append(iter4,([ls[0],ls[1],ls[2],ls[3]]))
           
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
         #return text
+        
+        
+    def changed_cb(self, combobox):
+        global iter1, iter2, iter3, iter4, text4
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index:
+            if model[index][0] == "package managment":
+                iter4 = iter1
+                text4 = "package"
+            if model[index][0] == "system managment":
+                iter4 = iter2
+                text4 = "system"
+            if model[index][0] == "misc. commands":
+                iter4 = iter3
+                text4 = "other"
+        return
+
         
 	# Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
@@ -202,6 +238,7 @@ class Companion:
         
     # open file containing command dictionary and put it in a variable
     def update(self):
+        global iter1, iter2, iter3
         bugdata=[]
         with open(CHEATSHEET, "r") as cheatfile:
             bugdata=cheatfile.read()
@@ -216,18 +253,18 @@ class Companion:
         # add bug data from .clicompanion to the liststore
         STATES = []
         for line in bugdata.splitlines():
-            print line
+            #print line
             l = line.split(':')
             #print l[3]
             STATES.append(l[0])
             if l[3] == " package":
-                print "1"
+                #print "1"
                 self.treestore.append(iter1,([l[0],l[1],l[2],l[3]]))
             elif l[3] == " system":
-                print "2"
+                #print "2"
                 self.treestore.append(iter2,([l[0],l[1],l[2],l[3]]))
             elif l[3] == " other":
-                print "3"
+                #print "3"
                 self.treestore.append(iter3,([l[0],l[1],l[2],l[3]]))
 
 
@@ -330,6 +367,9 @@ class Companion:
             buttonHelp.connect("clicked", self.man_page)
             
             return frame
+
+
+
 
         
         self.vbox.pack_start(self.scrolledwindow)
