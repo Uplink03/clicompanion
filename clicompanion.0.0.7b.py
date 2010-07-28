@@ -181,9 +181,23 @@ class Companion:
         straight-forward. DH: Maybe for a smart guy like you ;)
         """
         
+        # alternate solution
+        # With this solution the search term has to be accurate
+        # typing dpkg will not return the row with dpkg -l
+        # So I am not sure this is the best solution
+        search_term = self.search_box.get_text()
+        modelfilter = self.liststore.filter_new()
+
+        def func(modelfilter, iter, search_term):
+            return modelfilter.get_value(iter, 0) in search_term
+             
+        modelfilter.set_visible_func(func, search_term)
+        self.treeview.set_model(modelfilter)
+            
+        '''
         # Get the text from the search box
         search_term = self.search_box.get_text()
-
+        
         for row in self.liststore:
             # Search if the search term is contained in the command
             # We should probably check if the search term exists in one of the
@@ -195,9 +209,9 @@ class Companion:
                 #print row[0]
                 
                 self.liststore.append([row[0],row[1],row[2]])
-
+                
         self.update()
-
+        '''
 
         
     #send the command to the terminal
