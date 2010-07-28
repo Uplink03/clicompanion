@@ -1,23 +1,23 @@
-dpkg -l: package : Find version of a package : package
-df -h : : file system disk space usage : system
-free -m : : show RAM usage : system
-ps auxww | grep : process : displays information about the active process : system
-iwconfig : : Display wireless network information : system
-ifconfig -a : : displays the status of the currently active interfaces : system
-sudo iwlist : : scan Scan Wireless networks : system
-sudo /etc/init.d/networking restart : : Reset the Network : system
-lsb_release -a : : What version of Ubuntu do I have? : system
-uname -a : : What kernel am I running : system
-sudo apt-get update && sudo apt-get upgrade : : Refresh update info and update all packages : package
-sudo apt-get clean : : clear out all packages in /var/cache/apt/archives : package
-sudo apt-get autoclean : : clear out obsolete packages(packages with a newer release) : package
-apt-cache search :package : Find information on a package (not installed) : package
-sudo lshw : : List hardware : system
-lspci : : list all PCI devices : system
-aplay -l : : List all soundcards and digital audio devices : system
-cat :path: Read File & Print to Standard Output : other
+dpkg -l: package : Find version of a package
+df -h : : file system disk space usage
+free -m : : show RAM usage
+ps auxww | grep : process : displays information about the active process
+iwconfig : : Display wireless network information
+ifconfig -a : : displays the status of the currently active interfaces
+sudo iwlist : : scan Scan Wireless networks
+sudo /etc/init.d/networking restart : : Reset the Network
+lsb_release -a : : What version of Ubuntu do I have?
+uname -a : : What kernel am I running
+sudo apt-get update && sudo apt-get upgrade : : Refresh update info and update all packages 
+sudo apt-get clean : : clear out all packages in /var/cache/apt/archives
+sudo apt-get autoclean : : clear out obsolete packages(packages with a newer release)
+apt-cache search :package : Find information on a package (not installed)
+sudo lshw : : List hardware 
+lspci : : list all PCI devices
+aplay -l : : List all soundcards and digital audio devices
+cat :path: Read File & Print to Standard Output
 ls :path : List Folders Contents
-mv :path : Move (Rename) Files : package
-cp :path : Copy Files : package
+mv :path : Move (Rename) Files
+cp :path : Copy Files
 sudo lspci : : attached PCI devices
 df -h : : Show disk space
