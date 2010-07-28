@@ -3,7 +3,7 @@
 #
 # clicompanion.py - commandline tool.
 #
-# Copyright 2010 Duane Hinnen
+# Copyright 2010 Duane Hinnen, Kenny Meyer
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -20,28 +20,32 @@
 # IMPORTANT: you need to move the .cheatsheet file to your $HOME
 #
 import os
-import webbrowser
-
 import gtk
 import pygtk
 import vte
 
 pygtk.require('2.0')
 
-states = []
-row = ''
+STATES = []
+ROW = ''
 #text=""
-cheatsheet = os.path.expanduser("~/.clicompanion")
+CHEATSHEET = os.path.expanduser("~/.clicompanion")
+CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
 
 class Companion:
 
-    # create the terminal
+    # create the terminal and set its size
     vte = vte.Terminal()
     vte.set_size_request(700, 350)
     # fork_command() will run a command, in this case it shows a prompt
     vte.fork_command('bash')
-
+    
+    #copy config file to user $HOME if does not exist
+    def setup(self):
+    	if not os.path.isfile (CHEATSHEET):
+            os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
+            
     # close the window and quit
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
@@ -50,8 +54,8 @@ class Companion:
     # Info Dialog Box    
     # if a command needs more info EX: a package name
     def get_info(self, widget, data=None):
-        global row
-        row_int = int(row[0][0])
+        global ROW
+        row_int = int(ROW[0][0])
 
         # Create Dialog object
         dialog = gtk.MessageDialog(
@@ -92,7 +96,7 @@ class Companion:
     def responseToDialog(self, text, dialog, response):
 	    dialog.response(response)
 	
-	# Add command dialog box
+    # Add command dialog box
     def add_command(self, widget, data=None):
         # Create Dialog object
         dialog = gtk.MessageDialog(
@@ -102,7 +106,7 @@ class Companion:
             gtk.BUTTONS_OK,
             None)
 
-        # ask for input. Use column 2 for what is required
+        # primaary text
         dialog.set_markup("Add a command to your clicompanion dictionary")
 
         #create the text input field
@@ -130,9 +134,7 @@ class Companion:
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
         dialog.vbox.pack_end(hbox1, True, True, 0)
-
         dialog.show_all()
-
         # Show the dialog
         dialog.run()
         
@@ -140,37 +142,43 @@ class Companion:
         text1 = entry1.get_text()
         text2 = entry2.get_text()
         text3 = entry3.get_text()
-        # open flat file that contains the command dictionary
-        with open(cheatsheet, "a") as cheatfile:
-            cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
-            cheatfile.close()
-            self.update()
-            
+        
+        # open flat file that contains the commands and add the new command
+        with open(CHEATSHEET, "a") as cheatfile:
+            if text1 != "":
+                cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
+                cheatfile.close()
+                l = str(text1+" :"+text2+" : "+text3)
+                ls = l.split(':',2)
+                STATES.append(ls[0])
+                self.liststore.append([ls[0],ls[1],ls[2]])
+            #self.update()
+          
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
         #return text
         
-	# Remove command method 
+	# Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
-        row_int = int(row[0][0]) #convert pathlist into something usable    
+        row_int = int(ROW[0][0]) #convert pathlist into something usable    
         del self.liststore[row_int] #remove line from list
         
         # open command file and delete line so the change is persistent
-        with open(cheatsheet, "r") as cheatfile:
+        with open(CHEATSHEET, "r") as cheatfile:
             cheatlines = cheatfile.readlines()
             del cheatlines[row_int]
             cheatfile.close()
-        with open(cheatsheet, "w") as cheatfile2:           
+        with open(CHEATSHEET, "w") as cheatfile2:           
             cheatfile2.writelines(cheatlines)
             cheatfile2.close()
-    
+
     def _filter_commands(self, widget, data=None):
         """Show commands matching a given search term.
         
         The user should enter a term in the search box and the treeview should
         only display the rows which contain the search term. Pretty
-        straight-forward.
+        straight-forward. DH: Maybe for a smart guy like you ;)
         """
         
         # Get the text from the search box
@@ -189,13 +197,15 @@ class Companion:
 
         self.update()
 
+
+        
     #send the command to the terminal
     def run_command(self, widget, data=None):
-        #global row
+        global ROW
         text = ""
-        row_int = int(row[0][0]) # removes everything but number. Before: [5,]
+        row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         
-        cmnd = states[row_int] #states is where commands are stored
+        cmnd = STATES[row_int] #STATES is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
             #print text #debug
@@ -206,29 +216,36 @@ class Companion:
             Companion.vte.show()
             Companion.vte.grab_focus()
      
-     #open the website that is the help file
-    def open_site(self, widget, data=None):
-        siteOpen = webbrowser.open("http://okiebuntu.homelinux.com")
-        return siteOpen
-      
+     #open the man page for selected command
+    def man_page(self, widget, data=None):
+        row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
+        cmnd = STATES[row_int] #STATES is where commands are store
+        splitcommand=cmnd.split(" ")
+        Companion.vte.feed_child("man "+splitcommand[0]+"\n") #send command
+        Companion.vte.show()
+
+        
     # open file containing command dictionary and put it in a variable
     def update(self):
-        with open(cheatsheet, "r") as cheatfile:
+        with open(CHEATSHEET, "r") as cheatfile:
             bugdata=cheatfile.read()
             cheatfile.close()
     
-        #global states
+        global STATES
         # add bug data from .clicompanion to the liststore
-        self.states = []
-        for line in bugdata.splitlines():
+        STATES = []
+        for line in sorted(bugdata.splitlines()):
             l = line.split(':',2)
-            self.states.append(l[0])
+            STATES.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
-        
+            
+            
     def __init__(self):
+        
+        self.setup()
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("CLI Companion")              
+        self.window.set_title("CLI Companion")
         # Sets the border width of the window.
         self.window.set_border_width(10)
         #set the size of the window
@@ -279,12 +296,11 @@ class Companion:
         self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
         self.treeview.get_selection().connect('changed',lambda s: mark_selected(s)) 
         
-             
         
         def mark_selected(treeselection):
             (model,pathlist)=treeselection.get_selected_rows()
-            global row
-            row = pathlist
+            global ROW
+            ROW = pathlist
             #print pathlist #debug
 
         # make ui layout
@@ -293,7 +309,7 @@ class Companion:
         self.scrolledwindow = gtk.ScrolledWindow()
         self.scrolledwindow.set_size_request(700, 220)
         
-        def buttonBox(self, spacing, layout):
+        def button_box(self, spacing, layout):
             #button box at bottom of main window
             frame = gtk.Frame()
             bbox = gtk.HButtonBox()
@@ -322,7 +338,7 @@ class Companion:
             #Help Button
             buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
             bbox.add(buttonHelp)
-            buttonHelp.connect("clicked", self.open_site)
+            buttonHelp.connect("clicked", self.man_page)
             
             return frame
 
@@ -330,7 +346,7 @@ class Companion:
         self.vbox.pack_start(self.scrolledwindow)
         self.vbox.pack_start(self.search_box, True, True, 10)
         self.vbox.pack_start(self.vte, True, True, 0)
-        self.vbox.pack_start(buttonBox( self, 10, gtk.BUTTONBOX_END), True, True, 5)
+        self.vbox.pack_start(button_box( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
         self.scrolledwindow.add(self.treeview)
         self.window.add(self.vbox)
@@ -341,7 +357,7 @@ class Companion:
 def main():
     gtk.main()
 
-if __name__ == "__main__":
+if __name__ == "__main__":       
     companion = Companion()
     main()
 
