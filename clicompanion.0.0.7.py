@@ -164,9 +164,31 @@ class Companion:
         with open(cheatsheet, "w") as cheatfile2:           
             cheatfile2.writelines(cheatlines)
             cheatfile2.close()
-
-
+    
+    def _filter_commands(self, widget, data=None):
+        """Show commands matching a given search term.
         
+        The user should enter a term in the search box and the treeview should
+        only display the rows which contain the search term. Pretty
+        straight-forward.
+        """
+        
+        # Get the text from the search box
+        search_term = self.search_box.get_text()
+
+        for row in self.liststore:
+            # Search if the search term is contained in the command
+            # We should probably check if the search term exists in one of the
+            # three columns.
+            #if search_term.upper() in row[0].upper() or
+            #   search_term.upper() in row[1].upper() or
+            #   search_term.upper() in row[2].upper():
+            if search_term.upper() in row[0].upper():
+                # print row[0]
+                self.liststore.append([row[0],row[1],row[2]])
+
+        self.update()
+
     #send the command to the terminal
     def run_command(self, widget, data=None):
         #global row
@@ -200,7 +222,7 @@ class Companion:
         self.states = []
         for line in bugdata.splitlines():
             l = line.split(':',2)
-            states.append(l[0])
+            self.states.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
         
     def __init__(self):
@@ -223,6 +245,8 @@ class Companion:
         self.update()
         
         #this was for the search
+        self.search_box = gtk.Entry()
+        self.search_box.connect("changed", self._filter_commands)
         #self.modelfilter = self.liststore.filter_new()
 
         # create the TreeView
@@ -304,6 +328,7 @@ class Companion:
 
         
         self.vbox.pack_start(self.scrolledwindow)
+        self.vbox.pack_start(self.search_box, True, True, 10)
         self.vbox.pack_start(self.vte, True, True, 0)
         self.vbox.pack_start(buttonBox( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
