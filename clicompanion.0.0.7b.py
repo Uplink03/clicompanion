@@ -263,12 +263,15 @@ class Companion:
         self.liststore = gtk.ListStore(str, str, str)        
         self.update()
         
-        #this was for the search
-        self.search_box = gtk.Entry()
-        self.search_box.connect("changed", self._filter_commands)
+        # The search section
         self.search_label = gtk.Label("Search:")
         self.search_label.set_alignment(xalign=-1, yalign=0) 
-        #self.modelfilter = self.liststore.filter_new()
+        self.search_box = gtk.Entry()
+        self.search_box.connect("changed", self._filter_commands)
+
+        search_hbox = gtk.HBox(False)
+        search_hbox.pack_start(self.search_label, False, False, 10)
+        search_hbox.pack_end(self.search_box, expand=True)
 
         # create the TreeView
         self.treeview = gtk.TreeView()
@@ -347,9 +350,8 @@ class Companion:
             return frame
 
 
-        self.vbox.pack_start(self.scrolledwindow)
-        self.vbox.pack_start(self.search_label, False, 0, 5)
-        self.vbox.pack_start(self.search_box, True, 5, 5)
+        self.vbox.pack_start(self.scrolledwindow, True, True, 5)
+        self.vbox.pack_start(search_hbox, True, True, 5)
         self.vbox.pack_start(self.vte, True, True, 10)
         self.vbox.pack_start(button_box( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
