@@ -98,6 +98,7 @@ class Companion:
 	
     # Add command dialog box
     def add_command(self, widget, data=None):
+
         # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
@@ -105,6 +106,7 @@ class Companion:
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_OK,
             None)
+
 
         # primaary text
         dialog.set_markup("Add a command to your clicompanion dictionary")
@@ -127,7 +129,9 @@ class Companion:
         hbox2 = gtk.HBox()
         hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
-    
+
+        # cancel button        
+        dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
         dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
         
@@ -136,12 +140,16 @@ class Companion:
         dialog.vbox.pack_end(hbox1, True, True, 0)
         dialog.show_all()
         # Show the dialog
-        dialog.run()
+        result = dialog.run()
         
-        #user text assigned to a variable
-        text1 = entry1.get_text()
-        text2 = entry2.get_text()
-        text3 = entry3.get_text()
+        text1 = ""
+        text2 = ""
+        text3 = ""
+        if result == gtk.RESPONSE_OK:
+            #user text assigned to a variable
+            text1 = entry1.get_text()
+            text2 = entry2.get_text()
+            text3 = entry3.get_text()
         
         # open flat file that contains the commands and add the new command
         with open(CHEATSHEET, "a") as cheatfile:
@@ -177,29 +185,31 @@ class Companion:
         """Show commands matching a given search term.
         
         The user should enter a term in the search box and the treeview should
-        only display the rows which contain the search term. Pretty
-        straight-forward. DH: Maybe for a smart guy like you ;)
+        only display the rows which contain the search term.
+        Pretty straight-forward.
         """
-        
-        # Get the text from the search box
         search_term = self.search_box.get_text()
-
-        for row in self.liststore:
-            # Search if the search term is contained in the command
-            # We should probably check if the search term exists in one of the
-            # three columns.
-            #if search_term.upper() in row[0].upper() or
-            #   search_term.upper() in row[1].upper() or
-            #   search_term.upper() in row[2].upper():
-            if search_term.upper() in row[0].upper():
-                #print row[0]
-                
-                self.liststore.append([row[0],row[1],row[2]])
-
-        self.update()
-
-
+        # Duane's better solution: 
+        # Create a TreeModelFilter object which provides auxiliary functions for
+        # filtering data. 
+        # http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html
+        modelfilter = self.liststore.filter_new()
+        def func(modelfilter, iter, search_term):
+            try:
+                # Iterate through every column and row and check if the search
+                # term is there:
+                if search_term in modelfilter.get_value(iter, 0) or \
+                   search_term in modelfilter.get_value(iter, 1) or \
+                   search_term in modelfilter.get_value(iter, 2):
+                    return True
+            except TypeError:
+                # Python raises a TypeError if row data doesn't exist. Catch
+                # that and fail silently.
+                pass
         
+        modelfilter.set_visible_func(func, search_term) 
+        self.treeview.set_model(modelfilter)
+            
     #send the command to the terminal
     def run_command(self, widget, data=None):
         global ROW
@@ -222,15 +232,21 @@ class Companion:
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         cmnd = STATES[row_int] #STATES is where commands are store
         splitcommand=cmnd.split(" ")
-        Companion.vte.feed_child("man "+splitcommand[0]+"\n") #send command
+        Companion.vte.feed_child("man "+splitcommand[0]+"| most \n") #send command
         Companion.vte.show()
-
-        
+    
     # open file containing command dictionary and put it in a variable
     def update(self):
-        with open(CHEATSHEET, "r") as cheatfile:
-            bugdata=cheatfile.read()
-            cheatfile.close()
+        try:
+            with open(CHEATSHEET, "r") as cheatfile:
+                bugdata=cheatfile.read()
+                cheatfile.close()
+        except IOError:
+            # CHEATSHEET is not there. Oh, no!
+            # So, run self.setup() again.
+            self.setup() 
+            # Then, run me again.
+            self.update()
     
         global STATES
         # add bug data from .clicompanion to the liststore
@@ -239,7 +255,6 @@ class Companion:
             l = line.split(':',2)
             STATES.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
-            
             
     def __init__(self):
         
@@ -262,10 +277,15 @@ class Companion:
         self.liststore = gtk.ListStore(str, str, str)        
         self.update()
         
-        #this was for the search
+        # The search section
+        self.search_label = gtk.Label("Search:")
+        self.search_label.set_alignment(xalign=-1, yalign=0) 
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
-        #self.modelfilter = self.liststore.filter_new()
+
+        search_hbox = gtk.HBox(False)
+        search_hbox.pack_start(self.search_label, False, False, 10)
+        search_hbox.pack_end(self.search_box, expand=True)
 
         # create the TreeView
         self.treeview = gtk.TreeView()
@@ -332,23 +352,21 @@ class Companion:
             buttonDelete = gtk.Button(stock=gtk.STOCK_REMOVE)
             bbox.add(buttonDelete)
             buttonDelete.connect("clicked", self.remove_command)
-            # Cancel button
-            buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
-            bbox.add(buttonCancel)
-            buttonCancel.connect("clicked", self.delete_event)
             #Help Button
             buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
             bbox.add(buttonHelp)
             buttonHelp.connect("clicked", self.man_page)
+            # Cancel button
+            buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
+            bbox.add(buttonCancel)
+            buttonCancel.connect("clicked", self.delete_event)
+
             
             return frame
 
 
-        searchlabel = gtk.Label("Search:")
-        searchlabel.set_alignment(xalign=-1, yalign=0) 
-        self.vbox.pack_start(self.scrolledwindow)
-        self.vbox.pack_start(searchlabel, False, 0, 5)
-        self.vbox.pack_start(self.search_box, True, True, 0)
+        self.vbox.pack_start(self.scrolledwindow, True, True, 5)
+        self.vbox.pack_start(search_hbox, True, True, 5)
         self.vbox.pack_start(self.vte, True, True, 10)
         self.vbox.pack_start(button_box( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
@@ -364,4 +382,5 @@ def main():
 if __name__ == "__main__":       
     companion = Companion()
     main()
+
 
