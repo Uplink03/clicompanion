@@ -43,8 +43,14 @@ class Companion:
     
     #copy config file to user $HOME if does not exist
     def setup(self):
-    	if not os.path.isfile (CHEATSHEET):
-            os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
+        """Create an initial cheatsheet."""
+    	if not os.path.exists(CHEATSHEET):
+            if os.path.exists(CONFIG_ORIG):
+                os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
+            else:
+                # Oops! Looks like there's no cheatsheet in CHEATSHEET.
+                # Then, create an empty cheatsheet.
+                open(CHEATSHEET, 'w').close()
             
     # close the window and quit
     def delete_event(self, widget,  data=None):
