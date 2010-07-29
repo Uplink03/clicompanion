@@ -226,13 +226,19 @@ class Companion:
         splitcommand=cmnd.split(" ")
         Companion.vte.feed_child("man "+splitcommand[0]+"\n") #send command
         Companion.vte.show()
-
-        
+    
     # open file containing command dictionary and put it in a variable
     def update(self):
-        with open(CHEATSHEET, "r") as cheatfile:
-            bugdata=cheatfile.read()
-            cheatfile.close()
+        try:
+            with open(CHEATSHEET, "r") as cheatfile:
+                bugdata=cheatfile.read()
+                cheatfile.close()
+        except IOError:
+            # CHEATSHEET is not there. Oh, no!
+            # So, run self.setup() again.
+            self.setup() 
+            # Then, run me again.
+            self.update()
     
         global STATES
         # add bug data from .clicompanion to the liststore
