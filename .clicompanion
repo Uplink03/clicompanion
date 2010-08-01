@@ -20,4 +20,3 @@ ls :path : List Folders Contents
 mv :path : Move (Rename) Files
 cp :path : Copy Files
 sudo lspci : : attached PCI devices
-df -h : : Show disk space
