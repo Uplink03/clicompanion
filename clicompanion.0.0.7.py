@@ -20,8 +20,8 @@
 # IMPORTANT: you need to move the .cheatsheet file to your $HOME
 #
 
-#import pygtk
-#pygtk.require('2.0')
+import pygtk
+pygtk.require('2.0')
 
 import os
 # import gtk or print error
@@ -49,7 +49,7 @@ CHEATSHEET = os.path.expanduser("~/.clicompanion")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
 
-class Companion:
+class Companion(object):
 
     # create the terminal and set its size
     vte = vte.Terminal()
@@ -119,7 +119,7 @@ class Companion:
         dialog.response(response)
     
     # Add command dialog box
-    def add_command(self, widget, data=None):
+    def add_command(self, widget, text1="", test2="", text3=""):
 
         # Create Dialog object
         dialog = gtk.MessageDialog(
@@ -164,9 +164,9 @@ class Companion:
         # Show the dialog
         result = dialog.run()
         
-        text1 = ""
-        text2 = ""
-        text3 = ""
+        #text1 = ""
+        #text2 = ""
+        #text3 = ""
         if result == gtk.RESPONSE_OK:
             #user text assigned to a variable
             text1 = entry1.get_text()
@@ -189,10 +189,18 @@ class Companion:
         dialog.destroy()
         #return text
         
+    # This is supposed to be an edit menu
+    def edit(self, treeview , data=None):
+        pass
+
+
+
+    
+    
     # Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
         row_int = int(ROW[0][0]) #convert pathlist into something usable    
-        del self.liststore[row_int] #remove line from list
+        del self.liststore[row_int]
         
         # open command file and delete line so the change is persistent
         with open(CHEATSHEET, "r") as cheatfile:
@@ -211,7 +219,7 @@ class Companion:
         Pretty straight-forward.
         """
         search_term = self.search_box.get_text()
-        # Duane's better solution: 
+
         # Create a TreeModelFilter object which provides auxiliary functions for
         # filtering data. 
         # http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html
@@ -258,6 +266,8 @@ class Companion:
         self.vte.grab_focus()
         Companion.vte.show()
     
+    
+    
     # open file containing command dictionary and put it in a variable
     def update(self):
         try:
@@ -278,8 +288,45 @@ class Companion:
             l = line.split(':',2)
             CMNDS.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
+                 
+    
+    #right-click popup menu
+    def right_click_callback(self, treeview, event, data=None):
+        if event.button == 3:
+            x = int(event.x)
+            y = int(event.y)
+            time = event.time
+            pthinfo = treeview.get_path_at_pos(x, y)
+            if pthinfo is not None:
+                path, col, cellx, celly = pthinfo
+                treeview.grab_focus()
+                treeview.set_cursor( path, col, 0)
+                
+                # right-click popup menu Apply(run)
+                popupMenu = gtk.Menu()
+                menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_APPLY)
+                popupMenu.add(menuPopup1)
+                menuPopup1.connect("activate", self.run_command)
+                # right-click popup menu Edit        
+                menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_EDIT)
+                popupMenu.add(menuPopup2)
+                menuPopup2.connect("activate", self.edit)
+                # right-click popup menu Delete                 
+                menuPopup3 = gtk.ImageMenuItem (gtk.STOCK_DELETE)
+                popupMenu.add(menuPopup3)
+                menuPopup3.connect("activate", self.remove_command)
+                # right-click popup menu Help                
+                menuPopup4 = gtk.ImageMenuItem (gtk.STOCK_HELP)
+                popupMenu.add(menuPopup4)
+                menuPopup4.connect("activate", self.man_page)
+                # Show popup menu
+                popupMenu.show_all()
+                popupMenu.popup( None, None, None, event.button, time)
+            return True
             
     def __init__(self):
+        
+        context_id = 0
         
         self.setup()
         # Create a new window
@@ -295,6 +342,46 @@ class Companion:
         self.window.set_resizable(True)
 
         self.window.connect("delete_event", self.delete_event)
+        
+        #TODO: Only File menu right now.
+        # Application Menu (File, Edit, Help)
+        #vbox = gtk.VBox(True, 0)
+        ## Make 'File' Drop Down Menu
+        menu = gtk.Menu()
+        root_menu = gtk.MenuItem("File")
+        root_menu.set_submenu(menu)
+        
+        ## Make 'Run' menu entry
+        menu_item1 = gtk.MenuItem("Run Command")
+        menu.append(menu_item1)
+        menu_item1.connect("activate", self.run_command, context_id)
+        menu_item1.show()
+
+        ## Make 'Add' file menu entry
+        menu_item2 = gtk.MenuItem("Add Command")
+        menu.append(menu_item2)
+        menu_item2.connect("activate", self.add_command, context_id)
+        menu_item2.show()
+        
+        ## Make 'Remove' file menu entry
+        menu_item2 = gtk.MenuItem("Remove Command")
+        menu.append(menu_item2)
+        menu_item2.connect("activate", self.remove_command, context_id)
+        menu_item2.show()
+
+        ## Make 'Quit' file menu entry
+        menu_item3 = gtk.MenuItem("Quit")
+        menu.append(menu_item3)
+        menu_item3.connect("activate", self.delete_event, "Quit")
+        menu_item3.show()
+        ##Show 'File' Menu
+        #root_menu.show()
+
+        menu_bar = gtk.MenuBar()
+        
+        menu_bar.append (root_menu) ##Menu bar
+        #menu_bar.show() ##show File Menu # Menu Bar
+
 
         # create a liststore with three string columns
         self.liststore = gtk.ListStore(str, str, str)        
@@ -319,6 +406,8 @@ class Companion:
         self.treeview.columns[1] = gtk.TreeViewColumn('User Argument')
         self.treeview.columns[2] = gtk.TreeViewColumn('Description')
         
+        ## right click menu event capture
+        self.treeview.connect ("button_press_event", self.right_click_callback, None)
         # The set_model() method sets the "model" property for the treeview to the value of model. model : the new tree model to use with the treeview
         self.treeview.set_model(self.liststore)
         #self.treeview.set_search_entry(entry=None)
@@ -371,6 +460,10 @@ class Companion:
             buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
             bbox.add(buttonAdd)
             buttonAdd.connect("clicked", self.add_command)
+            # Edit button
+            buttonEdit = gtk.Button("Edit")
+            bbox.add(buttonEdit)
+            buttonEdit.connect("clicked", self.edit)
             # Delete button
             buttonDelete = gtk.Button(stock=gtk.STOCK_REMOVE)
             bbox.add(buttonDelete)
@@ -386,8 +479,12 @@ class Companion:
 
             
             return frame
+            
+            
 
 
+        self.window.add(self.vbox)
+        self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
         self.vbox.pack_start(self.scrolledwindow, True, True, 5)
         self.vbox.pack_start(search_hbox, True, True, 5)
         self.vbox.pack_start(self.vte, True, True, 10)
