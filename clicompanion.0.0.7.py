@@ -119,8 +119,8 @@ class Companion(object):
         dialog.response(response)
     
     # Add command dialog box
-    def add_command(self, widget, text1="", test2="", text3=""):
-
+    def add_command(self, widget, text1 = "", text2 = "", text3 = ""):
+        print text1, text2, text3
         # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
@@ -135,8 +135,11 @@ class Companion(object):
 
         #create the text input field
         entry1 = gtk.Entry()
+        entry1.set_text(text1)
         entry2 = gtk.Entry()
+        entry2.set_text(text2)
         entry3 = gtk.Entry()
+        entry3.set_text(text3)        
         #allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
@@ -172,26 +175,53 @@ class Companion(object):
             text1 = entry1.get_text()
             text2 = entry2.get_text()
             text3 = entry3.get_text()
-        
-        # open flat file that contains the commands and add the new command
-        with open(CHEATSHEET, "a") as cheatfile:
-            if text1 != "":
-                cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
-                cheatfile.close()
-                l = str(text1+" :"+text2+" : "+text3)
-                ls = l.split(':',2)
-                CMNDS.append(ls[0])
-                self.liststore.append([ls[0],ls[1],ls[2]])
-            #self.update()
+            # open flat file that contains the commands and add the new command
+            with open(CHEATSHEET, "a") as cheatfile:
+                if text1 != "":
+                    cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
+                    cheatfile.close()
+                    l = str(text1+" :"+text2+" : "+text3)
+                    ls = l.split(':',2)
+                    CMNDS.append(ls[0])
+                    self.liststore.append([ls[0],ls[1],ls[2]])
+                #self.update()
           
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
         #return text
         
-    # This is supposed to be an edit menu
-    def edit(self, treeview , data=None):
-        pass
+    # This the edit function
+    def edit_command(self, widget , data=None):
+
+        global ROW
+        row_int = int(ROW[0][0])
+        #print row_int
+        #print text1, text2, text3
+
+        row_obj1 = self.liststore[row_int][0]
+        text1 = "".join(row_obj1)
+        
+
+        row_obj2 = self.liststore[row_int][1]
+        text2 = "".join(row_obj2)
+        
+
+        row_obj3 = self.liststore[row_int][2]
+        text3 = "".join(row_obj3)
+        
+        '''
+        row_obj = self.liststore[row_int]
+        row_str = "".join(row_obj)
+        print row_str
+        row_edit = row_str.split(':',2)
+        print row_edit
+        text1 = str(row_edit[1])
+        text2 = str(row_edit[2])
+        text3 = str(row_edit[3])
+        '''
+        print text1, text2, text3
+        self.add_command(text1, text2, text3)
 
 
 
@@ -310,7 +340,7 @@ class Companion(object):
                 # right-click popup menu Edit        
                 menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_EDIT)
                 popupMenu.add(menuPopup2)
-                menuPopup2.connect("activate", self.edit)
+                menuPopup2.connect("activate", self.edit_command)
                 # right-click popup menu Delete                 
                 menuPopup3 = gtk.ImageMenuItem (gtk.STOCK_DELETE)
                 popupMenu.add(menuPopup3)
@@ -453,7 +483,7 @@ class Companion(object):
             bbox.set_layout(layout)
             bbox.set_spacing(spacing)
             # OK button
-            buttonRun = gtk.Button("Run")
+            buttonRun = gtk.Button(stock=gtk.STOCK_APPLY)
             bbox.add(buttonRun)
             buttonRun.connect("clicked", self.run_command)
             # Add button
@@ -463,9 +493,9 @@ class Companion(object):
             # Edit button
             buttonEdit = gtk.Button("Edit")
             bbox.add(buttonEdit)
-            buttonEdit.connect("clicked", self.edit)
+            buttonEdit.connect("clicked", self.edit_command)
             # Delete button
-            buttonDelete = gtk.Button(stock=gtk.STOCK_REMOVE)
+            buttonDelete = gtk.Button(stock=gtk.STOCK_DELETE)
             bbox.add(buttonDelete)
             buttonDelete.connect("clicked", self.remove_command)
             #Help Button
