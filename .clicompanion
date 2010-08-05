@@ -12,12 +12,11 @@ sudo apt-get update && sudo apt-get upgrade: : Refresh update info and update al
 sudo apt-get clean: : clear out all packages in /var/cache/apt/archives
 sudo apt-get autoclean : : clear out obsolete packages(packages with a newer release)
 apt-cache search :package : Find information on a package (not installed)
-sudo lshw: : List hardware 
-lspci: : list all PCI devices
-aplay -l: : List all soundcards and digital audio devices
-cat:path: Read File & Print to Standard Output
-ls:path : List Folders Contents
-mv:path : Move (Rename) Files
-cp:path : Copy Files
-sudo lspci: : attached PCI devices
-df -h: : Show disk space
+sudo lshw : : List hardware 
+lspci : : list all PCI devices
+aplay -l : : List all soundcards and digital audio devices
+cat :path: Read File & Print to Standard Output
+ls :path : List Folders Contents
+mv :path : Move (Rename) Files
+cp :path : Copy Files
+sudo lspci : : attached PCI devices

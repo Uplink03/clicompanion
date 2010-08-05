@@ -16,16 +16,35 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# IMPORTANT: you need to move the .cheatsheet file to your $HOME
+#
+
+#import pygtk
+#pygtk.require('2.0')
+
 import os
-import gtk
-import pygtk
-import vte
+# import gtk or print error
+try:
+    import gtk
+except:
+    print >> sys.stderr, "You need to install the python gtk bindings"
+    sys.exit(1)
+    
+# TODO: these handle the exception different. Which do we like?
+# import vte or display dialog
+try:
+    import vte
+except:
+    error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        'You need to install python bindings for libvte')
+    error.run()
+    sys.exit (1)
 
-pygtk.require('2.0')
 
-STATES = []
+#TODO: Get rid of global commands CMNDS and ROW
+CMNDS = []
 ROW = ''
-#text=""
 CHEATSHEET = os.path.expanduser("~/.clicompanion")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
@@ -35,13 +54,13 @@ class Companion:
     # create the terminal and set its size
     vte = vte.Terminal()
     vte.set_size_request(700, 350)
-    # fork_command() will run a command, in this case it shows a prompt
+    vte.connect ("child-exited", lambda term: gtk.main_quit())
     vte.fork_command('bash')
     
     #copy config file to user $HOME if does not exist
     def setup(self):
         """Create an initial cheatsheet."""
-    	if not os.path.exists(CHEATSHEET):
+        if not os.path.exists(CHEATSHEET):
             if os.path.exists(CONFIG_ORIG):
                 os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
             else:
@@ -97,8 +116,8 @@ class Companion:
         return text
 
     def responseToDialog(self, text, dialog, response):
-	    dialog.response(response)
-	
+        dialog.response(response)
+    
     # Add command dialog box
     def add_command(self, widget, data=None):
 
@@ -161,7 +180,7 @@ class Companion:
                 cheatfile.close()
                 l = str(text1+" :"+text2+" : "+text3)
                 ls = l.split(':',2)
-                STATES.append(ls[0])
+                CMNDS.append(ls[0])
                 self.liststore.append([ls[0],ls[1],ls[2]])
             #self.update()
           
@@ -170,7 +189,7 @@ class Companion:
         dialog.destroy()
         #return text
         
-	# Remove command from command file and GUI 
+    # Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
         row_int = int(ROW[0][0]) #convert pathlist into something usable    
         del self.liststore[row_int] #remove line from list
@@ -197,7 +216,7 @@ class Companion:
         # filtering data. 
         # http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html
         modelfilter = self.liststore.filter_new()
-        def func(modelfilter, iter, search_term):
+        def search(modelfilter, iter, search_term):
             try:
                 # Iterate through every column and row and check if the search
                 # term is there:
@@ -210,7 +229,7 @@ class Companion:
                 # that and fail silently.
                 pass
         
-        modelfilter.set_visible_func(func, search_term) 
+        modelfilter.set_visible_func(search, search_term) 
         self.treeview.set_model(modelfilter)
             
     #send the command to the terminal
@@ -219,7 +238,7 @@ class Companion:
         text = ""
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         
-        cmnd = STATES[row_int] #STATES is where commands are stored
+        cmnd = CMNDS[row_int] #CMNDS is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
             #print text #debug
@@ -233,9 +252,10 @@ class Companion:
      #open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
-        cmnd = STATES[row_int] #STATES is where commands are store
+        cmnd = CMNDS[row_int] #CMNDS is where commands are store
         splitcommand=cmnd.split(" ")
         Companion.vte.feed_child("man "+splitcommand[0]+"| most \n") #send command
+        self.vte.grab_focus()
         Companion.vte.show()
     
     # open file containing command dictionary and put it in a variable
@@ -251,12 +271,12 @@ class Companion:
             # Then, run me again.
             self.update()
     
-        global STATES
+        global CMNDS
         # add bug data from .clicompanion to the liststore
-        STATES = []
+        CMNDS = []
         for line in sorted(bugdata.splitlines()):
             l = line.split(':',2)
-            STATES.append(l[0])
+            CMNDS.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
             
     def __init__(self):
@@ -380,8 +400,11 @@ class Companion:
         return
 
 def main():
-    gtk.main()
-
+    try:
+        gtk.main()
+    except KeyboardInterrupt:
+        pass
+             
 if __name__ == "__main__":       
     companion = Companion()
     main()
