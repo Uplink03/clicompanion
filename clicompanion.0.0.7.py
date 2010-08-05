@@ -228,10 +228,10 @@ class Companion:
                 # Python raises a TypeError if row data doesn't exist. Catch
                 # that and fail silently.
                 pass
-        
+
         modelfilter.set_visible_func(search, search_term) 
         self.treeview.set_model(modelfilter)
-            
+
     #send the command to the terminal
     def run_command(self, widget, data=None):
         global ROW
@@ -248,15 +248,26 @@ class Companion:
             Companion.vte.feed_child(cmnd+"\n") #send command
             Companion.vte.show()
             Companion.vte.grab_focus()
-     
+
      #open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         cmnd = CMNDS[row_int] #CMNDS is where commands are store
-        splitcommand=cmnd.split(" ")
+        splitcommand = self._filter_sudo_from(cmnd.split(" "))
         Companion.vte.feed_child("man "+splitcommand[0]+"| most \n") #send command
         self.vte.grab_focus()
         Companion.vte.show()
+
+    @staticmethod
+    def _filter_sudo_from(command):
+        """Filter the sudo from `command`, where `command` is a list.
+        
+        Return the command list with the "sudo" filtered out.
+        """
+        if command[0].startswith("sudo"):
+            del command[0]
+            return command
+        return command
     
     # open file containing command dictionary and put it in a variable
     def update(self):
