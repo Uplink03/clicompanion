@@ -1,15 +1,15 @@
 dpkg -l: package : Find version of a package
-df -h : : file system disk space usage
-free -m : : show RAM usage
-ps auxww | grep : process : displays information about the active process
-iwconfig : : Display wireless network information
-ifconfig -a : : displays the status of the currently active interfaces
-sudo iwlist : : scan Scan Wireless networks
-sudo /etc/init.d/networking restart : : Reset the Network
-lsb_release -a : : What version of Ubuntu do I have?
-uname -a : : What kernel am I running
-sudo apt-get update && sudo apt-get upgrade : : Refresh update info and update all packages 
-sudo apt-get clean : : clear out all packages in /var/cache/apt/archives
+df -h: : file system disk space usage
+free -m: : show RAM usage
+ps auxww | grep: process : displays information about the active process
+iwconfig: : Display wireless network information
+ifconfig -a: : displays the status of the currently active interfaces
+sudo iwlist: : scan Scan Wireless networks
+sudo /etc/init.d/networking restart: : Reset the Network
+lsb_release -a: : What version of Ubuntu do I have?
+uname -a: : What kernel am I running
+sudo apt-get update && sudo apt-get upgrade: : Refresh update info and update all packages 
+sudo apt-get clean: : clear out all packages in /var/cache/apt/archives
 sudo apt-get autoclean : : clear out obsolete packages(packages with a newer release)
 apt-cache search :package : Find information on a package (not installed)
 sudo lshw : : List hardware 
