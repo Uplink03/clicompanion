@@ -167,9 +167,6 @@ class Companion(object):
         # Show the dialog
         result = dialog.run()
         
-        #text1 = ""
-        #text2 = ""
-        #text3 = ""
         if result == gtk.RESPONSE_OK:
             #user text assigned to a variable
             text1 = entry1.get_text()
@@ -456,12 +453,6 @@ class Companion(object):
         ##Show 'File' Menu
         #root_menu.show()
 
-        ## Make 'Quit' file menu entry
-        menu_item4 = gtk.MenuItem("Add Tab")
-        menu.append(menu_item4)
-        menu_item4.connect("activate", self.add_tab)
-        menu_item4.show()
-
         menu_bar = gtk.MenuBar()
         
         menu_bar.append (root_menu) ##Menu bar
@@ -571,7 +562,11 @@ class Companion(object):
         self.notebook.set_tab_pos(1)
         #gcp = self.notebook.get_current_page()
         #pagenum = ('Tab %d') % gcp
-
+        
+        # The "Add Tab" tab
+        add_tab_button = gtk.Button("+")
+        add_tab_button.connect("clicked", self.add_tab)
+        self.notebook.append_page(gtk.Label(""), add_tab_button)
 
         self.window.add(self.vbox)
         self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
