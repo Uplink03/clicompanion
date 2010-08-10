@@ -32,7 +32,7 @@ except:
     sys.exit(1)
     
 # TODO: these handle the exception different. Which do we like?
-# import vte or display dialog
+# import vte or display message dialog
 try:
     import vte
 except:
@@ -224,9 +224,6 @@ class Companion(object):
         self.add_command(text1, text2, text3)
 
 
-
-    
-    
     # Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
         row_int = int(ROW[0][0]) #convert pathlist into something usable    
@@ -266,10 +263,10 @@ class Companion(object):
                 # Python raises a TypeError if row data doesn't exist. Catch
                 # that and fail silently.
                 pass
-
+        
         modelfilter.set_visible_func(search, search_term) 
         self.treeview.set_model(modelfilter)
-
+            
     #send the command to the terminal
     def run_command(self, widget, data=None):
         global ROW
@@ -286,26 +283,15 @@ class Companion(object):
             Companion.vte.feed_child(cmnd+"\n") #send command
             Companion.vte.show()
             Companion.vte.grab_focus()
-
+     
      #open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         cmnd = CMNDS[row_int] #CMNDS is where commands are store
-        splitcommand = self._filter_sudo_from(cmnd.split(" "))
+        splitcommand=cmnd.split(" ")
         Companion.vte.feed_child("man "+splitcommand[0]+"| most \n") #send command
         self.vte.grab_focus()
         Companion.vte.show()
-
-    @staticmethod
-    def _filter_sudo_from(command):
-        """Filter the sudo from `command`, where `command` is a list.
-        
-        Return the command list with the "sudo" filtered out.
-        """
-        if command[0].startswith("sudo"):
-            del command[0]
-            return command
-        return command
     
     
     
@@ -329,8 +315,8 @@ class Companion(object):
             l = line.split(':',2)
             CMNDS.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
-                 
-    
+            
+
     #right-click popup menu
     def right_click_callback(self, treeview, event, data=None):
         if event.button == 3:
@@ -365,11 +351,88 @@ class Companion(object):
                 popupMenu.popup( None, None, None, event.button, time)
             return True
             
+            
+    def add_tab(self, widget):
+        vte_tab = vte.Terminal()
+        vte_tab.set_size_request(700, 350)
+        vte_tab.connect ("child-exited", lambda term: gtk.main_quit())
+        vte_tab.fork_command('bash')
+        pagenum = self.notebook.get_current_page()
+        group = ('Tab %d') % pagenum
+
+        self.notebook.prepend_page(vte_tab, None)
+        self.notebook.set_show_tabs(True)
+        self.notebook.set_show_border(True)
+        self.vte.grab_focus()
+        label = self.create_tab_label()
+        label.show_all()
+        self.notebook.queue_draw_area(0,0,-1,-1)
+        self.window.show_all()
+        
+
+    def create_tab_label(self):
+        box = gtk.HBox()
+        icon = gtk.Image()
+
+        
+        gcp = self.notebook.get_current_page()
+        pagenum = ('Tab %d') % gcp
+        label = gtk.Label(pagenum)
+               
+        icon.set_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
+        closebtn = gtk.Button()
+
+        #the close button is made of an empty button
+        #where we set an image
+        
+        closebtn.connect("clicked", self.close_tab)
+        closebtn.set_image(icon)
+        closebtn.set_relief(gtk.RELIEF_NONE)
+        
+        box.pack_start(label, True, True)
+        box.pack_end(closebtn, False, False)
+        box.show_all()
+        return box
+
+    # Remove a page from the notebook
+    def close_tab(self, button, notebook):
+        page = notebook.get_current_page()
+        notebook.remove_page(page)
+        # Need to refresh the widget -- 
+        # This forces the widget to redraw itself.
+        self.notebook.queue_draw_area(0,0,-1,-1)
+
+    def copy_paste(self, vte, event, data=None):        
+        if event.button == 3:
+
+            time = event.time
+            # right-click popup menu Copy
+            popupMenu = gtk.Menu()
+            menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_COPY)
+            popupMenu.add(menuPopup1)
+            menuPopup1.connect('activate', lambda x: vte.copy_clipboard())
+            #item.set_sensitive(terminal.vte.get_has_selection())
+            # right-click popup menu Paste       
+            menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_PASTE)
+            popupMenu.add(menuPopup2)
+            menuPopup2.connect('activate', lambda x: vte.paste_clipboard())
+           
+            # Show popup menu
+            popupMenu.show_all()
+            popupMenu.popup( None, None, None, event.button, time)
+            return True
+        else:
+            pass
+            
     def __init__(self):
         
-        context_id = 0
         
         self.setup()
+        #TODO: do we want to do this? Or just keep the height under 600.
+        ##Get user screen size## 
+        #screen = gtk.gdk.display_get_default().get_default_screen()
+        #screen_size = screen.get_monitor_geometry(0)
+        #height =  screen.get_height() ## screen height ##
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("CLI Companion")
@@ -395,28 +458,34 @@ class Companion(object):
         ## Make 'Run' menu entry
         menu_item1 = gtk.MenuItem("Run Command")
         menu.append(menu_item1)
-        menu_item1.connect("activate", self.run_command, context_id)
+        menu_item1.connect("activate", self.run_command)
         menu_item1.show()
 
         ## Make 'Add' file menu entry
         menu_item2 = gtk.MenuItem("Add Command")
         menu.append(menu_item2)
-        menu_item2.connect("activate", self.add_command, context_id)
+        menu_item2.connect("activate", self.add_command)
         menu_item2.show()
         
         ## Make 'Remove' file menu entry
         menu_item2 = gtk.MenuItem("Remove Command")
         menu.append(menu_item2)
-        menu_item2.connect("activate", self.remove_command, context_id)
+        menu_item2.connect("activate", self.remove_command)
         menu_item2.show()
 
         ## Make 'Quit' file menu entry
         menu_item3 = gtk.MenuItem("Quit")
         menu.append(menu_item3)
-        menu_item3.connect("activate", self.delete_event, "Quit")
+        menu_item3.connect("activate", self.delete_event)
         menu_item3.show()
         ##Show 'File' Menu
         #root_menu.show()
+
+        ## Make 'Quit' file menu entry
+        menu_item4 = gtk.MenuItem("Add Tab")
+        menu.append(menu_item4)
+        menu_item4.connect("activate", self.add_tab)
+        menu_item4.show()
 
         menu_bar = gtk.MenuBar()
         
@@ -449,10 +518,13 @@ class Companion(object):
         
         ## right click menu event capture
         self.treeview.connect ("button_press_event", self.right_click_callback, None)
+        
+        
+        
+        
         # The set_model() method sets the "model" property for the treeview to the value of model. model : the new tree model to use with the treeview
         self.treeview.set_model(self.liststore)
-        #self.treeview.set_search_entry(entry=None)
-        #self.treeview.set_enable_search(enable_search)
+
 
         for n in range(3):
             # add columns to treeview
@@ -477,11 +549,7 @@ class Companion(object):
             ROW = pathlist
             #print pathlist #debug
 
-        # make ui layout
-        self.vbox = gtk.VBox()
-        # create window with scrollbar
-        self.scrolledwindow = gtk.ScrolledWindow()
-        self.scrolledwindow.set_size_request(700, 220)
+
         
         def button_box(self, spacing, layout):
             #button box at bottom of main window
@@ -520,19 +588,30 @@ class Companion(object):
 
             
             return frame
-            
-            
+        
+        # make ui layout
+        self.vbox = gtk.VBox()
+        # create window with scrollbar
+        self.scrolledwindow = gtk.ScrolledWindow()
+        self.scrolledwindow.set_size_request(700, 220)
+        
+        self.notebook = gtk.Notebook()
+        self.notebook.add(self.vte)
+        self.notebook.set_tab_pos(1)
+        #gcp = self.notebook.get_current_page()
+        #pagenum = ('Tab %d') % gcp
+        self.vte.connect ("button_press_event", self.copy_paste, None)
 
 
         self.window.add(self.vbox)
         self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
         self.vbox.pack_start(self.scrolledwindow, True, True, 5)
         self.vbox.pack_start(search_hbox, True, True, 5)
-        self.vbox.pack_start(self.vte, True, True, 10)
+        self.vbox.pack_start(self.notebook, True, True, 10)
         self.vbox.pack_start(button_box( self, 10, gtk.BUTTONBOX_END), True, True, 5)
 
         self.scrolledwindow.add(self.treeview)
-        self.window.add(self.vbox)
+        #self.window.add(self.vbox)
         self.vte.grab_focus()
         self.window.show_all()
         return
