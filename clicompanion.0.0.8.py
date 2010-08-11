@@ -270,16 +270,20 @@ class Companion(object):
         text = ""
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         
+        #get the current notebook page so the function knows which terminal to run the command in.
+        pagenum = self.notebook.get_current_page()
+        page_widget = self.notebook.get_nth_page(pagenum)
+        
         cmnd = CMNDS[row_int] #CMNDS is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
             #print text #debug
-            Companion.vte.feed_child(cmnd+" "+text+"\n") #send command w/ input
-            Companion.vte.show()
+            page_widget.feed_child(cmnd+" "+text+"\n") #send command w/ input
+            page_widget.show()
         else: # command that has no user input
-            Companion.vte.feed_child(cmnd+"\n") #send command
-            Companion.vte.show()
-            Companion.vte.grab_focus()
+            page_widget.feed_child(cmnd+"\n") #send command
+            page_widget.show()
+            page_widget.grab_focus()
      
      #open the man page for selected command
     def man_page(self, widget, data=None):
@@ -314,7 +318,7 @@ class Companion(object):
             self.liststore.append([l[0],l[1],l[2]])
             
 
-    #right-click popup menu
+    #right-click popup menu for the Liststore(command list)
     def right_click_callback(self, treeview, event, data=None):
         if event.button == 3:
             x = int(event.x)
@@ -348,48 +352,49 @@ class Companion(object):
                 popupMenu.popup( None, None, None, event.button, time)
             return True
             
-            
-    def add_tab(self, widget):
+    # add a new terminal in a tab above the current terminal        
+    def add_tab(self,  data=None):
+        
         vte_tab = vte.Terminal()
         vte_tab.set_size_request(700, 350)
         vte_tab.connect ("child-exited", lambda term: gtk.main_quit())
         vte_tab.fork_command('bash')
-        pagenum = self.notebook.get_current_page()
-        group = ('Tab %d') % pagenum
-
-        self.notebook.prepend_page(vte_tab, None)
-        self.notebook.set_show_tabs(True)
-        self.notebook.set_show_border(True)
-        self.vte.grab_focus()
-        label = self.create_tab_label()
-        label.show_all()
-        self.notebook.queue_draw_area(0,0,-1,-1)
-        self.window.show_all()
         
 
-    def create_tab_label(self):
-        box = gtk.HBox()
-        icon = gtk.Image()
-
+        #self.notebook.prepend_page(vte_tab, None)
+        #self.notebook.set_show_tabs(True)
+        #self.notebook.set_show_border(True)
+        #self.vte.grab_focus()
         
-        gcp = self.notebook.get_current_page()
+        gcp = self.notebook.get_current_page() +1
+        print gcp
         pagenum = ('Tab %d') % gcp
-        label = gtk.Label(pagenum)
-               
-        icon.set_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
-        closebtn = gtk.Button()
 
+        box = gtk.HBox()
+        label = gtk.Label(pagenum)
+        #icon = gtk.Image()
+        box.pack_start(label, True, True)
+        
+        # x image for tab close button
+        close_image = gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
+        # close button
+        closebtn = gtk.Button()
+        closebtn.set_relief(gtk.RELIEF_NONE)
+        closebtn.add(close_image)
+        # put button in a box and show box
+        box.pack_end(closebtn, False, False)
+        box.show_all()
+                
+        #widget = gtk.Label(label)
+        self.notebook.prepend_page(vte_tab, box) # add tab
         #the close button is made of an empty button
         #where we set an image
         
-        closebtn.connect("clicked", self.close_tab)
-        closebtn.set_image(icon)
-        closebtn.set_relief(gtk.RELIEF_NONE)
-        
-        box.pack_start(label, True, True)
-        box.pack_end(closebtn, False, False)
-        box.show_all()
-        return box
+        closebtn.connect("clicked", self.close_tab) # signal handler for tab
+        self.window.show_all()
+
+
+        #return box
 
     # Remove a page from the notebook
     def close_tab(self, button, notebook):
@@ -397,7 +402,7 @@ class Companion(object):
         notebook.remove_page(page)
         # Need to refresh the widget -- 
         # This forces the widget to redraw itself.
-        self.notebook.queue_draw_area(0,0,-1,-1)
+        #self.notebook.queue_draw_area(0,0,-1,-1)
 
     def copy_paste(self, vte, event, data=None):        
         if event.button == 3:
@@ -558,7 +563,7 @@ class Companion(object):
             # Set the appearance of the Button Box
             bbox.set_layout(layout)
             bbox.set_spacing(spacing)
-            # OK button
+            # APPLY button
             buttonRun = gtk.Button(stock=gtk.STOCK_APPLY)
             bbox.add(buttonRun)
             buttonRun.connect("clicked", self.run_command)
@@ -593,7 +598,9 @@ class Companion(object):
         self.scrolledwindow.set_size_request(700, 220)
         
         self.notebook = gtk.Notebook()
-        self.notebook.add(self.vte)
+        
+        #self.notebook.add(self.vte)
+        self.add_tab()
         self.notebook.set_tab_pos(1)
         #gcp = self.notebook.get_current_page()
         #pagenum = ('Tab %d') % gcp
