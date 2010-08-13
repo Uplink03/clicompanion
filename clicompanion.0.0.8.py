@@ -49,13 +49,13 @@ CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
 
 class Companion(object):
-
+    '''
     # create the terminal and set its size
     vte = vte.Terminal()
     vte.set_size_request(700, 350)
     vte.connect ("child-exited", lambda term: gtk.main_quit())
     vte.fork_command('bash')
-    
+    '''
     #copy config file to user $HOME if does not exist
     def setup(self):
         """Create an initial cheatsheet."""
@@ -366,7 +366,7 @@ class Companion(object):
             return True
             
     # add a new terminal in a tab above the current terminal        
-    def add_tab(self,  data=None):
+    def add_tab(self,   data=None):
         
         vte_tab = vte.Terminal()
         vte_tab.set_size_request(700, 350)
@@ -397,13 +397,14 @@ class Companion(object):
                 
         #widget = gtk.Label(label)
         self.notebook.prepend_page(vte_tab, box) # add tab
+        vte_tab.connect ("button_press_event", self.copy_paste, None)
         #self.notebook.grab_focus()
         
         closebtn.connect("clicked", self.close_tab) # signal handler for tab
         self.window.show_all()
 
 
-        #return box
+        return vte_tab
 
     # Remove a page from the notebook
     def close_tab(self, widget, data= None):
@@ -610,7 +611,7 @@ class Companion(object):
         self.notebook.set_tab_pos(1)
         #gcp = self.notebook.get_current_page()
         #pagenum = ('Tab %d') % gcp
-        self.vte.connect ("button_press_event", self.copy_paste, None)
+        #vte_tab.connect ("button_press_event", self.copy_paste, None)
         
         # The "Add Tab" tab
         add_tab_button = gtk.Button("+")
@@ -627,7 +628,7 @@ class Companion(object):
 
         self.scrolledwindow.add(self.treeview)
         #self.window.add(self.vbox)
-        self.vte.grab_focus()
+        #self.vte.grab_focus()
         self.window.show_all()
         return
 
