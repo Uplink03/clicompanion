@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# IMPORTANT: you need to move the .cheatsheet file to your $HOME
 #
 
 import pygtk
@@ -289,12 +288,26 @@ class Companion(object):
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
         cmnd = CMNDS[row_int] #CMNDS is where commands are store
-        splitcommand=cmnd.split(" ")
-        Companion.vte.feed_child("man "+splitcommand[0]+"| most \n") #send command
-        self.vte.grab_focus()
-        Companion.vte.show()
-    
-    
+        splitcommand = self._filter_sudo_from(cmnd.split(" "))
+        # get current notebook tab to use in function
+        pagenum = self.notebook.get_current_page()
+        page_widget = self.notebook.get_nth_page(pagenum)
+        
+        page_widget.feed_child("man "+splitcommand[0]+"| most \n") #send command
+        page_widget.grab_focus()
+        page_widget.show()
+        
+        
+    @staticmethod
+    def _filter_sudo_from(command):
+        """Filter the sudo from `command`, where `command` is a list.
+        Return the command list with the "sudo" filtered out.
+        """
+        if command[0].startswith("sudo"):
+            del command[0]
+            return command
+        return command
+        
     
     # open file containing command dictionary and put it in a variable
     def update(self):
@@ -360,11 +373,8 @@ class Companion(object):
         vte_tab.connect ("child-exited", lambda term: gtk.main_quit())
         vte_tab.fork_command('bash')
         
-
-        #self.notebook.prepend_page(vte_tab, None)
         #self.notebook.set_show_tabs(True)
         #self.notebook.set_show_border(True)
-        #self.vte.grab_focus()
         
         gcp = self.notebook.get_current_page() +1
         print gcp
@@ -387,8 +397,7 @@ class Companion(object):
                 
         #widget = gtk.Label(label)
         self.notebook.prepend_page(vte_tab, box) # add tab
-        #the close button is made of an empty button
-        #where we set an image
+        #self.notebook.grab_focus()
         
         closebtn.connect("clicked", self.close_tab) # signal handler for tab
         self.window.show_all()
@@ -397,9 +406,10 @@ class Companion(object):
         #return box
 
     # Remove a page from the notebook
-    def close_tab(self, button, notebook):
-        page = notebook.get_current_page()
-        notebook.remove_page(page)
+    def close_tab(self, widget, data= None):
+        page = self.notebook.get_current_page()
+        print 'delete' + str(page)
+        self.notebook.remove_page(page)
         # Need to refresh the widget -- 
         # This forces the widget to redraw itself.
         #self.notebook.queue_draw_area(0,0,-1,-1)
@@ -427,7 +437,6 @@ class Companion(object):
             pass
             
     def __init__(self):
-        
         
         self.setup()
         #TODO: do we want to do this? Or just keep the height under 600.
@@ -520,9 +529,6 @@ class Companion(object):
         
         ## right click menu event capture
         self.treeview.connect ("button_press_event", self.right_click_callback, None)
-        
-        
-        
         
         # The set_model() method sets the "model" property for the treeview to the value of model. model : the new tree model to use with the treeview
         self.treeview.set_model(self.liststore)
