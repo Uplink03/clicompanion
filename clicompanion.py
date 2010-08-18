@@ -19,6 +19,7 @@
 #
 #
 
+import sys
 import pygtk
 pygtk.require('2.0')
 
@@ -39,6 +40,8 @@ except:
         'You need to install python bindings for libvte')
     error.run()
     sys.exit (1)
+
+import menus_buttons
 
 
 #TODO: Get rid of global commands CMNDS and ROW
@@ -369,7 +372,7 @@ class Companion(object):
     def add_tab(self,   data=None):
         
         vte_tab = vte.Terminal()
-        vte_tab.set_size_request(700, 350)
+        vte_tab.set_size_request(700, 220)
         vte_tab.connect ("child-exited", lambda term: gtk.main_quit())
         vte_tab.fork_command('bash')
         
@@ -390,6 +393,8 @@ class Companion(object):
         # close button
         closebtn = gtk.Button()
         closebtn.set_relief(gtk.RELIEF_NONE)
+        closebtn.set_focus_on_click(True)
+
         closebtn.add(close_image)
         # put button in a box and show box
         box.pack_end(closebtn, False, False)
@@ -398,22 +403,21 @@ class Companion(object):
         #widget = gtk.Label(label)
         self.notebook.prepend_page(vte_tab, box) # add tab
         vte_tab.connect ("button_press_event", self.copy_paste, None)
-        #self.notebook.grab_focus()
+        vte_tab.grab_focus()
         
-        closebtn.connect("clicked", self.close_tab) # signal handler for tab
+        closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
         self.window.show_all()
 
 
         return vte_tab
 
     # Remove a page from the notebook
-    def close_tab(self, widget, data= None):
-        page = self.notebook.get_current_page()
-        print 'delete' + str(page)
-        self.notebook.remove_page(page)
-        # Need to refresh the widget -- 
-        # This forces the widget to redraw itself.
-        #self.notebook.queue_draw_area(0,0,-1,-1)
+    def close_tab(self, sender, widget):
+        #get the page number of the tab we wanted to close
+        pagenum = self.notebook.page_num(widget)
+        #and close it
+        self.notebook.remove_page(pagenum)
+
 
     def copy_paste(self, vte, event, data=None):        
         if event.button == 3:
@@ -437,6 +441,11 @@ class Companion(object):
         else:
             pass
             
+    def about_event(self):
+        pass
+    def help_event(self):
+        pass
+            
     def __init__(self):
         
         self.setup()
@@ -459,50 +468,10 @@ class Companion(object):
 
         self.window.connect("delete_event", self.delete_event)
         
-        #TODO: Only File menu right now.
-        # Application Menu (File, Edit, Help)
-        #vbox = gtk.VBox(True, 0)
-        ## Make 'File' Drop Down Menu
-        menu = gtk.Menu()
-        root_menu = gtk.MenuItem("File")
-        root_menu.set_submenu(menu)
-        
-        ## Make 'Run' menu entry
-        menu_item1 = gtk.MenuItem("Run Command")
-        menu.append(menu_item1)
-        menu_item1.connect("activate", self.run_command)
-        menu_item1.show()
 
-        ## Make 'Add' file menu entry
-        menu_item2 = gtk.MenuItem("Add Command")
-        menu.append(menu_item2)
-        menu_item2.connect("activate", self.add_command)
-        menu_item2.show()
-        
-        ## Make 'Remove' file menu entry
-        menu_item2 = gtk.MenuItem("Remove Command")
-        menu.append(menu_item2)
-        menu_item2.connect("activate", self.remove_command)
-        menu_item2.show()
-
-        ## Make 'Quit' file menu entry
-        menu_item3 = gtk.MenuItem("Quit")
-        menu.append(menu_item3)
-        menu_item3.connect("activate", self.delete_event)
-        menu_item3.show()
-        ##Show 'File' Menu
-        #root_menu.show()
-
-        ## Make 'Quit' file menu entry
-        menu_item4 = gtk.MenuItem("Add Tab")
-        menu.append(menu_item4)
-        menu_item4.connect("activate", self.add_tab)
-        menu_item4.show()
-
-        menu_bar = gtk.MenuBar()
-        
-        menu_bar.append (root_menu) ##Menu bar
-        #menu_bar.show() ##show File Menu # Menu Bar
+        ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
+        bar = menus_buttons.FileMenu()
+        menu_bar = bar.the_menu(self)
 
 
         # create a liststore with three string columns
@@ -558,45 +527,8 @@ class Companion(object):
             ROW = pathlist
             #print pathlist #debug
 
-
-        
-        def button_box(self, spacing, layout):
-            #button box at bottom of main window
-            frame = gtk.Frame()
-            bbox = gtk.HButtonBox()
-            bbox.set_border_width(5)
-            frame.add(bbox)
-
-            # Set the appearance of the Button Box
-            bbox.set_layout(layout)
-            bbox.set_spacing(spacing)
-            # APPLY button
-            buttonRun = gtk.Button(stock=gtk.STOCK_APPLY)
-            bbox.add(buttonRun)
-            buttonRun.connect("clicked", self.run_command)
-            # Add button
-            buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
-            bbox.add(buttonAdd)
-            buttonAdd.connect("clicked", self.add_command)
-            # Edit button
-            buttonEdit = gtk.Button("Edit")
-            bbox.add(buttonEdit)
-            buttonEdit.connect("clicked", self.edit_command)
-            # Delete button
-            buttonDelete = gtk.Button(stock=gtk.STOCK_DELETE)
-            bbox.add(buttonDelete)
-            buttonDelete.connect("clicked", self.remove_command)
-            #Help Button
-            buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
-            bbox.add(buttonHelp)
-            buttonHelp.connect("clicked", self.man_page)
-            # Cancel button
-            buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
-            bbox.add(buttonCancel)
-            buttonCancel.connect("clicked", self.delete_event)
-
-            
-            return frame
+        # buttons at bottom of main window [menu.py]
+        button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
         
         # make ui layout
         self.vbox = gtk.VBox()
@@ -624,7 +556,7 @@ class Companion(object):
         self.vbox.pack_start(self.scrolledwindow, True, True, 5)
         self.vbox.pack_start(search_hbox, True, True, 5)
         self.vbox.pack_start(self.notebook, True, True, 10)
-        self.vbox.pack_start(button_box( self, 10, gtk.BUTTONBOX_END), True, True, 5)
+        self.vbox.pack_start(button_box, True, True, 5)
 
         self.scrolledwindow.add(self.treeview)
         #self.window.add(self.vbox)
