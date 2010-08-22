@@ -121,8 +121,8 @@ class Companion(object):
         dialog.response(response)
     
     # Add command dialog box
-    def add_command(self, widget, text1 = "", text2 = "", text3 = ""):
-        print text1, text2, text3
+    def add_command(self, widget):
+
         # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
@@ -220,11 +220,79 @@ class Companion(object):
         text3 = str(row_edit[3])
         '''
         print text1, text2, text3
-        self.add_command(text1, text2, text3)
+                # Create Dialog object
+        dialog = gtk.MessageDialog(
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION,
+            gtk.BUTTONS_OK,
+            None)
+
+
+        # primaary text
+        dialog.set_markup("Add a command to your clicompanion dictionary")
+
+        #create the text input field
+        entry1 = gtk.Entry()
+        entry1.set_text(text1)
+        entry2 = gtk.Entry()
+        entry2.set_text(text2)
+        entry3 = gtk.Entry()
+        entry3.set_text(text3)        
+        #allow the user to press enter to do ok
+        entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+
+        #create the three labels
+        hbox1 = gtk.HBox()
+        hbox1.pack_start(gtk.Label("Command"), False, 5, 5)
+        hbox1.pack_start(entry1, False, 5, 5)
+        
+        hbox1.pack_start(gtk.Label("User Input"), False, 5, 5)
+        hbox1.pack_start(entry2, False, 5, 5)
+        
+        hbox2 = gtk.HBox()
+        hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
+        hbox2.pack_start(entry3, True, 5, 5)
+
+        # cancel button        
+        dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
+        #some secondary text
+        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
+        
+        #add it and show it
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+        dialog.show_all()
+        # Show the dialog
+        result = dialog.run()
+        
+        if result == gtk.RESPONSE_OK:
+            #user text assigned to a variable
+            text1 = entry1.get_text()
+            text2 = entry2.get_text()
+            text3 = entry3.get_text()
+
+            if text1 != "":
+                self.remove_command(widget)
+                # open flat file, add the new command
+                with open(CHEATSHEET, "a") as cheatfile:
+                        cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
+                        cheatfile.close()
+                        l = str(text1+" :"+text2+" : "+text3)
+                        ls = l.split(':',2)
+                        CMNDS.append(ls[0])
+                        self.liststore.append([ls[0],ls[1],ls[2]])
+                        #self.update()
+          
+        # The destroy method must be called otherwise the 'Close' button will
+        # not work.
+        dialog.destroy()
+        #return text
 
 
     # Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
+        global ROW
         row_int = int(ROW[0][0]) #convert pathlist into something usable    
         del self.liststore[row_int]
         
