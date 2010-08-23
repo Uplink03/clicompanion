@@ -41,8 +41,8 @@ except:
     error.run()
     sys.exit (1)
 
-import menus_buttons
-
+#import clicompanion.menus_buttons # packaged verrsion
+import menus_buttons #local version
 
 #TODO: Get rid of global commands CMNDS and ROW
 CMNDS = []
@@ -53,11 +53,7 @@ CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
 class Companion(object):
     '''
-    # create the terminal and set its size
-    vte = vte.Terminal()
-    vte.set_size_request(700, 350)
-    vte.connect ("child-exited", lambda term: gtk.main_quit())
-    vte.fork_command('bash')
+    All the actions the program can do.
     '''
     #copy config file to user $HOME if does not exist
     def setup(self):
@@ -76,7 +72,7 @@ class Companion(object):
         return False
         
     # Info Dialog Box    
-    # if a command needs more info EX: a package name
+    # if a command needs more info EX: a package name, a path
     def get_info(self, widget, data=None):
         global ROW
         row_int = int(ROW[0][0])
@@ -137,11 +133,8 @@ class Companion(object):
 
         #create the text input field
         entry1 = gtk.Entry()
-        entry1.set_text(text1)
         entry2 = gtk.Entry()
-        entry2.set_text(text2)
-        entry3 = gtk.Entry()
-        entry3.set_text(text3)        
+        entry3 = gtk.Entry()        
         #allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
@@ -160,7 +153,7 @@ class Companion(object):
         # cancel button        
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
+        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable, if any, is required.")
         
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -195,32 +188,18 @@ class Companion(object):
 
         global ROW
         row_int = int(ROW[0][0])
-        #print row_int
-        #print text1, text2, text3
+
 
         row_obj1 = self.liststore[row_int][0]
         text1 = "".join(row_obj1)
         
-
         row_obj2 = self.liststore[row_int][1]
         text2 = "".join(row_obj2)
-        
 
         row_obj3 = self.liststore[row_int][2]
         text3 = "".join(row_obj3)
         
-        '''
-        row_obj = self.liststore[row_int]
-        row_str = "".join(row_obj)
-        print row_str
-        row_edit = row_str.split(':',2)
-        print row_edit
-        text1 = str(row_edit[1])
-        text2 = str(row_edit[2])
-        text3 = str(row_edit[3])
-        '''
-        print text1, text2, text3
-                # Create Dialog object
+        # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -228,9 +207,8 @@ class Companion(object):
             gtk.BUTTONS_OK,
             None)
 
-
-        # primaary text
-        dialog.set_markup("Add a command to your clicompanion dictionary")
+        # primary text
+        dialog.set_markup("Edit the command in your clicompanion dictionary")
 
         #create the text input field
         entry1 = gtk.Entry()
@@ -257,7 +235,7 @@ class Companion(object):
         # cancel button        
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable if any is required.")
+        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable, if any, is required.")
         
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -282,12 +260,12 @@ class Companion(object):
                         ls = l.split(':',2)
                         CMNDS.append(ls[0])
                         self.liststore.append([ls[0],ls[1],ls[2]])
-                        #self.update()
+
           
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
-        #return text
+
 
 
     # Remove command from command file and GUI 
@@ -338,16 +316,16 @@ class Companion(object):
     def run_command(self, widget, data=None):
         global ROW
         text = ""
-        row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
+        row_int = int(ROW[0][0]) # removes everything but number from [5,]
         
         #get the current notebook page so the function knows which terminal to run the command in.
         pagenum = self.notebook.get_current_page()
-        page_widget = self.notebook.get_nth_page(pagenum)
+        widget = self.notebook.get_nth_page(pagenum)
+        page_widget = widget.get_child()
         
         cmnd = CMNDS[row_int] #CMNDS is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
-            #print text #debug
             page_widget.feed_child(cmnd+" "+text+"\n") #send command w/ input
             page_widget.show()
         else: # command that has no user input
@@ -362,7 +340,8 @@ class Companion(object):
         splitcommand = self._filter_sudo_from(cmnd.split(" "))
         # get current notebook tab to use in function
         pagenum = self.notebook.get_current_page()
-        page_widget = self.notebook.get_nth_page(pagenum)
+        widget = self.notebook.get_nth_page(pagenum)
+        page_widget = widget.get_child()
         
         page_widget.feed_child("man "+splitcommand[0]+"| most \n") #send command
         page_widget.grab_focus()
@@ -439,21 +418,21 @@ class Companion(object):
     # add a new terminal in a tab above the current terminal        
     def add_tab(self,   data=None):
         
-        vte_tab = vte.Terminal()
-        vte_tab.set_size_request(700, 220)
-        vte_tab.connect ("child-exited", lambda term: gtk.main_quit())
-        vte_tab.fork_command('bash')
+        _vte = vte.Terminal()
+        _vte.set_size_request(700, 220)
+        _vte.connect ("child-exited", lambda term: gtk.main_quit())
+        _vte.fork_command('bash')
         
+        vte_tab = gtk.ScrolledWindow()
+        vte_tab.add(_vte)
         #self.notebook.set_show_tabs(True)
         #self.notebook.set_show_border(True)
         
         gcp = self.notebook.get_current_page() +1
-        print gcp
         pagenum = ('Tab %d') % gcp
 
         box = gtk.HBox()
         label = gtk.Label(pagenum)
-        #icon = gtk.Image()
         box.pack_start(label, True, True)
         
         # x image for tab close button
@@ -468,9 +447,9 @@ class Companion(object):
         box.pack_end(closebtn, False, False)
         box.show_all()
                 
-        #widget = gtk.Label(label)
         self.notebook.prepend_page(vte_tab, box) # add tab
-        vte_tab.connect ("button_press_event", self.copy_paste, None)
+        self.notebook.set_scrollable(True)
+        _vte.connect ("button_press_event", self.copy_paste, None)
         vte_tab.grab_focus()
         
         closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
@@ -538,7 +517,8 @@ class Companion(object):
         
 
         ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
-        bar = menus_buttons.FileMenu()
+        #bar = clicompanion.menus_buttons.FileMenu() #packaged version
+        bar = menus_buttons.FileMenu() #local version
         menu_bar = bar.the_menu(self)
 
 
@@ -593,9 +573,8 @@ class Companion(object):
             (model,pathlist)=treeselection.get_selected_rows()
             global ROW
             ROW = pathlist
-            #print pathlist #debug
 
-        # buttons at bottom of main window [menu.py]
+        # buttons at bottom of main window [menus_buttons.py]
         button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
         
         # make ui layout
@@ -606,12 +585,9 @@ class Companion(object):
         
         self.notebook = gtk.Notebook()
         
-        #self.notebook.add(self.vte)
         self.add_tab()
         self.notebook.set_tab_pos(1)
-        #gcp = self.notebook.get_current_page()
-        #pagenum = ('Tab %d') % gcp
-        #vte_tab.connect ("button_press_event", self.copy_paste, None)
+
         
         # The "Add Tab" tab
         add_tab_button = gtk.Button("+")
@@ -627,7 +603,6 @@ class Companion(object):
         self.vbox.pack_start(button_box, True, True, 5)
 
         self.scrolledwindow.add(self.treeview)
-        #self.window.add(self.vbox)
         #self.vte.grab_focus()
         self.window.show_all()
         return

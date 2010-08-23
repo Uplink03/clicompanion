@@ -20,3 +20,9 @@ ls :path : List Folders Contents
 mv :path : Move (Rename) Files
 cp :path : Copy Files
 sudo lspci : : attached PCI devices
+chmod : permissions file : Change access permissions, change mode
+chown: owner:group file : Change the owner and/or group of each given file.
+dmesg : : Print kernel & driver messages
+history : : Command History
+locate : file : Find files (updatedb to update DB)
+sudo updatedb : : update the database for locate

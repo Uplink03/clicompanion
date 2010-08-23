@@ -17,7 +17,7 @@ class FileMenu(object):
 
         ##FILE MENU ##     
         ## Make 'Run' menu entry
-        menu_item1 = gtk.MenuItem("Run Command")
+        menu_item1 = gtk.MenuItem("Apply Command")
         menu.append(menu_item1)
         menu_item1.connect("activate", cli.run_command)
         menu_item1.show()
