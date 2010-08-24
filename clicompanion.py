@@ -494,6 +494,8 @@ class Companion(object):
         pass
             
     def __init__(self):
+        #for now hardcode xterm because of a change in libvte in Maverick
+        os.putenv('TERM', 'xterm')       
         
         self.setup()
         #TODO: do we want to do this? Or just keep the height under 600.
