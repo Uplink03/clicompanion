@@ -1,0 +1,104 @@
+# CLIcompanion i18n
+# Copyright 2010 Duane Hinnen, Kenny Meyer, Marcos Vanetta
+# This file is distributed under the same license as the clicompaninon package.
+# Duane Hinnen <duanedesign@ubuntu.com>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-08-27 13:30+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: clicompanion.py:66
+msgid "You need to install the python gtk bindings"
+msgstr ""
+
+#: clicompanion.py:75
+msgid "You need to install python bindings for libvte"
+msgstr ""
+
+#: clicompanion.py:124
+msgid "This command requires more information"
+msgstr ""
+
+#: clicompanion.py:136
+msgid "Please provide a "
+msgstr ""
+
+#: clicompanion.py:167
+msgid "Add a command to your clicompanion dictionary"
+msgstr ""
+
+#: clicompanion.py:178 clicompanion.py:260 clicompanion.py:587
+msgid "Command"
+msgstr ""
+
+#: clicompanion.py:181 clicompanion.py:263
+msgid "User Input"
+msgstr ""
+
+#: clicompanion.py:185 clicompanion.py:267 clicompanion.py:589
+msgid "Description"
+msgstr ""
+
+#: clicompanion.py:191 clicompanion.py:273
+msgid ""
+"Please provide a command, description, and what type of user variable, if "
+"any, is required."
+msgstr ""
+
+#: clicompanion.py:246
+msgid "Edit the command in your clicompanion dictionary"
+msgstr ""
+
+#: clicompanion.py:573
+msgid "Search:"
+msgstr ""
+
+#: clicompanion.py:588
+msgid "User Argument"
+msgstr ""
+
+#: menus_buttons.py:11
+msgid "File"
+msgstr ""
+
+#: menus_buttons.py:15 menus_buttons.py:60
+msgid "Help"
+msgstr ""
+
+#: menus_buttons.py:20
+msgid "Run Command"
+msgstr ""
+
+#: menus_buttons.py:26
+msgid "Add Command"
+msgstr ""
+
+#: menus_buttons.py:32
+msgid "Remove Command"
+msgstr ""
+
+#: menus_buttons.py:38
+msgid "Quit"
+msgstr ""
+
+#: menus_buttons.py:45
+msgid "Add Tab"
+msgstr ""
+
+#: menus_buttons.py:53
+msgid "About"
+msgstr ""
+
+#: menus_buttons.py:88
+msgid "Run"
+msgstr ""

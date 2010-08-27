@@ -3,7 +3,7 @@
 #
 # clicompanion.py - commandline tool.
 #
-# Copyright 2010 Duane Hinnen, Kenny Meyer
+# Copyright 2010 Duane Hinnen, Kenny Meyer, Marcos Vanetta
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -24,11 +24,46 @@ import pygtk
 pygtk.require('2.0')
 
 import os
+import os.path
+
+# Starting with the i18n
+import locale
+import gettext
+
+BASEDIR = os.curdir
+
+def get_language():
+    """Return the language to be used by the system.
+
+    If it finds the system language in the translated files, it
+    returns it, otherwise it just returns None.
+    """
+    loc = locale.setlocale(locale.LC_ALL, "")
+    loc = loc[:2]
+    traducidos = os.listdir(locale_dir)
+    if loc in traducidos:
+        return loc
+    return
+
+locale_dir = os.path.join(BASEDIR, "locale")
+gettext.install('core', locale_dir, unicode=True)
+idioma = get_language()
+if idioma is not None:
+    mo = os.path.join(locale_dir, '%s/LC_MESSAGES/core.mo' % idioma)
+    if not os.access(mo, os.F_OK):
+        raise IOError("The l10n directory (for language %r) exists but "
+                      "not the core.mo file" % idioma)
+    trans = gettext.translation('core', locale_dir, languages=[idioma])
+    trans.install(unicode=True)
+
+# End with i18n
+
+
 # import gtk or print error
 try:
     import gtk
 except:
-    print >> sys.stderr, "You need to install the python gtk bindings"
+    print >> sys.stderr, _("You need to install the python gtk bindings")
     sys.exit(1)
     
 # TODO: these handle the exception different. Which do we like?
@@ -37,7 +72,7 @@ try:
     import vte
 except:
     error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-        'You need to install python bindings for libvte')
+        _('You need to install python bindings for libvte'))
     error.run()
     sys.exit (1)
 
@@ -86,7 +121,7 @@ class Companion(object):
             None)
         
         # Primary text
-        dialog.set_markup("This command requires more information")
+        dialog.set_markup(_("This command requires more information"))
 
         #create the text input field
         entry = gtk.Entry()
@@ -98,7 +133,7 @@ class Companion(object):
         hbox.pack_start(gtk.Label(self.liststore[row_int][1]+":"), False, 5, 5)
         hbox.pack_end(entry)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a "+self.liststore[row_int][1])
+        dialog.format_secondary_markup(_("Please provide a "+self.liststore[row_int][1]))
         #add it and show it
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
@@ -129,7 +164,7 @@ class Companion(object):
 
 
         # primaary text
-        dialog.set_markup("Add a command to your clicompanion dictionary")
+        dialog.set_markup(_("Add a command to your clicompanion dictionary"))
 
         #create the text input field
         entry1 = gtk.Entry()
@@ -140,20 +175,20 @@ class Companion(object):
 
         #create the three labels
         hbox1 = gtk.HBox()
-        hbox1.pack_start(gtk.Label("Command"), False, 5, 5)
+        hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
         
-        hbox1.pack_start(gtk.Label("User Input"), False, 5, 5)
+        hbox1.pack_start(gtk.Label(_("User Input")), False, 5, 5)
         hbox1.pack_start(entry2, False, 5, 5)
         
         hbox2 = gtk.HBox()
-        hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
+        hbox2.pack_start(gtk.Label(_("Description")), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
 
         # cancel button        
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable, if any, is required.")
+        dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
         
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -208,7 +243,7 @@ class Companion(object):
             None)
 
         # primary text
-        dialog.set_markup("Edit the command in your clicompanion dictionary")
+        dialog.set_markup(_("Edit the command in your clicompanion dictionary"))
 
         #create the text input field
         entry1 = gtk.Entry()
@@ -222,20 +257,20 @@ class Companion(object):
 
         #create the three labels
         hbox1 = gtk.HBox()
-        hbox1.pack_start(gtk.Label("Command"), False, 5, 5)
+        hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
         
-        hbox1.pack_start(gtk.Label("User Input"), False, 5, 5)
+        hbox1.pack_start(gtk.Label(_("User Input")), False, 5, 5)
         hbox1.pack_start(entry2, False, 5, 5)
         
         hbox2 = gtk.HBox()
-        hbox2.pack_start(gtk.Label("Description"), False, 5, 5)
+        hbox2.pack_start(gtk.Label(_("Description")), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
 
         # cancel button        
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
-        dialog.format_secondary_markup("Please provide a command, description, and what type of user variable, if any, is required.")
+        dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
         
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -254,9 +289,9 @@ class Companion(object):
                 self.remove_command(widget)
                 # open flat file, add the new command
                 with open(CHEATSHEET, "a") as cheatfile:
-                        cheatfile.write(text1+" :"+text2+" : "+text3+'\n')
+                        cheatfile.write(text1+":"+text2+":"+text3+'\n')
                         cheatfile.close()
-                        l = str(text1+" :"+text2+" : "+text3)
+                        l = str(text1+":"+text2+":"+text3)
                         ls = l.split(':',2)
                         CMNDS.append(ls[0])
                         self.liststore.append([ls[0],ls[1],ls[2]])
@@ -271,8 +306,11 @@ class Companion(object):
     # Remove command from command file and GUI 
     def remove_command(self, widget, data=None):
         global ROW
-        row_int = int(ROW[0][0]) #convert pathlist into something usable    
+        row_int = int(ROW[0][0]) #convert pathlist into something usable
+
+        del CMNDS[row_int]
         del self.liststore[row_int]
+
         
         # open command file and delete line so the change is persistent
         with open(CHEATSHEET, "r") as cheatfile:
@@ -282,6 +320,9 @@ class Companion(object):
         with open(CHEATSHEET, "w") as cheatfile2:           
             cheatfile2.writelines(cheatlines)
             cheatfile2.close()
+            
+
+
 
     def _filter_commands(self, widget, data=None):
         """Show commands matching a given search term.
@@ -375,7 +416,7 @@ class Companion(object):
         global CMNDS
         # add bug data from .clicompanion to the liststore
         CMNDS = []
-        for line in sorted(bugdata.splitlines()):
+        for line in bugdata.splitlines():
             l = line.split(':',2)
             CMNDS.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
@@ -494,7 +535,7 @@ class Companion(object):
         pass
             
     def __init__(self):
-        #for now hardcode xterm because of a change in libvte in Maverick
+        #For now TERM is hardcoded to xterm because of a change in libvte in Maverick
         os.putenv('TERM', 'xterm')       
         
         self.setup()
@@ -529,7 +570,7 @@ class Companion(object):
         self.update()
         
         # The search section
-        self.search_label = gtk.Label("Search:")
+        self.search_label = gtk.Label(_("Search:"))
         self.search_label.set_alignment(xalign=-1, yalign=0) 
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
@@ -543,9 +584,9 @@ class Companion(object):
 
         # create the TreeViewColumns to display the data
         self.treeview.columns = [None]*3
-        self.treeview.columns[0] = gtk.TreeViewColumn('Command')
-        self.treeview.columns[1] = gtk.TreeViewColumn('User Argument')
-        self.treeview.columns[2] = gtk.TreeViewColumn('Description')
+        self.treeview.columns[0] = gtk.TreeViewColumn(_('Command'))
+        self.treeview.columns[1] = gtk.TreeViewColumn(_('User Argument'))
+        self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
         
         ## right click menu event capture
         self.treeview.connect ("button_press_event", self.right_click_callback, None)

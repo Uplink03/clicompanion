@@ -1,48 +1,49 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-
+# Copyright 2010 Duane Hinnen, Kenny Meyer, Marcos Vanetta
+#
 #import clicompanion
 import gtk
 
 class FileMenu(object):
     def the_menu(self, cli):
         menu = gtk.Menu()
-        root_menu = gtk.MenuItem("File")       
+        root_menu = gtk.MenuItem(_("File"))       
         root_menu.set_submenu(menu)
  
         menu2 = gtk.Menu()       
-        root_menu2 = gtk.MenuItem("Help")
+        root_menu2 = gtk.MenuItem(_("Help"))
         root_menu2.set_submenu(menu2)
 
         ##FILE MENU ##     
         ## Make 'Run' menu entry
-        menu_item1 = gtk.MenuItem("Apply Command")
+        menu_item1 = gtk.MenuItem(_("Run Command"))
         menu.append(menu_item1)
         menu_item1.connect("activate", cli.run_command)
         menu_item1.show()
 
         ## Make 'Add' file menu entry
-        menu_item2 = gtk.MenuItem("Add Command")
+        menu_item2 = gtk.MenuItem(_("Add Command"))
         menu.append(menu_item2)
         menu_item2.connect("activate", cli.add_command)
         menu_item2.show()
         
         ## Make 'Remove' file menu entry
-        menu_item2 = gtk.MenuItem("Remove Command")
+        menu_item2 = gtk.MenuItem(_("Remove Command"))
         menu.append(menu_item2)
         menu_item2.connect("activate", cli.remove_command)
         menu_item2.show()
 
         ## Make 'Quit' file menu entry
-        menu_item3 = gtk.MenuItem("Quit")
+        menu_item3 = gtk.MenuItem(_("Quit"))
         menu.append(menu_item3)
         menu_item3.connect("activate", cli.delete_event)
         menu_item3.show()
 
 
         ## Make 'Add Tab' file menu entry
-        menu_item4 = gtk.MenuItem("Add Tab")
+        menu_item4 = gtk.MenuItem(_("Add Tab"))
         menu.append(menu_item4)
         menu_item4.connect("activate", cli.add_tab)
         menu_item4.show()
@@ -50,14 +51,14 @@ class FileMenu(object):
         
         ## HELP MENU ##
         ## Make 'About' file menu entry
-        menu_item11 = gtk.MenuItem("About")
+        menu_item11 = gtk.MenuItem(_("About"))
         menu2.append(menu_item11)
         menu_item11.connect("activate", cli.about_event)
         menu_item11.show()
 
 
         ## Make 'Help' file menu entry
-        menu_item22 = gtk.MenuItem("Help")
+        menu_item22 = gtk.MenuItem(_("Help"))
         menu2.append(menu_item22)
         menu_item22.connect("activate", cli.help_event)
         menu_item22.show()
@@ -85,7 +86,7 @@ class FileMenu(object):
         bbox.set_layout(layout)
         bbox.set_spacing(spacing)
         # APPLY button
-        buttonRun = gtk.Button(stock=gtk.STOCK_APPLY)
+        buttonRun = gtk.Button(_("Run"))
         bbox.add(buttonRun)
         buttonRun.connect("clicked", cli.run_command)
         # Add button
