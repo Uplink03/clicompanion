@@ -67,6 +67,7 @@ except:
     sys.exit(1)
     
 # TODO: these handle the exception different. Which do we like?
+#
 # import vte or display message dialog
 try:
     import vte
@@ -422,39 +423,7 @@ class Companion(object):
             self.liststore.append([l[0],l[1],l[2]])
             
 
-    #right-click popup menu for the Liststore(command list)
-    def right_click_callback(self, treeview, event, data=None):
-        if event.button == 3:
-            x = int(event.x)
-            y = int(event.y)
-            time = event.time
-            pthinfo = treeview.get_path_at_pos(x, y)
-            if pthinfo is not None:
-                path, col, cellx, celly = pthinfo
-                treeview.grab_focus()
-                treeview.set_cursor( path, col, 0)
-                
-                # right-click popup menu Apply(run)
-                popupMenu = gtk.Menu()
-                menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_APPLY)
-                popupMenu.add(menuPopup1)
-                menuPopup1.connect("activate", self.run_command)
-                # right-click popup menu Edit        
-                menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_EDIT)
-                popupMenu.add(menuPopup2)
-                menuPopup2.connect("activate", self.edit_command)
-                # right-click popup menu Delete                 
-                menuPopup3 = gtk.ImageMenuItem (gtk.STOCK_DELETE)
-                popupMenu.add(menuPopup3)
-                menuPopup3.connect("activate", self.remove_command)
-                # right-click popup menu Help                
-                menuPopup4 = gtk.ImageMenuItem (gtk.STOCK_HELP)
-                popupMenu.add(menuPopup4)
-                menuPopup4.connect("activate", self.man_page)
-                # Show popup menu
-                popupMenu.show_all()
-                popupMenu.popup( None, None, None, event.button, time)
-            return True
+
             
     # add a new terminal in a tab above the current terminal        
     def add_tab(self,   data=None):
@@ -553,7 +522,8 @@ class Companion(object):
             self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
             
             ## right click menu event capture
-            self.treeview.connect ("button_press_event", self.right_click_callback, None)
+            bar = menus_buttons.FileMenu()
+            self.treeview.connect ("button_press_event", bar.right_click, None)
             
             for n in range(3):
                 # add columns to treeview
@@ -619,6 +589,15 @@ class Companion(object):
         self.window.set_position(gtk.WIN_POS_CENTER)
         #Allow user to resize window
         self.window.set_resizable(True)
+        
+        #expander title
+        expander_hbox = gtk.HBox()
+        image = gtk.Image()
+        image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
+        label = gtk.Label(' Command List')
+        expander_hbox.pack_start(image)
+        expander_hbox.pack_start(label)
+        expander.set_label_widget(expander_hbox)
 
         self.window.connect("delete_event", self.delete_event)
         
@@ -627,6 +606,9 @@ class Companion(object):
         #bar = clicompanion.menus_buttons.FileMenu() #packaged version
         bar = menus_buttons.FileMenu() #########################local version
         menu_bar = bar.the_menu(self)
+        
+        #right-click menu[menus_buttons.py]
+        #right_click_callback = bar.right_click(self)
         
         #expander signal
         expander.connect('notify::expanded', self.expanded_cb)
