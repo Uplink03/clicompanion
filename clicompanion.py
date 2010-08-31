@@ -77,7 +77,7 @@ except:
     sys.exit (1)
 
 #import clicompanion.menus_buttons # packaged verrsion
-import menus_buttons #local version
+import menus_buttons #######################################local version
 
 #TODO: Get rid of global commands CMNDS and ROW
 CMNDS = []
@@ -533,6 +533,65 @@ class Companion(object):
         pass
     def help_event(self):
         pass
+        
+    #the expanded Expander with the liststore in a scrolled window in an expander
+    def expanded_cb(self, expander, params):
+        if expander.get_expanded():
+            # create a liststore with three string columns
+            self.liststore = gtk.ListStore(str, str, str)        
+            self.update()
+            # create the TreeView
+            self.treeview = gtk.TreeView()
+            # create window with scrollbar
+            self.scrolledwindow = gtk.ScrolledWindow()
+            self.scrolledwindow.set_size_request(700, 220)
+
+            # create the TreeViewColumns to display the data
+            self.treeview.columns = [None]*3
+            self.treeview.columns[0] = gtk.TreeViewColumn(_('Command'))
+            self.treeview.columns[1] = gtk.TreeViewColumn(_('User Argument'))
+            self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
+            
+            ## right click menu event capture
+            self.treeview.connect ("button_press_event", self.right_click_callback, None)
+            
+            for n in range(3):
+                # add columns to treeview
+                self.treeview.append_column(self.treeview.columns[n])
+                # create a CellRenderers to render the data
+                self.treeview.columns[n].cell = gtk.CellRendererText()
+                # add the cells to the columns
+                self.treeview.columns[n].pack_start(self.treeview.columns[n].cell,
+                                                    True)
+                # set the cell attributes to the appropriate liststore column
+                self.treeview.columns[n].set_attributes(
+                self.treeview.columns[n].cell, text=n)   
+                self.treeview.columns[n].set_resizable(True)          
+
+            # The set_model() method sets the "model" property for the treeview to the value of model. model : the new tree model to use with the treeview
+            self.treeview.set_model(self.liststore)
+            self.scrolledwindow.add(self.treeview)
+            expander.add(self.scrolledwindow)
+            
+            self.window.show_all()
+
+            self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
+            self.treeview.get_selection().connect('changed',lambda s: mark_selected(s))
+
+            def mark_selected(treeselection):
+                (model,pathlist)=treeselection.get_selected_rows()
+                global ROW
+                ROW = pathlist    
+                    
+
+        else:
+            expander.remove(expander.child)
+            ##reset the size of the window to its original one
+            self.window.resize(1, 1)
+        return        
+        
+        
+        
             
     def __init__(self):
         #For now TERM is hardcoded to xterm because of a change in libvte in Maverick
@@ -546,11 +605,16 @@ class Companion(object):
         #height =  screen.get_height() ## screen height ##
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        #Create an expander
+        expander = gtk.Expander(None)
+        #Create Notebook
+        self.notebook = gtk.Notebook()
+        #set Window title
         self.window.set_title("CLI Companion")
         # Sets the border width of the window.
         self.window.set_border_width(10)
         #set the size of the window
-        self.window.set_default_size(700, 600)
+        self.window.set_default_size(700, 400)
         #Sets the position of the window relative to the screen
         self.window.set_position(gtk.WIN_POS_CENTER)
         #Allow user to resize window
@@ -561,73 +625,25 @@ class Companion(object):
 
         ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         #bar = clicompanion.menus_buttons.FileMenu() #packaged version
-        bar = menus_buttons.FileMenu() #local version
+        bar = menus_buttons.FileMenu() #########################local version
         menu_bar = bar.the_menu(self)
-
-
-        # create a liststore with three string columns
-        self.liststore = gtk.ListStore(str, str, str)        
-        self.update()
+        
+        #expander signal
+        expander.connect('notify::expanded', self.expanded_cb)
         
         # The search section
         self.search_label = gtk.Label(_("Search:"))
         self.search_label.set_alignment(xalign=-1, yalign=0) 
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
-
+        #Hbox for search Entry
         search_hbox = gtk.HBox(False)
         search_hbox.pack_start(self.search_label, False, False, 10)
         search_hbox.pack_end(self.search_box, expand=True)
 
-        # create the TreeView
-        self.treeview = gtk.TreeView()
 
-        # create the TreeViewColumns to display the data
-        self.treeview.columns = [None]*3
-        self.treeview.columns[0] = gtk.TreeViewColumn(_('Command'))
-        self.treeview.columns[1] = gtk.TreeViewColumn(_('User Argument'))
-        self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
-        
-        ## right click menu event capture
-        self.treeview.connect ("button_press_event", self.right_click_callback, None)
-        
-        # The set_model() method sets the "model" property for the treeview to the value of model. model : the new tree model to use with the treeview
-        self.treeview.set_model(self.liststore)
-
-
-        for n in range(3):
-            # add columns to treeview
-            self.treeview.append_column(self.treeview.columns[n])
-            # create a CellRenderers to render the data
-            self.treeview.columns[n].cell = gtk.CellRendererText()
-            # add the cells to the columns
-            self.treeview.columns[n].pack_start(self.treeview.columns[n].cell,
-                                                True)
-            # set the cell attributes to the appropriate liststore column
-            self.treeview.columns[n].set_attributes(
-                self.treeview.columns[n].cell, text=n)   
-            self.treeview.columns[n].set_resizable(True)          
-
-        self.treeview.get_selection().set_mode(gtk.SELECTION_SINGLE)
-        self.treeview.get_selection().connect('changed',lambda s: mark_selected(s)) 
-        
-        
-        def mark_selected(treeselection):
-            (model,pathlist)=treeselection.get_selected_rows()
-            global ROW
-            ROW = pathlist
-
-        # buttons at bottom of main window [menus_buttons.py]
-        button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
-        
-        # make ui layout
-        self.vbox = gtk.VBox()
-        # create window with scrollbar
-        self.scrolledwindow = gtk.ScrolledWindow()
-        self.scrolledwindow.set_size_request(700, 220)
-        
-        self.notebook = gtk.Notebook()
-        
+    
+        #Add the first tab with the Terminal
         self.add_tab()
         self.notebook.set_tab_pos(1)
 
@@ -636,16 +652,21 @@ class Companion(object):
         add_tab_button = gtk.Button("+")
         add_tab_button.connect("clicked", self.add_tab)
         self.notebook.append_page(gtk.Label(""), add_tab_button)
+        
+        # buttons at bottom of main window [menus_buttons.py]
+        button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
 
-
+        # vbox for search, notebook, buttonbar
+        self.vbox = gtk.VBox()
         self.window.add(self.vbox)
+        #pack everytyhing in the vbox
         self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
-        self.vbox.pack_start(self.scrolledwindow, True, True, 5)
+        self.vbox.pack_start(expander, True, True, 5)
         self.vbox.pack_start(search_hbox, True, True, 5)
         self.vbox.pack_start(self.notebook, True, True, 10)
         self.vbox.pack_start(button_box, True, True, 5)
 
-        self.scrolledwindow.add(self.treeview)
+
         #self.vte.grab_focus()
         self.window.show_all()
         return
