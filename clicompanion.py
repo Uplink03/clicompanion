@@ -65,7 +65,7 @@ try:
 except:
     print >> sys.stderr, _("You need to install the python gtk bindings")
     sys.exit(1)
-    
+
 # TODO: these handle the exception different. Which do we like?
 #
 # import vte or display message dialog
@@ -101,13 +101,13 @@ class Companion(object):
                 # Oops! Looks like there's no cheatsheet in CHEATSHEET.
                 # Then, create an empty cheatsheet.
                 open(CHEATSHEET, 'w').close()
-            
+
     # close the window and quit
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
         return False
-        
-    # Info Dialog Box    
+
+    # Info Dialog Box
     # if a command needs more info EX: a package name, a path
     def get_info(self, widget, data=None):
         global ROW
@@ -120,7 +120,7 @@ class Companion(object):
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_OK,
             None)
-        
+
         # Primary text
         dialog.set_markup(_("This command requires more information"))
 
@@ -141,7 +141,7 @@ class Companion(object):
 
         # Show the dialog
         dialog.run()
-        
+
         #user text assigned to a variable
         text = entry.get_text()
         # The destroy method must be called otherwise the 'Close' button will
@@ -151,7 +151,7 @@ class Companion(object):
 
     def responseToDialog(self, text, dialog, response):
         dialog.response(response)
-    
+
     # Add command dialog box
     def add_command(self, widget):
 
@@ -170,7 +170,7 @@ class Companion(object):
         #create the text input field
         entry1 = gtk.Entry()
         entry2 = gtk.Entry()
-        entry3 = gtk.Entry()        
+        entry3 = gtk.Entry()
         #allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
@@ -178,26 +178,26 @@ class Companion(object):
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
-        
+
         hbox1.pack_start(gtk.Label(_("User Input")), False, 5, 5)
         hbox1.pack_start(entry2, False, 5, 5)
-        
+
         hbox2 = gtk.HBox()
         hbox2.pack_start(gtk.Label(_("Description")), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
 
-        # cancel button        
+        # cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
         dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
-        
+
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
         dialog.vbox.pack_end(hbox1, True, True, 0)
         dialog.show_all()
         # Show the dialog
         result = dialog.run()
-        
+
         if result == gtk.RESPONSE_OK:
             #user text assigned to a variable
             text1 = entry1.get_text()
@@ -213,12 +213,12 @@ class Companion(object):
                     CMNDS.append(ls[0])
                     self.liststore.append([ls[0],ls[1],ls[2]])
                 #self.update()
-          
+
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
         #return text
-        
+
     # This the edit function
     def edit_command(self, widget , data=None):
 
@@ -228,13 +228,13 @@ class Companion(object):
 
         row_obj1 = self.liststore[row_int][0]
         text1 = "".join(row_obj1)
-        
+
         row_obj2 = self.liststore[row_int][1]
         text2 = "".join(row_obj2)
 
         row_obj3 = self.liststore[row_int][2]
         text3 = "".join(row_obj3)
-        
+
         # Create Dialog object
         dialog = gtk.MessageDialog(
             None,
@@ -252,7 +252,7 @@ class Companion(object):
         entry2 = gtk.Entry()
         entry2.set_text(text2)
         entry3 = gtk.Entry()
-        entry3.set_text(text3)        
+        entry3.set_text(text3)
         #allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
@@ -260,26 +260,26 @@ class Companion(object):
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
-        
+
         hbox1.pack_start(gtk.Label(_("User Input")), False, 5, 5)
         hbox1.pack_start(entry2, False, 5, 5)
-        
+
         hbox2 = gtk.HBox()
         hbox2.pack_start(gtk.Label(_("Description")), False, 5, 5)
         hbox2.pack_start(entry3, True, 5, 5)
 
-        # cancel button        
+        # cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         #some secondary text
         dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
-        
+
         #add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
         dialog.vbox.pack_end(hbox1, True, True, 0)
         dialog.show_all()
         # Show the dialog
         result = dialog.run()
-        
+
         if result == gtk.RESPONSE_OK:
             #user text assigned to a variable
             text1 = entry1.get_text()
@@ -297,14 +297,14 @@ class Companion(object):
                         CMNDS.append(ls[0])
                         self.liststore.append([ls[0],ls[1],ls[2]])
 
-          
+
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
 
 
 
-    # Remove command from command file and GUI 
+    # Remove command from command file and GUI
     def remove_command(self, widget, data=None):
         global ROW
         row_int = int(ROW[0][0]) #convert pathlist into something usable
@@ -312,22 +312,22 @@ class Companion(object):
         del CMNDS[row_int]
         del self.liststore[row_int]
 
-        
+
         # open command file and delete line so the change is persistent
         with open(CHEATSHEET, "r") as cheatfile:
             cheatlines = cheatfile.readlines()
             del cheatlines[row_int]
             cheatfile.close()
-        with open(CHEATSHEET, "w") as cheatfile2:           
+        with open(CHEATSHEET, "w") as cheatfile2:
             cheatfile2.writelines(cheatlines)
             cheatfile2.close()
-            
+
 
 
 
     def _filter_commands(self, widget, data=None):
         """Show commands matching a given search term.
-        
+
         The user should enter a term in the search box and the treeview should
         only display the rows which contain the search term.
         Pretty straight-forward.
@@ -335,7 +335,7 @@ class Companion(object):
         search_term = self.search_box.get_text()
 
         # Create a TreeModelFilter object which provides auxiliary functions for
-        # filtering data. 
+        # filtering data.
         # http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html
         modelfilter = self.liststore.filter_new()
         def search(modelfilter, iter, search_term):
@@ -350,21 +350,21 @@ class Companion(object):
                 # Python raises a TypeError if row data doesn't exist. Catch
                 # that and fail silently.
                 pass
-        
-        modelfilter.set_visible_func(search, search_term) 
+
+        modelfilter.set_visible_func(search, search_term)
         self.treeview.set_model(modelfilter)
-            
+
     #send the command to the terminal
     def run_command(self, widget, data=None):
         global ROW
         text = ""
         row_int = int(ROW[0][0]) # removes everything but number from [5,]
-        
+
         #get the current notebook page so the function knows which terminal to run the command in.
         pagenum = self.notebook.get_current_page()
         widget = self.notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
-        
+
         cmnd = CMNDS[row_int] #CMNDS is where commands are stored
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
@@ -374,7 +374,7 @@ class Companion(object):
             page_widget.feed_child(cmnd+"\n") #send command
             page_widget.show()
             page_widget.grab_focus()
-     
+
      #open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
@@ -384,12 +384,12 @@ class Companion(object):
         pagenum = self.notebook.get_current_page()
         widget = self.notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
-        
+
         page_widget.feed_child("man "+splitcommand[0]+"| most \n") #send command
         page_widget.grab_focus()
         page_widget.show()
-        
-        
+
+
     @staticmethod
     def _filter_sudo_from(command):
         """Filter the sudo from `command`, where `command` is a list.
@@ -399,8 +399,8 @@ class Companion(object):
             del command[0]
             return command
         return command
-        
-    
+
+
     # open file containing command dictionary and put it in a variable
     def update(self):
         try:
@@ -410,10 +410,10 @@ class Companion(object):
         except IOError:
             # CHEATSHEET is not there. Oh, no!
             # So, run self.setup() again.
-            self.setup() 
+            self.setup()
             # Then, run me again.
             self.update()
-    
+
         global CMNDS
         # add bug data from .clicompanion to the liststore
         CMNDS = []
@@ -421,30 +421,29 @@ class Companion(object):
             l = line.split(':',2)
             CMNDS.append(l[0])
             self.liststore.append([l[0],l[1],l[2]])
-            
 
 
-            
-    # add a new terminal in a tab above the current terminal        
+
+    # add a new terminal in a tab above the current terminal
     def add_tab(self,   data=None):
-        
+
         _vte = vte.Terminal()
         _vte.set_size_request(700, 220)
         _vte.connect ("child-exited", lambda term: gtk.main_quit())
         _vte.fork_command('bash')
-        
+
         vte_tab = gtk.ScrolledWindow()
         vte_tab.add(_vte)
         #self.notebook.set_show_tabs(True)
         #self.notebook.set_show_border(True)
-        
+
         gcp = self.notebook.get_current_page() +1
         pagenum = ('Tab %d') % gcp
 
         box = gtk.HBox()
         label = gtk.Label(pagenum)
         box.pack_start(label, True, True)
-        
+
         # x image for tab close button
         close_image = gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
         # close button
@@ -456,12 +455,12 @@ class Companion(object):
         # put button in a box and show box
         box.pack_end(closebtn, False, False)
         box.show_all()
-                
+
         self.notebook.prepend_page(vte_tab, box) # add tab
         self.notebook.set_scrollable(True)
         _vte.connect ("button_press_event", self.copy_paste, None)
         vte_tab.grab_focus()
-        
+
         closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
         self.window.show_all()
 
@@ -476,7 +475,7 @@ class Companion(object):
         self.notebook.remove_page(pagenum)
 
 
-    def copy_paste(self, vte, event, data=None):        
+    def copy_paste(self, vte, event, data=None):
         if event.button == 3:
 
             time = event.time
@@ -486,18 +485,18 @@ class Companion(object):
             popupMenu.add(menuPopup1)
             menuPopup1.connect('activate', lambda x: vte.copy_clipboard())
             #item.set_sensitive(terminal.vte.get_has_selection())
-            # right-click popup menu Paste       
+            # right-click popup menu Paste
             menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_PASTE)
             popupMenu.add(menuPopup2)
             menuPopup2.connect('activate', lambda x: vte.paste_clipboard())
-           
+
             # Show popup menu
             popupMenu.show_all()
             popupMenu.popup( None, None, None, event.button, time)
             return True
         else:
             pass
-            
+
     def about_event(self):
         pass
     def help_event(self):
@@ -561,15 +560,13 @@ class Companion(object):
         return        
         
         
-        
-            
     def __init__(self):
         #For now TERM is hardcoded to xterm because of a change in libvte in Maverick
-        os.putenv('TERM', 'xterm')       
-        
+        os.putenv('TERM', 'xterm')
+
         self.setup()
         #TODO: do we want to do this? Or just keep the height under 600.
-        ##Get user screen size## 
+        ##Get user screen size##
         #screen = gtk.gdk.display_get_default().get_default_screen()
         #screen_size = screen.get_monitor_geometry(0)
         #height =  screen.get_height() ## screen height ##
@@ -581,6 +578,9 @@ class Companion(object):
         self.notebook = gtk.Notebook()
         #set Window title
         self.window.set_title("CLI Companion")
+        # Adding icon
+        icon = gtk.gdk.pixbuf_new_from_file("images/CLIcompanion.16.png")
+        self.window.set_icon(icon)
         # Sets the border width of the window.
         self.window.set_border_width(10)
         #set the size of the window
@@ -600,7 +600,7 @@ class Companion(object):
         expander.set_label_widget(expander_hbox)
 
         self.window.connect("delete_event", self.delete_event)
-        
+
 
         ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         #bar = clicompanion.menus_buttons.FileMenu() #packaged version
@@ -615,7 +615,7 @@ class Companion(object):
         
         # The search section
         self.search_label = gtk.Label(_("Search:"))
-        self.search_label.set_alignment(xalign=-1, yalign=0) 
+        self.search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
         #Hbox for search Entry
@@ -629,7 +629,7 @@ class Companion(object):
         self.add_tab()
         self.notebook.set_tab_pos(1)
 
-        
+
         # The "Add Tab" tab
         add_tab_button = gtk.Button("+")
         add_tab_button.connect("clicked", self.add_tab)
@@ -658,9 +658,8 @@ def main():
         gtk.main()
     except KeyboardInterrupt:
         pass
-             
-if __name__ == "__main__":       
+
+if __name__ == "__main__":
     companion = Companion()
     main()
-
 
