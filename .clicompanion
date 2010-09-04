@@ -17,6 +17,7 @@ lspci : : list all PCI devices
 aplay -l : : List all soundcards and digital audio devices
 cat :path: Read File & Print to Standard Output
 ls :path : List Folders Contents
+ls -lSr :path : Show files by size, biggest last
 mv :path : Move (Rename) Files
 cp :path : Copy Files
 sudo lspci : : attached PCI devices
@@ -26,3 +27,22 @@ dmesg : : Print kernel & driver messages
 history : : Command History
 locate : file : Find files (updatedb to update DB)
 sudo updatedb : : update the database for locate
+which :command : Show full path name of command
+find -maxdepth 1 -type f | xargs grep -F :string : Search all regular files for 'string' in this dir
+gpg -c :file : Encypt a file
+gpg :file.gpg : Decrypt a file
+tar -xjf :archive.tar : Extract all files from archive.tar
+tar -czf :Destination.tar.gz  Source : Create Destination from Source
+iostat : : cpu and I/O statistics
+netstat : : Print network connections and interface statistics
+sudo fdisk -l :disk : List partition tables for specified devices
+sudo ufw enable : : Enable netfilter firewall
+sudo ufw allow :port : Open a port in netfilter firewall
+sudo ufw deny :port : Close a port in netfilter firewall
+sudo ufw disable : : Disable netfilter firewall
+cat file1 file2 | sort | uniq > file3 : file1 file2 file3 : combine, sort and remove duplicates from 2 files
+mkisofs -V LABEL -r dir | gzip > cdrom.iso.gz :isoname.iso.gz : Create cdrom image from contents of directory
+cdrecord -v dev=/dev/cdrom -audio -pad *.wav : : Make audio CD from all wavs in current dir
+dpkg-query -W -f='${Installed-Size;10}\t${Package}\n' | sort -k1,1n : : List all installed packages by size
+tail -f /var/log/messages : : Monitor messages log file
+apropos :command/package : search the manual page names and descriptions
