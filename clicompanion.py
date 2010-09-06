@@ -595,8 +595,9 @@ class Companion(object):
         image = gtk.Image()
         image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
         label = gtk.Label(' Command List')
-        expander_hbox.pack_start(image)
-        expander_hbox.pack_start(label)
+
+        expander_hbox.pack_start(image, False, False)
+        expander_hbox.pack_start(label, False, False)
         expander.set_label_widget(expander_hbox)
 
         self.window.connect("delete_event", self.delete_event)
@@ -621,7 +622,7 @@ class Companion(object):
         #Hbox for search Entry
         search_hbox = gtk.HBox(False)
         search_hbox.pack_start(self.search_label, False, False, 10)
-        search_hbox.pack_end(self.search_box, expand=True)
+        search_hbox.pack_end(self.search_box, True)
 
 
     
@@ -643,10 +644,10 @@ class Companion(object):
         self.window.add(self.vbox)
         #pack everytyhing in the vbox
         self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
-        self.vbox.pack_start(expander, True, True, 5)
-        self.vbox.pack_start(search_hbox, True, True, 5)
+        self.vbox.pack_start(expander, False, False, 5)
+        self.vbox.pack_start(search_hbox, False, False, 5)
         self.vbox.pack_start(self.notebook, True, True, 10)
-        self.vbox.pack_start(button_box, True, True, 5)
+        self.vbox.pack_start(button_box, False, False, 5)
 
 
         #self.vte.grab_focus()
