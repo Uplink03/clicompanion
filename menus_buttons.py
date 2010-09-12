@@ -117,7 +117,7 @@ class FileMenu(object):
         
         
     #right-click popup menu for the Liststore(command list)
-    def right_click(self, treeview, event, data=None):
+    def right_click(self, treeview, event, cli):
         if event.button == 3:
             x = int(event.x)
             y = int(event.y)
@@ -132,19 +132,19 @@ class FileMenu(object):
                 popupMenu = gtk.Menu()
                 menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_APPLY)
                 popupMenu.add(menuPopup1)
-                menuPopup1.connect("activate", self.run_command)
+                menuPopup1.connect("activate", cli.run_command)
                 # right-click popup menu Edit        
                 menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_EDIT)
                 popupMenu.add(menuPopup2)
-                menuPopup2.connect("activate", self.edit_command)
+                menuPopup2.connect("activate", cli.edit_command)
                 # right-click popup menu Delete                 
                 menuPopup3 = gtk.ImageMenuItem (gtk.STOCK_DELETE)
                 popupMenu.add(menuPopup3)
-                menuPopup3.connect("activate", self.remove_command)
+                menuPopup3.connect("activate", cli.remove_command)
                 # right-click popup menu Help                
                 menuPopup4 = gtk.ImageMenuItem (gtk.STOCK_HELP)
                 popupMenu.add(menuPopup4)
-                menuPopup4.connect("activate", self.man_page)
+                menuPopup4.connect("activate", cli.man_page)
                 # Show popup menu
                 popupMenu.show_all()
                 popupMenu.popup( None, None, None, event.button, time)
