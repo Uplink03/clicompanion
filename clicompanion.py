@@ -550,9 +550,13 @@ class Companion(object):
                 (model,pathlist)=treeselection.get_selected_rows()
                 global ROW
                 ROW = pathlist    
-                    
 
+            # Activate the search box when not expanded
+            self.search_box.set_sensitive(True)
         else:
+            # De-activate the search box when not expanded
+            self.search_box.set_sensitive(False)
+
             expander.remove(expander.child)
             ##reset the size of the window to its original one
             self.window.resize(1, 1)
@@ -604,6 +608,9 @@ class Companion(object):
         self.search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
+        # Set the search box sensitive at program start, because expander is not
+        # unfolded by default
+        self.search_box.set_sensitive(False)
         ## hbox for menu and search Entry
         menu_search_hbox = gtk.HBox(False)
         menu_search_hbox.pack_end(self.search_box, True)
