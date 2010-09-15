@@ -19,6 +19,7 @@
 #
 #
 
+import re
 import sys
 import pygtk
 pygtk.require('2.0')
@@ -142,11 +143,14 @@ class Companion(object):
         dialog.run()
 
         ## user text assigned to a variable
+
         text = entry.get_text()
+        user_input = text.split(' ')
+
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
-        return text
+        return user_input
 
     def responseToDialog(self, text, dialog, response):
         dialog.response(response)
@@ -326,7 +330,6 @@ class Companion(object):
 
     def _filter_commands(self, widget, data=None):
         """Show commands matching a given search term.
-
         The user should enter a term in the search box and the treeview should
         only display the rows which contain the search term.
         Pretty straight-forward.
@@ -364,16 +367,55 @@ class Companion(object):
         widget = self.notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
 
-        cmnd = CMNDS[row_int] ## CMNDS is where commands are stored
+        ## CMNDS is where commands are stored
+        cmnd = CMNDS[row_int] 
+        ## find how many @(user arguments) are in command
+        match = re.findall('@', cmnd) 
+        #print match ## debug
+        #match_group = match.group()
+        
+        '''
+        Make sure user arguments were found. Replace @ with something
+        .format can read. This is done so the user can just enter @, when
+        adding a command where arguments are needed, instead
+        of {0[1]}, {0[1]}, {0[2]}
+        '''    
+        if match == False:
+            pass
+        else:
+            num = len(match)
+            ran = 0
+            new_cmnd = self.replace(cmnd, num, ran)
+            print new_cmnd ## debug
+
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
-            page_widget.feed_child(cmnd+" "+text+"\n") #send command w/ input
+            #print text ## debug
+            print new_cmnd
+            c = new_cmnd.format(text)
+            print c ## debug
+            page_widget.feed_child(c+"\n") #send command w/ input
             page_widget.show()
         else: ## command that has no user input
             page_widget.feed_child(cmnd+"\n") #send command
             page_widget.show()
             page_widget.grab_focus()
+            
+    ## replace @ with {0[n]}
+    def replace(self, cmnd, num, ran):
+        replace_cmnd=re.sub('@', '{0['+str(ran)+']}', cmnd, count=1)
+        cmnd = replace_cmnd
+        ran += 1
+        if ran < num:
+            self.replace(cmnd, num, ran)    
+        if not ran < num:
+            print cmnd 
+            return cmnd     
 
+            
+        
+        
+        
     ## open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
@@ -463,8 +505,8 @@ class Companion(object):
         closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
         self.window.show_all()
 
-
         return vte_tab
+
 
     ## Remove a page from the notebook
     def close_tab(self, sender, widget):
@@ -519,8 +561,9 @@ class Companion(object):
             self.treeview.columns[1] = gtk.TreeViewColumn(_('User Argument'))
             self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
             
-            ## right click menu event captur
-            bar = menus_buttons.FileMenu()
+            ## right click menu event capture
+            #bar = clicompanion.menus_buttons.FileMenu() ##### packaged version
+            bar = menus_buttons.FileMenu() ################### local version
             self.treeview.connect ("button_press_event", bar.right_click, self)
             
             for n in range(3):
@@ -608,6 +651,8 @@ class Companion(object):
         self.search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
+        ## search box tooltip
+        self.search_box.set_tooltip_text("Search your list of commands")
         # Set the search box sensitive at program start, because expander is not
         # unfolded by default
         self.search_box.set_sensitive(False)
@@ -618,8 +663,11 @@ class Companion(object):
         menu_search_hbox.pack_start(menu_bar, True)
         
         
-        ## start program with expander open
+
         ## TODO Do we want to start with the command list open or closed?
+        ## This code opens the app with it open
+        ## We would also need to change the search field disable code
+        ## start program with expander open
         #expander.set_expanded(True)
         #self.expanded_cb(expander, None)
 
@@ -631,10 +679,15 @@ class Companion(object):
         image = gtk.Image()
         image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
         label = gtk.Label(' Command List')
+        ## tooltip for the label of the expander
+        expander_hbox.set_tooltip_text("Click to show/hide command list")
+        
+
         ## hbox to hold expander widget
         expander_hbox.pack_start(image, False, False)
-        expander_hbox.pack_start(label, False, False)
+        expander_hbox.pack_start(label, True, False)
         expander.set_label_widget(expander_hbox)
+
        
     
         ## Add the first tab with the Terminal
@@ -644,6 +697,8 @@ class Companion(object):
 
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
+        ## tooltip for "Add Tab" tab
+        add_tab_button.set_tooltip_text("Click to add another Tab")
         add_tab_button.connect("clicked", self.add_tab)
         self.notebook.append_page(gtk.Label(""), add_tab_button)
         
