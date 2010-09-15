@@ -407,10 +407,10 @@ class Companion(object):
         cmnd = replace_cmnd
         ran += 1
         if ran < num:
-            self.replace(cmnd, num, ran)    
-        if not ran < num:
-            print cmnd 
-            return cmnd     
+            return self.replace(cmnd, num, ran)    
+        else:
+            pass
+        return cmnd     
 
             
         
