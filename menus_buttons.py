@@ -87,32 +87,37 @@ class FileMenu(object):
         # Set the appearance of the Button Box
         bbox.set_layout(layout)
         bbox.set_spacing(spacing)
-        # APPLY button
+        # Run button
         buttonRun = gtk.Button(_("Run"))
         bbox.add(buttonRun)
         buttonRun.connect("clicked", cli.run_command)
+        buttonRun.set_tooltip_text("Click to run a highlighted command")
         # Add button
         buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
         bbox.add(buttonAdd)
         buttonAdd.connect("clicked", cli.add_command)
+        buttonAdd.set_tooltip_text("Click to add a command to your command list")
         # Edit button
         buttonEdit = gtk.Button("Edit")
         bbox.add(buttonEdit)
         buttonEdit.connect("clicked", cli.edit_command)
+        buttonEdit.set_tooltip_text("Click to edit a command in your command list")
         # Delete button
         buttonDelete = gtk.Button(stock=gtk.STOCK_DELETE)
         bbox.add(buttonDelete)
         buttonDelete.connect("clicked", cli.remove_command)
+        buttonDelete.set_tooltip_text("Click to delete a command in your command list")
         #Help Button
         buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
         bbox.add(buttonHelp)
         buttonHelp.connect("clicked", cli.man_page)
+        buttonHelp.set_tooltip_text("Click to get help with a command in your command list")
         # Cancel button
         buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
         bbox.add(buttonCancel)
         buttonCancel.connect("clicked", cli.delete_event)
+        buttonCancel.set_tooltip_text("Click to quit CLI Companion")
 
-        
         return frame      
         
         

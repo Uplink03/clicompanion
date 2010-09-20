@@ -463,8 +463,8 @@ class Companion(object):
         closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
         self.window.show_all()
 
-
         return vte_tab
+
 
     ## Remove a page from the notebook
     def close_tab(self, sender, widget):
@@ -519,8 +519,9 @@ class Companion(object):
             self.treeview.columns[1] = gtk.TreeViewColumn(_('User Argument'))
             self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
             
-            ## right click menu event captur
-            bar = menus_buttons.FileMenu()
+            ## right click menu event capture
+            #bar = clicompanion.menus_buttons.FileMenu() ##### packaged version
+            bar = menus_buttons.FileMenu() ################### local version
             self.treeview.connect ("button_press_event", bar.right_click, self)
             
             for n in range(3):
@@ -608,6 +609,8 @@ class Companion(object):
         self.search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
         self.search_box.connect("changed", self._filter_commands)
+        ## search box tooltip
+        self.search_box.set_tooltip_text("Search your list of commands")
         # Set the search box sensitive at program start, because expander is not
         # unfolded by default
         self.search_box.set_sensitive(False)
@@ -618,8 +621,11 @@ class Companion(object):
         menu_search_hbox.pack_start(menu_bar, True)
         
         
-        ## start program with expander open
+
         ## TODO Do we want to start with the command list open or closed?
+        ## This code opens the app with it open
+        ## We would also need to change the search field disable code
+        ## start program with expander open
         #expander.set_expanded(True)
         #self.expanded_cb(expander, None)
 
@@ -631,10 +637,15 @@ class Companion(object):
         image = gtk.Image()
         image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
         label = gtk.Label(' Command List')
+        ## tooltip for the label of the expander
+        expander_hbox.set_tooltip_text("Click to show/hide command list")
+        
+
         ## hbox to hold expander widget
         expander_hbox.pack_start(image, False, False)
-        expander_hbox.pack_start(label, False, False)
+        expander_hbox.pack_start(label, True, False)
         expander.set_label_widget(expander_hbox)
+
        
     
         ## Add the first tab with the Terminal
@@ -644,6 +655,8 @@ class Companion(object):
 
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
+        ## tooltip for "Add Tab" tab
+        add_tab_button.set_tooltip_text("Click to add another Tab")
         add_tab_button.connect("clicked", self.add_tab)
         self.notebook.append_page(gtk.Label(""), add_tab_button)
         
