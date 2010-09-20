@@ -31,6 +31,8 @@ import os.path
 import locale
 import gettext
 
+from utils import get_user_shell
+
 BASEDIR = os.curdir
 
 def get_language():
@@ -471,7 +473,7 @@ class Companion(object):
         _vte = vte.Terminal()
         _vte.set_size_request(700, 220)
         _vte.connect ("child-exited", lambda term: gtk.main_quit())
-        _vte.fork_command('bash')
+        _vte.fork_command(get_user_shell()) # Get the user's default shell
 
         vte_tab = gtk.ScrolledWindow()
         vte_tab.add(_vte)
