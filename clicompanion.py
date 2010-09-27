@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+#pdb debugger
+#import pdb; pdb.set_trace()
 #
+
 
 import re
 import sys
@@ -31,9 +34,7 @@ import os.path
 import locale
 import gettext
 
-from utils import get_user_shell
-
-BASEDIR = os.curdir
+BASEDIR = '/usr/share/clicompanion/'
 
 def get_language():
     """Return the language to be used by the system.
@@ -77,10 +78,11 @@ except:
     error.run()
     sys.exit (1)
 
-
 ##  When packaging uncomment top line and comment 2nd line
-## import clicompanion.menus_buttons ################# packaged verrsion
+##import clicompanion.menus_buttons ################# packaged verrsion
 import menus_buttons ############################### local version
+##from clicompanion.utils import get_user_shell #######packaged verrsion
+from utils import get_user_shell ##################### local version
 
 #TODO: Get rid of global commands CMNDS and ROW
 CMNDS = []
@@ -194,7 +196,7 @@ class Companion(object):
         ## cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
-        dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
+        dialog.format_secondary_markup(_("Please provide a command. Use a @ symbol where user input is required at runtime. Example: ls /any/direstory would be entered as ls @. Also include a brief description."))
 
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -217,7 +219,7 @@ class Companion(object):
                     ls = l.split(':',2)
                     CMNDS.append(ls[0])
                     self.liststore.append([ls[0],ls[1],ls[2]])
-                #self.update()
+
 
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
@@ -412,10 +414,7 @@ class Companion(object):
             return self.replace(cmnd, num, ran)    
         else:
             pass
-        return cmnd     
-
-            
-        
+        return cmnd
         
         
     ## open the man page for selected command
@@ -564,7 +563,7 @@ class Companion(object):
             self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
             
             ## right click menu event capture
-            #bar = clicompanion.menus_buttons.FileMenu() ##### packaged version
+            ##bar = clicompanion.menus_buttons.FileMenu() ##### packaged version
             bar = menus_buttons.FileMenu() ################### local version
             self.treeview.connect ("button_press_event", bar.right_click, self)
             
@@ -627,7 +626,7 @@ class Companion(object):
         ## set Window title
         self.window.set_title("CLI Companion")
         ## Adding icon
-        icon = gtk.gdk.pixbuf_new_from_file("images/CLIcompanion.16.png")
+        icon = gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/clicompanion.16.png")
         self.window.set_icon(icon)
         ## Sets the border width of the window.
         self.window.set_border_width(10)
@@ -641,12 +640,10 @@ class Companion(object):
 
         self.window.connect("delete_event", self.delete_event)
 
-        ## pdb debugger
-        #import pdb; pdb.set_trace()
 
         ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
-        #bar = clicompanion.menus_buttons.FileMenu() ######### packaged version
-        bar = menus_buttons.FileMenu() ####################### local version
+        ##bar = clicompanion.menus_buttons.FileMenu() #### packaged version
+        bar = menus_buttons.FileMenu() ############### local version
         menu_bar = bar.the_menu(self)    
         ## The search section
         self.search_label = gtk.Label(_("Search:"))
