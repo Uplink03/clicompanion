@@ -82,7 +82,7 @@ except:
 ##import clicompanion.menus_buttons ################# packaged verrsion
 import menus_buttons ############################### local version
 ##from clicompanion.utils import get_user_shell #######packaged verrsion
-from utils import get_user_shell ##################### local version
+from utils import get_user_shell, sumfile ##################### local version
 
 #TODO: Get rid of global commands CMNDS and ROW
 CMNDS = []
@@ -98,6 +98,7 @@ class Companion(object):
     ## copy config file to user $HOME if does not exist
     def setup(self):
         """Create an initial cheatsheet."""
+        
         if not os.path.exists(CHEATSHEET):
             if os.path.exists(CONFIG_ORIG):
                 os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
@@ -105,6 +106,18 @@ class Companion(object):
                 ## Oops! Looks like there's no cheatsheet in CHEATSHEET.
                 ## Then, create an empty cheatsheet.
                 open(CHEATSHEET, 'w').close()
+                
+        #TODO handle .clicompanion here?
+        elif os.path.exists(CHEATSHEET):
+            if os.path.exists(CONFIG_ORIG):
+                md5 = sumfile()
+                print md5
+                if md5 == '824868f40cd02f0039d5a1fbdbe642d7' or 'a244f1b197f5cfc6b2f35b65911d3930' or '08e7f4de1838b79ab476fcbfb8074da0' or 'd68d6e9da0a3753c8142b63f0ea74511' or '8ab6d4bf6168c1b775221f466c2fcbbd' or ' 6f4f152766441670a55d3bf00567c92e' or ' f4e73fe22505091d6d75767fafc2848c' or ' 7d2f69943cfe5dbd33a45c63008fca17' or '7fc757ca67121b14e574280a6dbe24ef' or '0e345d5934032aa7fecb23cff56d5407':
+                    os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
+                    print 'ok'
+                else:
+                    print 'not ok'
+                
 
     ## close the window and quit
     def delete_event(self, widget,  data=None):
@@ -547,8 +560,7 @@ class Companion(object):
     #liststore in a scrolled window in an expander
     def expanded_cb(self, expander, params):
         if expander.get_expanded():
-            ## create a liststore with three string columns
-            self.liststore = gtk.ListStore(str, str, str)        
+
             self.update()
             ## create the TreeView
             self.treeview = gtk.TreeView()
@@ -619,6 +631,8 @@ class Companion(object):
         #height =  screen.get_height() ## screen height ##
         ## Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        ## create a liststore with three string columns
+        self.liststore = gtk.ListStore(str, str, str)
         ## Create an expander
         expander = gtk.Expander()
         ## Create Notebook
@@ -682,7 +696,7 @@ class Companion(object):
         expander_hbox.set_tooltip_text("Click to show/hide command list")
         
 
-        ## hbox to hold expander widget
+        ## add expander widget to hbox
         expander_hbox.pack_start(image, False, False)
         expander_hbox.pack_start(label, True, False)
         expander.set_label_widget(expander_hbox)
