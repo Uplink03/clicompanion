@@ -61,14 +61,15 @@ if idioma is not None:
     trans.install(unicode=True)
 ## End with i18n ###
 
-## TODO: import gtk/vte, these handle the exception different. Which do we like?
-##
 ## import gtk or print error
 try:
     import gtk
 except:
-    print >> sys.stderr, _("You need to install the python gtk bindings")
-    sys.exit(1)
+    error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        _("You need to install the python gtk bindings"))
+    error.run()
+    sys.exit (1)    
+    
 ## import vte or display message dialog
 try:
     import vte
@@ -78,16 +79,15 @@ except:
     error.run()
     sys.exit (1)
 
-##  When packaging uncomment top line and comment 2nd line
-##import clicompanion.menus_buttons ################# packaged verrsion
-import menus_buttons ############################### local version
-##from clicompanion.utils import get_user_shell #######packaged verrsion
-from utils import get_user_shell, sumfile ##################### local version
+import clicompanion.menus_buttons 
+from clicompanion.utils import get_user_shell, sumfile 
+
 
 #TODO: Get rid of global commands CMNDS and ROW
 CMNDS = []
 ROW = ''
 CHEATSHEET = os.path.expanduser("~/.clicompanion")
+CHEATSHEETBAK = os.path.expanduser("~/.clicompanion.bak")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
 
 
@@ -97,8 +97,7 @@ class Companion(object):
     '''
     ## copy config file to user $HOME if does not exist
     def setup(self):
-        """Create an initial cheatsheet."""
-        
+        """Create an initial cheatsheet."""       
         if not os.path.exists(CHEATSHEET):
             if os.path.exists(CONFIG_ORIG):
                 os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
@@ -106,19 +105,20 @@ class Companion(object):
                 ## Oops! Looks like there's no cheatsheet in CHEATSHEET.
                 ## Then, create an empty cheatsheet.
                 open(CHEATSHEET, 'w').close()
-                
-        #TODO handle .clicompanion here?
+                  
         elif os.path.exists(CHEATSHEET):
             if os.path.exists(CONFIG_ORIG):
                 md5 = sumfile()
                 print md5
                 if md5 == '824868f40cd02f0039d5a1fbdbe642d7' or 'a244f1b197f5cfc6b2f35b65911d3930' or '08e7f4de1838b79ab476fcbfb8074da0' or 'd68d6e9da0a3753c8142b63f0ea74511' or '8ab6d4bf6168c1b775221f466c2fcbbd' or ' 6f4f152766441670a55d3bf00567c92e' or ' f4e73fe22505091d6d75767fafc2848c' or ' 7d2f69943cfe5dbd33a45c63008fca17' or '7fc757ca67121b14e574280a6dbe24ef' or '0e345d5934032aa7fecb23cff56d5407':
                     os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
-                    print 'ok'
+                    print '.clicompanion not modified by user'
+                #TODO what to do if user has modified command dictionary?
                 else:
-                    print 'not ok'
+                    os.system ("cp %s %s" % (CHEATSHEET, CHEATSHEETBAK))
+                    os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
+                    print '.clicompanion modified by user'
                 
-
     ## close the window and quit
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
@@ -160,7 +160,6 @@ class Companion(object):
         dialog.run()
 
         ## user text assigned to a variable
-
         text = entry.get_text()
         user_input = text.split(' ')
 
@@ -183,7 +182,6 @@ class Companion(object):
             gtk.BUTTONS_OK,
             None)
 
-
         ## primaary text
         dialog.set_markup(_("Add a command to your clicompanion dictionary"))
 
@@ -193,8 +191,10 @@ class Companion(object):
         entry3 = gtk.Entry()
         ## allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+        entry2.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+        entry3.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
-        ## create the three labels
+        ## create three labels
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
@@ -233,7 +233,6 @@ class Companion(object):
                     CMNDS.append(ls[0])
                     self.liststore.append([ls[0],ls[1],ls[2]])
 
-
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
@@ -266,7 +265,7 @@ class Companion(object):
         # primary text
         dialog.set_markup(_("Edit the command in your clicompanion dictionary"))
 
-        ## create the text input field
+        ## create the text input fields
         entry1 = gtk.Entry()
         entry1.set_text(text1)
         entry2 = gtk.Entry()
@@ -276,7 +275,7 @@ class Companion(object):
         ## allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
-        ## create the three labels
+        ## create three labels
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label(_("Command")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
@@ -317,11 +316,9 @@ class Companion(object):
                         CMNDS.append(ls[0])
                         self.liststore.append([ls[0],ls[1],ls[2]])
 
-
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
-
 
 
     ## Remove command from command file and GUI
@@ -343,10 +340,9 @@ class Companion(object):
             cheatfile2.close()
 
 
-
-
     def _filter_commands(self, widget, data=None):
-        """Show commands matching a given search term.
+        """
+        Show commands matching a given search term.
         The user should enter a term in the search box and the treeview should
         only display the rows which contain the search term.
         Pretty straight-forward.
@@ -388,9 +384,6 @@ class Companion(object):
         cmnd = CMNDS[row_int] 
         ## find how many @(user arguments) are in command
         match = re.findall('@', cmnd) 
-        #print match ## debug
-        #match_group = match.group()
-        
         '''
         Make sure user arguments were found. Replace @ with something
         .format can read. This is done so the user can just enter @, when
@@ -403,14 +396,10 @@ class Companion(object):
             num = len(match)
             ran = 0
             new_cmnd = self.replace(cmnd, num, ran)
-            print new_cmnd ## debug
 
         if not self.liststore[row_int][1] == " ": # command with user input
             text = Companion.get_info(self, text)
-            #print text ## debug
-            print new_cmnd
             c = new_cmnd.format(text)
-            print c ## debug
             page_widget.feed_child(c+"\n") #send command w/ input
             page_widget.show()
         else: ## command that has no user input
@@ -429,7 +418,6 @@ class Companion(object):
             pass
         return cmnd
         
-        
     ## open the man page for selected command
     def man_page(self, widget, data=None):
         row_int = int(ROW[0][0]) # removes everything but number from EX: [5,]
@@ -439,8 +427,8 @@ class Companion(object):
         pagenum = self.notebook.get_current_page()
         widget = self.notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
-
-        page_widget.feed_child("man "+splitcommand[0]+"| most \n") #send command
+        #send command to Terminal
+        page_widget.feed_child("man "+splitcommand[0]+"| most \n") 
         page_widget.grab_focus()
         page_widget.show()
 
@@ -515,8 +503,8 @@ class Companion(object):
         self.notebook.set_scrollable(True)
         _vte.connect ("button_press_event", self.copy_paste, None)
         vte_tab.grab_focus()
-
-        closebtn.connect("clicked", self.close_tab, vte_tab) # signal handler for tab
+        # signal handler for tab
+        closebtn.connect("clicked", self.close_tab, vte_tab) 
         self.window.show_all()
 
         return vte_tab
@@ -529,7 +517,7 @@ class Companion(object):
         ## and close it
         self.notebook.remove_page(pagenum)
 
-
+    #TODO: Move to menus_buttons
     def copy_paste(self, vte, event, data=None):
         if event.button == 3:
 
@@ -539,7 +527,6 @@ class Companion(object):
             menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_COPY)
             popupMenu.add(menuPopup1)
             menuPopup1.connect('activate', lambda x: vte.copy_clipboard())
-            #item.set_sensitive(terminal.vte.get_has_selection())
             ## right-click popup menu Paste
             menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_PASTE)
             popupMenu.add(menuPopup2)
@@ -575,8 +562,7 @@ class Companion(object):
             self.treeview.columns[2] = gtk.TreeViewColumn(_('Description'))
             
             ## right click menu event capture
-            ##bar = clicompanion.menus_buttons.FileMenu() ##### packaged version
-            bar = menus_buttons.FileMenu() ################### local version
+            bar = clicompanion.menus_buttons.FileMenu()
             self.treeview.connect ("button_press_event", bar.right_click, self)
             
             for n in range(3):
@@ -620,9 +606,10 @@ class Companion(object):
         
         
     def __init__(self):
-        ##For now TERM is hardcoded to xterm because of a change in libvte in Maverick
+        ##For now TERM is hardcoded to xterm because of a change
+        ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
-
+        ## copy config file to user $HOME if does not exist
         self.setup()
         #TODO: do we want to do this? Or just keep the height under 600.
         ##Get user screen size##
@@ -651,13 +638,10 @@ class Companion(object):
         ## Allow user to resize window
         self.window.set_resizable(True)
         
-
         self.window.connect("delete_event", self.delete_event)
 
-
         ## 'File' and 'Help' Drop Down Menu [menus_buttons.py]
-        ##bar = clicompanion.menus_buttons.FileMenu() #### packaged version
-        bar = menus_buttons.FileMenu() ############### local version
+        bar = clicompanion.menus_buttons.FileMenu()
         menu_bar = bar.the_menu(self)    
         ## The search section
         self.search_label = gtk.Label(_("Search:"))
@@ -674,8 +658,6 @@ class Companion(object):
         menu_search_hbox.pack_end(self.search_box, True)
         menu_search_hbox.pack_end(self.search_label, False, False, 10)
         menu_search_hbox.pack_start(menu_bar, True)
-        
-        
 
         ## TODO Do we want to start with the command list open or closed?
         ## This code opens the app with it open
@@ -695,18 +677,14 @@ class Companion(object):
         ## tooltip for the label of the expander
         expander_hbox.set_tooltip_text("Click to show/hide command list")
         
-
         ## add expander widget to hbox
         expander_hbox.pack_start(image, False, False)
         expander_hbox.pack_start(label, True, False)
         expander.set_label_widget(expander_hbox)
 
-       
-    
         ## Add the first tab with the Terminal
         self.add_tab()
         self.notebook.set_tab_pos(1)
-
 
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
