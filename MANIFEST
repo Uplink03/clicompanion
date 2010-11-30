@@ -1,0 +1,12 @@
+setup.py
+clicompanion
+clicompanionlib/__init__.py
+clicompanionlib/controller.py
+clicompanionlib/menus_buttons.py
+clicompanionlib/tabs.py
+clicompanionlib/utils.py
+clicompanionlib/view.py
+data/ubuntuone-indicator.desktop
+data/clicompanion.config
+data/clicompanion.16.png
+data/clicompanion.64.png
