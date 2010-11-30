@@ -1,4 +1,5 @@
-# -*- mode: python; coding: utf-8; -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # clicompanion.py - commandline tool.
 #
@@ -23,12 +24,12 @@ A collection of useful functions.
 """
 
 import getpass
-import hashlib
 import os
 
-CHEATSHEET = os.path.expanduser("~/.clicompanion")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion.config"
+CHEATSHEET = os.path.expanduser("~/.clicompanion2")
+#CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 
+#TODO: Move this to controller.py
 def get_user_shell():
     """Get the user's shell defined in /etc/passwd ."""
     data = None
@@ -52,15 +53,4 @@ def get_user_shell():
             # The last column is relevant for us.
             # Don't forget to strip the newline at the end of the string!
             return i.split(":")[-1:][0].strip('\n')
-            
-            
-def sumfile():
-    '''Returns an md5 hash for an object with read() method.'''
-    m = hashlib.md5()
-    with open(CHEATSHEET, 'rb') as cheatsheet:
-        d = cheatsheet.read()
-        m.update(d)
-        pp = m.hexdigest()
-        print pp
-    return m.hexdigest()
 
