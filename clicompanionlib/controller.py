@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# IMPORTANT: you need to move the .cheatsheet file to your $HOME
 #
 
 
@@ -160,12 +159,12 @@ class Actions(object):
                     cheatfile.write(text1+":"+text2+":"+text3+'\n')
                     cheatfile.close()
                     l = str(text1+":"+text2+":"+text3)
-                    ls = l.split(':',2)
+                    #ls = l.split(':',2)
                     ## update view.CMNDS variable
-                    filteredcommandplus = ls[0], ls[1]
+                    filteredcommandplus = text1, text2
                     view.CMNDS.append(filteredcommandplus)
                     ## update the command list on screen
-                    liststore.append([ls[0],ls[1],ls[2]])
+                    liststore.append([text1,text2,text3])
 
 
         ## The destroy method must be called otherwise the 'Close' button will
@@ -247,12 +246,12 @@ class Actions(object):
                         cheatfile.write(text1+":"+text2+":"+text3+'\n')
                         cheatfile.close()
                         l = str(text1+":"+text2+":"+text3)
-                        ls = l.split(':',2)
+                        #ls = l.split(':',2)
                         ## update view.CMNDS variable
-                        filteredcommandplus = ls[0], ls[1]
+                        filteredcommandplus = text1, text2
                         view.CMNDS.append(filteredcommandplus)
                         ## update the command list on screen
-                        liststore.append([ls[0],ls[1],ls[2]])
+                        liststore.append([text1,text2,text3])
 
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
