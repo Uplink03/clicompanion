@@ -24,20 +24,20 @@ import pygtk
 pygtk.require('2.0')
 import os
 
-# import gtk or print error
+# import vte and gtk or print error
 try:
     import gtk
 except:
-    print >> sys.stderr, "You need to install the python gtk bindings"
-    sys.exit(1)
+    error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        _("You need to install the python gtk bindings package 'python-gtk2'"))
+    error.run()
+    sys.exit (1)
     
-# TODO: these handle the exception different. Which do we like?
-# import vte or display dialog
 try:
     import vte
 except:
     error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-        'You need to install python bindings for libvte')
+        _("You need to install 'python-vte' the python bindings for libvte."))
     error.run()
     sys.exit (1)
     

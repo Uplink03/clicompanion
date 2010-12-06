@@ -115,7 +115,7 @@ class FileMenu(object):
         buttonAdd.connect("clicked", actions.add_command, liststore)
         buttonAdd.set_tooltip_text(_("Click to add a command to your command list"))
         # Edit button
-        buttonEdit = gtk.Button("Edit")
+        buttonEdit = gtk.Button(_("Edit"))
         bbox.add(buttonEdit)
         buttonEdit.connect("clicked", actions.edit_command, liststore)
         buttonEdit.set_tooltip_text(_("Click to edit a command in your command list"))

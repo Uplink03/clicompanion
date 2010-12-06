@@ -26,20 +26,20 @@ import re
 import webbrowser
 
 import os
-# import gtk or print error
+# import vte and gtk or print error
 try:
     import gtk
 except:
-    print >> sys.stderr, "You need to install the python gtk bindings"
-    sys.exit(1)
+    error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        _("You need to install the python gtk bindings package 'python-gtk2'"))
+    error.run()
+    sys.exit (1)
     
-# TODO: these handle the exception different. Which do we like?
-# import vte or display dialog
 try:
     import vte
 except:
     error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-        'You need to install python bindings for libvte')
+        _("You need to install 'python-vte' the python bindings for libvte."))
     error.run()
     sys.exit (1)
     
@@ -137,7 +137,7 @@ class Actions(object):
         ## cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
-        dialog.format_secondary_markup(_("When entering a command, use a ? symbol if user input is required at runtime. Example: ls /any/direstory would be entered as ls ? .For each ? in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
+        dialog.format_secondary_markup(_("When entering a command, use a ? symbol if user input is required at runtime. Example: ls /any/directory would be entered as ls ? .For each ? in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
 
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
