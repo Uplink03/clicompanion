@@ -67,7 +67,7 @@ class Actions(object):
             None)
 
         # Primary text
-        dialog.set_markup(_("This command requires more information"))
+        dialog.set_markup(_("This command requires more information."))
 
         ## create the text input field
         entry = gtk.Entry()
@@ -111,7 +111,7 @@ class Actions(object):
             None)
 
         ## primaary text
-        dialog.set_markup(_("Add a command to your CLI Companion dictionary"))
+        dialog.set_markup(_("Add a command to your command list"))
 
         #create the text input field
         entry1 = gtk.Entry()
@@ -137,7 +137,7 @@ class Actions(object):
         ## cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
-        dialog.format_secondary_markup(_("When entering a command, use a ? symbol if user input is required at runtime. Example: ls /any/directory would be entered as ls ? .For each ? in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
+        dialog.format_secondary_markup(_("When entering a command use question marks(?) as placeholders if user input is required when the command runs. Example: ls /any/directory would be entered as, ls ? .For each question mark(?) in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
 
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -195,7 +195,7 @@ class Actions(object):
             None)
 
         # primary text
-        dialog.set_markup(_("Edit the command in your clicompanion dictionary"))
+        dialog.set_markup(_("Edit a command in your command list"))
 
         ## create the text input fields
         entry1 = gtk.Entry()

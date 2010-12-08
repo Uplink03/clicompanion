@@ -56,7 +56,7 @@ ROW = '1' ## holds the currently selected row
 
 class MainWindow():
 
-    ## open file containing command dictionary and put it in a variable
+    ## open file containing command list and put it in a variable
     def update(self, liststore):
         try:
             with open(CHEATSHEET, "r") as cheatfile:
@@ -238,7 +238,7 @@ class MainWindow():
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
         ## tooltip for "Add Tab" tab
-        add_tab_button.set_tooltip_text(_("Click to add another Tab"))
+        add_tab_button.set_tooltip_text(_("Click to add another tab"))
         ## create first tab
         notebook.append_page(gtk.Label(""), add_tab_button)
         
