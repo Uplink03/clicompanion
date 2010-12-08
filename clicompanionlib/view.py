@@ -23,6 +23,7 @@
 import pygtk
 pygtk.require('2.0')
 import os
+import ConfigParser
 
 # import vte and gtk or print error
 try:
@@ -45,8 +46,10 @@ import clicompanionlib.menus_buttons
 import clicompanionlib.controller
 from clicompanionlib.utils import get_user_shell 
 import clicompanionlib.tabs
+from clicompanionlib.config import Config
 
 
+CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 CMNDS = [] ## will hold the commands. Actually the first two columns
@@ -121,8 +124,14 @@ class MainWindow():
         ##For now TERM is hardcoded to xterm because of a change
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
-        ## copy config file to user $HOME if does not exist
+
+        ## copy command list to user $HOME if does not exist
         self.setup()
+
+        ##create the config file
+        conf_mod = Config()
+        conf_mod.create_config()
+
         
         #TODO: do we want to do this? Or just keep the height under 600.
         ##Get user screen size##

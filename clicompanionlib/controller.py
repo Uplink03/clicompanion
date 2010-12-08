@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# clicompanion.py - commandline tool.
+# clicompanion - commandline tool.
 #
 # Copyright 2010 Duane Hinnen, Kenny Meyer
 #
@@ -423,5 +423,93 @@ class Actions(object):
         pass
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
+        
+    def changed_cb(self, combobox):
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index:
+            text_e = model[index][0]
+        return
+        
+    def preferences(self, widget, data=None):
+        mw = view.MainWindow
+        dialog = gtk.Dialog("User Preferences",
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+            gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+            
+            
+        ##create the text input field
+        entry1 = gtk.Entry()
+        entry2 = gtk.Entry()
+        entry3 = gtk.Entry()
+        ##combobox for selecting encoding
+        combobox = gtk.combo_box_new_text()
+        combobox.append_text('Select encoding:')
+        combobox.append_text('Unicode UTF-8')
+        combobox.append_text('Western ISO-8859-1')
+        combobox.append_text('Western ISO-8859-15')
+        #combobox.append_text('Grape')
+        #combobox.append_text('Peach')
+        #combobox.append_text('Raisin')
+        combobox.connect('changed', self.changed_cb, combobox)
+        combobox.set_active(0)
+        dialog.show_all()
+        
+        ## allow the user to press enter to do ok
+        entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+        entry2.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+        entry3.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+
+
+        ## create three labels
+        hbox1 = gtk.HBox()
+        hbox1.pack_start(gtk.Label(_("Scrollback")), False, 5, 5)
+        hbox1.pack_start(entry1, False, 5, 5)
+
+        hbox1.pack_start(gtk.Label(_("encoding")), False, 5, 5)
+        hbox1.pack_start(combobox, False, 5, 5)
+
+
+        hbox2 = gtk.HBox()
+        hbox2.pack_start(gtk.Label(_("font color")), False, 5, 5)
+        hbox2.pack_start(entry2, True, 5, 5)
+        
+        hbox2.pack_start(gtk.Label(_("background color")), False, 5, 5)
+        hbox2.pack_start(entry3, True, 5, 5)
+        
+        
+        ## add it and show it
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+        dialog.show_all()
+        
+        
+        
+        if result == gtk.RESPONSE_OK:
+            ## user text assigned to a variable
+            text_sb = entry1.get_text()
+            text_fc = entry2.get_text()
+            text_bc = entry3.get_text()
+            
+            config.set("terminal", "scrollback_lines", text_sb)
+            config.set("terminal", "colorf", text_fc)
+            config.set("terminal", "colorb", text_bc)
+            config.set("terminal", "encoding", text_e)
+        
+        
+            
+        dialog.run()     
+        ## The destroy method must be called otherwise the 'Close' button will
+        ## not work.
+        dialog.destroy()
+        
+        
+
+
+
+
+
             
             

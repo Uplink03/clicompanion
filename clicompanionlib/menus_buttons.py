@@ -49,10 +49,10 @@ class FileMenu(object):
         menu_item2.show()
         
         ## Make 'Remove' file menu entry
-        menu_item2 = gtk.MenuItem(_("Remove Command"))
-        menu.append(menu_item2)
-        menu_item2.connect("activate", actions.remove_command, liststore)
-        menu_item2.show()
+        menu_item3 = gtk.MenuItem(_("Remove Command"))
+        menu.append(menu_item3)
+        menu_item3.connect("activate", actions.remove_command, liststore)
+        menu_item3.show()
         
         ## Make 'Add Tab' file menu entry
         tabs = clicompanionlib.tabs.Tabs()
@@ -60,12 +60,19 @@ class FileMenu(object):
         menu.append(menu_item4)
         menu_item4.connect("activate", tabs.add_tab, notebook)
         menu_item4.show()
+        
+        ## Make 'User Preferences' file menu entry
+        tabs = clicompanionlib.tabs.Tabs()
+        menu_item5 = gtk.MenuItem(_("Preferences"))
+        menu.append(menu_item5)
+        menu_item5.connect("activate", actions.preferences)
+        menu_item5.show()
 
         ## Make 'Quit' file menu entry
-        menu_item3 = gtk.MenuItem(_("Quit"))
-        menu.append(menu_item3)
-        menu_item3.connect("activate", actions.delete_event)
-        menu_item3.show()
+        menu_item6 = gtk.MenuItem(_("Quit"))
+        menu.append(menu_item6)
+        menu_item6.connect("activate", actions.delete_event)
+        menu_item6.show()
         
         
         ## HELP MENU ##

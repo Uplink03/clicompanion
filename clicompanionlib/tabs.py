@@ -17,13 +17,17 @@
 #
 #
 
+import os
 import pygtk
 pygtk.require('2.0')
 import gtk
 import vte
+import ConfigParser
 
 from clicompanionlib.utils import get_user_shell
 import clicompanionlib.controller
+
+CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 class Tabs(object):
       
@@ -36,6 +40,28 @@ class Tabs(object):
         _vte.set_size_request(700, 220)
         _vte.connect ("child-exited", lambda term: gtk.main_quit())
         _vte.fork_command(get_user_shell()) # Get the user's default shell
+        
+
+        ##read config file
+        config = ConfigParser.RawConfigParser()
+        config.read(CONFIGFILE)
+
+        ##set terminal preferences from conig file data
+        config_scrollback = config.getint('terminal', 'scrollb')
+        _vte.set_scrollback_lines(config_scrollback)
+        
+        config_color_fore = gtk.gdk.color_parse(config.get('terminal', 'colorf'))
+        _vte.set_color_foreground(config_color_fore)
+        
+        config_color_back = gtk.gdk.color_parse(config.get('terminal', 'colorb'))
+        _vte.set_color_background(config_color_back)
+        
+        config_encoding = config.get('terminal', 'encoding')
+        _vte.set_encoding(config_encoding)
+        
+
+
+
 
         vte_tab = gtk.ScrolledWindow()
         vte_tab.add(_vte)
@@ -79,3 +105,5 @@ class Tabs(object):
         pagenum = notebook.page_num(widget)
         ## and close it
         notebook.remove_page(pagenum) 
+        
+
