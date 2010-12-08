@@ -1,14 +1,15 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# CLIcompanion i18n
+# Copyright 2010 Duane Hinnen, Kenny Meyer, Marcos Vanetta
+# This file is distributed under the same license as the clicompaninon package.
+# Duane Hinnen <duanedesign@ubuntu.com>, 2010.
+#
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-12-06 12:42+0000\n"
+"POT-Creation-Date: 2010-12-08 14:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +27,7 @@ msgid "You need to install 'python-vte' the python bindings for libvte."
 msgstr ""
 
 #: controller.py:70
-msgid "This command requires more information"
+msgid "This command requires more information."
 msgstr ""
 
 #: controller.py:82
@@ -34,7 +35,7 @@ msgid "Please provide a "
 msgstr ""
 
 #: controller.py:114
-msgid "Add a command to your CLI Companion dictionary"
+msgid "Add a command to your command list"
 msgstr ""
 
 #: controller.py:127 controller.py:212 view.py:159
@@ -51,15 +52,16 @@ msgstr ""
 
 #: controller.py:140
 msgid ""
-"When entering a command, use a ? symbol if user input is required at "
-"runtime. Example: ls /any/directory would be entered as ls ? .For each ? in "
-"your command, if any, use the User Input field to provide a hint for each "
-"variable. Using our example ls ? you could put directory as the User Input. "
-"Lastly provide a brief Description."
+"When entering a command use question marks(?) as placeholders if user input "
+"is required when the command runs. Example: ls /any/directory would be "
+"entered as, ls ? .For each question mark(?) in your command, if any, use the "
+"User Input field to provide a hint for each variable. Using our example ls ? "
+"you could put directory as the User Input. Lastly provide a brief "
+"Description."
 msgstr ""
 
 #: controller.py:198
-msgid "Edit the command in your clicompanion dictionary"
+msgid "Edit a command in your command list"
 msgstr ""
 
 #: controller.py:225
@@ -85,7 +87,7 @@ msgid "Click to show/hide command list"
 msgstr ""
 
 #: view.py:241
-msgid "Click to add another Tab"
+msgid "Click to add another tab"
 msgstr ""
 
 #: menus_buttons.py:31
