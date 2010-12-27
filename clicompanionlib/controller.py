@@ -282,7 +282,7 @@ class Actions(object):
         only display the rows which contain the search term.
         Pretty straight-forward.
         """
-        search_term = widget.get_text()
+        search_term = widget.get_text().lower()
         
         ## Create a TreeModelFilter object which provides auxiliary functions for
         ## filtering data.
@@ -292,9 +292,9 @@ class Actions(object):
             try:
                 ## Iterate through every column and row and check if the search
                 ## term is there:
-                if search_term in modelfilter.get_value(iter, 0) or \
-                   search_term in modelfilter.get_value(iter, 1) or \
-                   search_term in modelfilter.get_value(iter, 2):
+                if search_term in modelfilter.get_value(iter, 0).lower() or \
+                   search_term in modelfilter.get_value(iter, 1).lower() or \
+                   search_term in modelfilter.get_value(iter, 2).lower() :
                         return True
                                          
             except TypeError:
