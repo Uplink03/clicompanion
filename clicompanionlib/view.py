@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#
-#
+
 
 import pygtk
 pygtk.require('2.0')
@@ -120,7 +119,9 @@ class MainWindow():
         return False
   
     def __init__(self):
-
+        #import pdb  ##debug
+        #pdb.set_trace() ##debug
+        
         ##For now TERM is hardcoded to xterm because of a change
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')

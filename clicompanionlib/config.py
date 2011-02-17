@@ -29,33 +29,22 @@ class Config(object):
     create configuration file
     '''
 
-    
-
     def create_config(self):
-        config = ConfigParser.ConfigParser()
-        # set a number of parameters
-        config.add_section("terminal")
-        config.set("terminal", "scrollb", 500)
-        config.set("terminal", "colorf", '#FFFFFF')
-        config.set("terminal", "colorb", '#000000')
-        config.set("terminal", "encoding", 'utf-8')
-        
-        
-
     
-        # Writing our configuration file
-        with open(CONFIGFILE, 'wb') as f:
-            config.write(f)
-      
-    '''        
-    def load_config(self):
-        """Load configuration data"""
-        if self.loaded is True:
-            pass
+        if not os.path.exists(CONFIGFILE):
+            config = ConfigParser.ConfigParser()
+            # set a number of parameters
+            config.add_section("terminal")
+            config.set("terminal", "scrollb", 500)
+            config.set("terminal", "colorf", '#FFFFFF')
+            config.set("terminal", "colorb", '#000000')
+            config.set("terminal", "encoding", 'utf-8')
+            # Writing our configuration file
+            with open(CONFIGFILE, 'wb') as f:
+                config.write(f)
+            
         else:
-            configfile = open(CONFIGFILE, 'wb')
-            self.loaded = True
-    '''
+            pass
 
 
 
