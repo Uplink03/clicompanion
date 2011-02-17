@@ -203,12 +203,20 @@ class MainWindow():
             global ROW
             (model, pathlist)=treeselection.get_selected_rows()
             ROW = pathlist
+            
+        # double click on a command    
+        def treeview_clicked(widget, event):
+            if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+                actions.run_command(self, notebook, liststore)
 
 
         selection = treeview.get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
         selection.select_path(0)
-        selection.connect("changed", mark_selected, selection)      
+        selection.connect("changed", mark_selected, selection)   
+                    
+        #double-click
+        treeview.connect("button-press-event", treeview_clicked)
         
         
         ## The search section
