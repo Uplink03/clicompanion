@@ -209,6 +209,16 @@ class MainWindow():
             if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
                 actions.run_command(self, notebook, liststore)
 
+        # press enter to run a command                   
+        def treeview_button(widget, event):
+            keyname = gtk.gdk.keyval_name(event.keyval).upper()
+            print keyname
+            if event.type == gtk.gdk.KEY_PRESS:
+                if keyname == 'RETURN':
+                    actions.run_command(self, notebook, liststore)
+                    
+                
+        #event.button == 1 and 
 
         selection = treeview.get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -217,6 +227,8 @@ class MainWindow():
                     
         #double-click
         treeview.connect("button-press-event", treeview_clicked)
+        #press enter to run command
+        treeview.connect("key-press-event", treeview_button)
         
         
         ## The search section
