@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# clicompanion.py - commandline tool.
+# clicompanion - commandline tool.
 #
 # Copyright 2010 Duane Hinnen, Kenny Meyer
 #
@@ -24,6 +24,7 @@ import pygtk
 pygtk.require('2.0')
 import re
 import webbrowser
+import ConfigParser
 
 import os
 # import vte and gtk or print error
@@ -44,12 +45,13 @@ except:
     sys.exit (1)
     
 from clicompanionlib.utils import get_user_shell
+import clicompanionlib.tabs
 import view
 
 
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
-
+CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 class Actions(object):
     ## Info Dialog Box
@@ -418,10 +420,149 @@ class Actions(object):
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
         return False
-
+    
+    ## Help --> About and Help --> Help menus
     def about_event(self, widget, data=None):
         pass
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
+        
+    ## File --> Preferences    
+    def changed_cb(self, combobox, config):
+        config.read(CONFIGFILE)
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index:
+            text_e = model[index][0]
+            config.set("terminal", "encoding", text_e)
+            # Writing our configuration file
+            with open(CONFIGFILE, 'wb') as f:
+                config.write(f)
+
+        
+    def color_set_fg_cb(self, colorbutton_fg, config):
+        config.read(CONFIGFILE)
+        #colorf16 = colorbutton_fg.get_color()
+        colorf = self.color2hex(colorbutton_fg)
+        config.set("terminal", "colorf", str(colorf))          
+        # Writing our configuration file
+        with open(CONFIGFILE, 'wb') as f:
+            config.write(f)
+
+
+
+    def color_set_bg_cb(self, colorbutton_bg, config):
+        config.read(CONFIGFILE)
+        #colorb16 = colorbutton_bg.get_color()
+        colorb = self.color2hex(colorbutton_bg)
+        config.set("terminal", "colorb", str(colorb))
+        # Writing our configuration file
+        with open(CONFIGFILE, 'wb') as f:
+            config.write(f)
+
+        
+        
+    def color2hex(self, widget):
+        """Pull the colour values out of a Gtk ColorPicker widget and return them
+        as 8bit hex values, sinces its default behaviour is to give 16bit values"""
+        widcol = widget.get_color()
+        print widcol
+        return('#%02x%02x%02x' % (widcol.red>>8, widcol.green>>8, widcol.blue>>8))
+        
+    def preferences(self, widget, data=None):
+        '''
+        Preferences window
+        '''
+        mw = view.MainWindow
+        dialog = gtk.Dialog("User Preferences",
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE,
+            gtk.STOCK_OK, gtk.RESPONSE_OK))
+            
+        config = ConfigParser.RawConfigParser()
+        config.read(CONFIGFILE)
+            
+        ##create the text input fields
+        entry1 = gtk.Entry()
+        entry1.set_text(config.get('terminal', 'scrollb'))
+
+        
+        ##combobox for selecting encoding
+        combobox = gtk.combo_box_new_text()
+        combobox.append_text('Select encoding:')
+        combobox.append_text('UTF-8')
+        combobox.append_text('ISO-8859-1')
+        combobox.append_text('ISO-8859-15')
+
+        combobox.connect('changed', self.changed_cb, config)
+        combobox.set_active(0)
+        
+        ##colorbox for selecting text and background color
+        colorbutton_fg = gtk.ColorButton(gtk.gdk.color_parse('white'))
+        colorbutton_bg = gtk.ColorButton(gtk.gdk.color_parse('black'))
+
+        colorbutton_fg.connect('color-set', self.color_set_fg_cb, config)
+        colorbutton_bg.connect('color-set', self.color_set_bg_cb, config)
+
+        #dialog.show_all()
+        
+        ## allow the user to press enter to do ok
+        entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
+
+
+
+        ## create three labels
+        hbox1 = gtk.HBox()
+        hbox1.pack_start(gtk.Label(_("Scrollback")), False, 5, 5)
+        hbox1.pack_start(entry1, False, 5, 5)
+
+        hbox1.pack_start(gtk.Label(_("encoding")), False, 5, 5)
+        hbox1.pack_start(combobox, False, 5, 5)
+
+
+        hbox2 = gtk.HBox()
+        hbox2.pack_start(gtk.Label(_("font color")), False, 5, 5)
+        hbox2.pack_start(colorbutton_fg, True, 5, 5)
+        
+        hbox2.pack_start(gtk.Label(_("background color")), False, 5, 5)
+        hbox2.pack_start(colorbutton_bg, True, 5, 5)
+        
+        
+        ## add it and show it
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+        dialog.show_all()
+        
+        result = dialog.run()
+
+        if result == gtk.RESPONSE_OK:
+
+            ## user text assigned to a variable
+            text_sb = entry1.get_text()
+            
+            config.read(CONFIGFILE)
+            config.set("terminal", "scrollb", text_sb)
+
+
+
+            # Writing our configuration file
+            with open(CONFIGFILE, 'wb') as f:
+                config.write(f)
+   
+            ## instantiate tabs
+            tabs = clicompanionlib.tabs.Tabs()
+            tabs.update_term_config
+
+        ## The destroy method must be called otherwise the 'Close' button will
+        ## not work.
+        dialog.destroy()
+        
+        
+
+
+
+
+
             
             

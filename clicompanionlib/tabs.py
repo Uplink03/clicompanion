@@ -17,25 +17,29 @@
 #
 #
 
+import os
 import pygtk
 pygtk.require('2.0')
 import gtk
 import vte
+import ConfigParser
 
 from clicompanionlib.utils import get_user_shell
 import clicompanionlib.controller
 
-class Tabs(object):
-      
-        
-        
-    ## add a new terminal in a tab above the current terminal
-    def add_tab(self,widget, notebook):
+CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
+class Tabs(object):
+    '''
+    add a new terminal in a tab above the current terminal
+    '''
+    def add_tab(self,widget, notebook):
         _vte = vte.Terminal()
         _vte.set_size_request(700, 220)
         _vte.connect ("child-exited", lambda term: gtk.main_quit())
         _vte.fork_command(get_user_shell()) # Get the user's default shell
+        
+        self.update_term_config(_vte)
 
         vte_tab = gtk.ScrolledWindow()
         vte_tab.add(_vte)
@@ -79,3 +83,31 @@ class Tabs(object):
         pagenum = notebook.page_num(widget)
         ## and close it
         notebook.remove_page(pagenum) 
+        
+    def update_term_config(self, _vte):
+        ##read config file
+        config = ConfigParser.RawConfigParser()
+        config.read(CONFIGFILE)
+
+        ##set terminal preferences from conig file data
+        config_scrollback = config.getint('terminal', 'scrollb')
+        _vte.set_scrollback_lines(config_scrollback)
+        
+        color = '#2e3436:#cc0000:#4e9a06:#c4a000:#3465a4:#75507b:#06989a:#d3d7cf:#555753:#ef2929:#8ae234:#fce94f:#729fcf:#ad7fa8:#34e2e2:#eeeeec'
+        colors = color.split(':')
+        palette = []
+        for color in colors:
+            if color:
+                palette.append(gtk.gdk.color_parse(color))
+        
+        config_color_fore = gtk.gdk.color_parse(config.get('terminal', 'colorf'))
+        #_vte.set_color_foreground(config_color_fore)
+        
+        config_color_back = gtk.gdk.color_parse(config.get('terminal', 'colorb'))
+        #_vte.set_color_background( config_color_back)
+        
+        _vte.set_colors(config_color_fore, config_color_back, palette)
+        
+        config_encoding = config.get('terminal', 'encoding')
+        _vte.set_encoding(config_encoding)
+        

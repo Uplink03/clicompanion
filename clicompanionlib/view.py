@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#
-#
+
 
 import pygtk
 pygtk.require('2.0')
 import os
+import ConfigParser
 
 # import vte and gtk or print error
 try:
@@ -45,8 +45,10 @@ import clicompanionlib.menus_buttons
 import clicompanionlib.controller
 from clicompanionlib.utils import get_user_shell 
 import clicompanionlib.tabs
+from clicompanionlib.config import Config
 
 
+CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 CMNDS = [] ## will hold the commands. Actually the first two columns
@@ -117,12 +119,20 @@ class MainWindow():
         return False
   
     def __init__(self):
-
+        #import pdb  ##debug
+        #pdb.set_trace() ##debug
+        
         ##For now TERM is hardcoded to xterm because of a change
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
-        ## copy config file to user $HOME if does not exist
+
+        ## copy command list to user $HOME if does not exist
         self.setup()
+
+        ##create the config file
+        conf_mod = Config()
+        conf_mod.create_config()
+
         
         #TODO: do we want to do this? Or just keep the height under 600.
         ##Get user screen size##
@@ -131,26 +141,27 @@ class MainWindow():
         #height =  screen.get_height() ## screen height ##
         
         ## Create UI widgets
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         liststore = gtk.ListStore(str, str, str)
         treeview = gtk.TreeView()
         expander = gtk.Expander()
-        self.scrolledwindow = gtk.ScrolledWindow()
+        scrolledwindow = gtk.ScrolledWindow()
         notebook = gtk.Notebook()
 
         ## set sizes and borders
-        self.scrolledwindow.set_size_request(700, 220)
-        self.window.set_default_size(700, 625)
-        self.window.set_border_width(10)
+        scrolledwindow.set_size_request(700, 220)
+        window.set_default_size(700, 625)
+        window.set_border_width(10)
         ## Sets the position of the window relative to the screen
-        self.window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
+        window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
         ## Allow user to resize window
-        self.window.set_resizable(True)
+        window.set_resizable(True)
+        
         
         ## set Window title and icon
-        self.window.set_title("CLI Companion")
+        window.set_title("CLI Companion")
         icon = gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/clicompanion.16.png")
-        self.window.set_icon(icon)
+        window.set_icon(icon)
         
         # get commands and put in liststore
         self.update(liststore) 
@@ -173,10 +184,11 @@ class MainWindow():
             treeview.columns[n].cell, text=n)   
             treeview.columns[n].set_resizable(True) 
         
-        #set treeview model and put treeview in the scrolled window and the scrolled window in the expander.
+        ''' set treeview model and put treeview in the scrolled window
+        and the scrolled window in the expander. '''
         treeview.set_model(liststore)
-        self.scrolledwindow.add(treeview)
-        expander.add(self.scrolledwindow)
+        scrolledwindow.add(treeview)
+        expander.add(scrolledwindow)
         #self.window.show_all()
 
         ## instantiate tabs
@@ -188,35 +200,52 @@ class MainWindow():
         menu_bar = bar.the_menu(actions, notebook, liststore)
         
 
-        #get row of selection
+        ## get row of a selection
         def mark_selected(self, treeselection):
             global ROW
             (model, pathlist)=treeselection.get_selected_rows()
             ROW = pathlist
+            
+        ## double click to run a command    
+        def treeview_clicked(widget, event):
+            if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
+                actions.run_command(self, notebook, liststore)
 
+        ## press enter to run a command                   
+        def treeview_button(widget, event):
+            keyname = gtk.gdk.keyval_name(event.keyval).upper()
+            #print keyname ##debug
+            if event.type == gtk.gdk.KEY_PRESS:
+                if keyname == 'RETURN':
+                    actions.run_command(self, notebook, liststore)
+                    
 
         selection = treeview.get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.select_path(0)
-        selection.connect("changed", mark_selected, selection)      
+        #selection.set_mode(gtk.SELECTION_SINGLE)
+        ## open with top command selected
+        selection.select_path(0) 
+        selection.connect("changed", mark_selected, selection)
+        ## double-click
+        treeview.connect("button-press-event", treeview_clicked)
+        #press enter to run command
+        treeview.connect("key-press-event", treeview_button)
         
         
         ## The search section
-        self.search_label = gtk.Label(_("Search:"))
-        self.search_label.set_alignment(xalign=-1, yalign=0)
-        self.search_box = gtk.Entry()
-        self.search_box.connect("changed", actions._filter_commands, liststore, treeview)
+        search_label = gtk.Label(_("Search:"))
+        search_label.set_alignment(xalign=-1, yalign=0)
+        search_box = gtk.Entry()
+        search_box.connect("changed", actions._filter_commands, liststore, treeview)
         ## search box tooltip
-        self.search_box.set_tooltip_text(_("Search your list of commands"))
-        # Set the search box sensitive at program start, because expander is not
-        # unfolded by default
-        self.search_box.set_sensitive(False)
+        search_box.set_tooltip_text(_("Search your list of commands"))
+        ## Set the search box sensitive OFF at program start, because
+        ## expander is not unfolded by default
+        search_box.set_sensitive(False)
         ## hbox for menu and search Entry
         menu_search_hbox = gtk.HBox(False)
-        menu_search_hbox.pack_end(self.search_box, True)
-        menu_search_hbox.pack_end(self.search_label, False, False, 10)
+        menu_search_hbox.pack_end(search_box, True)
+        menu_search_hbox.pack_end(search_label, False, False, 10)
         menu_search_hbox.pack_start(menu_bar, True)
-
 
         ## expander title
         expander_hbox = gtk.HBox()
@@ -233,7 +262,7 @@ class MainWindow():
 
         ## Add the first tab with the Terminal
         tabs.add_tab(self, notebook)
-        notebook.set_tab_pos(1)
+        notebook.set_tab_pos(2)
 
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
@@ -246,25 +275,25 @@ class MainWindow():
         button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, notebook, liststore)
 
         ## vbox for search, notebook, buttonbar
-        self.vbox = gtk.VBox()
-        self.window.add(self.vbox)
+        vbox = gtk.VBox()
+        window.add(vbox)
         ## pack everytyhing in the vbox
         #self.vbox.pack_start(menu_bar, False, False,  0) ##menuBar
-        self.vbox.pack_start(menu_search_hbox, False, False, 5)
-        self.vbox.pack_start(expander, False, False, 5)
-        self.vbox.pack_start(notebook, True, True, 10)
-        self.vbox.pack_start(button_box, False, False, 5)
+        vbox.pack_start(menu_search_hbox, False, False, 5)
+        vbox.pack_start(expander, False, False, 5)
+        vbox.pack_start(notebook, True, True, 5)
+        vbox.pack_start(button_box, False, False, 5)
         
         ## signals
         expander.connect('notify::expanded', self.expanded_cb, notebook, treeview, liststore)
-        self.window.connect("delete_event", self.delete_event)
+        window.connect("delete_event", self.delete_event)
         add_tab_button.connect("clicked", tabs.add_tab, notebook)
         ## right click menu event capture
-        treeview.connect ("button_press_event", bar.right_click, actions, treeview,  notebook, liststore)
+        treeview.connect ("button_press_event", bar.right_click, actions, treeview, notebook, liststore)
 
 
         #self.vte.grab_focus()
-        self.window.show_all()
+        window.show_all()
         return
 
     def main(self):
