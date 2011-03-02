@@ -28,6 +28,7 @@ from clicompanionlib.utils import get_user_shell
 import clicompanionlib.controller
 
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
+gcp=0;
 
 class Tabs(object):
     '''
@@ -45,8 +46,9 @@ class Tabs(object):
         vte_tab.add(_vte)
         #notebook.set_show_tabs(True)
         #notebook.set_show_border(True)
-
-        gcp = notebook.get_current_page() +1
+        
+        global gcp
+        gcp += 1
         pagenum = ('Tab %d') % gcp
 
         box = gtk.HBox()
