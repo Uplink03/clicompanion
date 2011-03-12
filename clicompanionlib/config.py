@@ -21,6 +21,7 @@
 import os
 import ConfigParser
 
+CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 class Config(object):
@@ -32,6 +33,7 @@ class Config(object):
     def create_config(self):
     
         if not os.path.exists(CONFIGFILE):
+            os.makedirs(CONFIGDIR)
             config = ConfigParser.ConfigParser()
             # set a number of parameters
             config.add_section("terminal")
