@@ -314,7 +314,7 @@ class Actions(object):
             linelist = line
             filteredcommandplus = linelist[0], linelist[1]
             view.CMNDS.append(filteredcommandplus)
-            
+
 
 
     ## send the command to the terminal

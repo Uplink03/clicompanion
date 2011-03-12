@@ -97,15 +97,14 @@ class MainWindow():
     
     
     #liststore in a scrolled window in an expander
-    def expanded_cb(self, expander, params, notebook, treeview, liststore):
+    def expanded_cb(self, expander, params, notebook, treeview, liststore, search_box):
         if expander.get_expanded():
 
-
             # Activate the search box when expanded
-            self.search_box.set_sensitive(True)
+            search_box.set_sensitive(True)
         else:
             # De-activate the search box when not expanded
-            self.search_box.set_sensitive(False)
+            search_box.set_sensitive(False)
             expander.set_expanded(False)
             #expander.remove(expander.child)
             ##reset the size of the window to its original one
@@ -206,6 +205,7 @@ class MainWindow():
             (model, pathlist)=treeselection.get_selected_rows()
             ROW = pathlist
             
+            
         ## double click to run a command    
         def treeview_clicked(widget, event):
             if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
@@ -234,16 +234,16 @@ class MainWindow():
         ## The search section
         search_label = gtk.Label(_("Search:"))
         search_label.set_alignment(xalign=-1, yalign=0)
-        search_box = gtk.Entry()
-        search_box.connect("changed", actions._filter_commands, liststore, treeview)
+        self.search_box = gtk.Entry()
+        self.search_box.connect("changed", actions._filter_commands, liststore, treeview)
         ## search box tooltip
-        search_box.set_tooltip_text(_("Search your list of commands"))
+        self.search_box.set_tooltip_text(_("Search your list of commands"))
         ## Set the search box sensitive OFF at program start, because
         ## expander is not unfolded by default
-        search_box.set_sensitive(False)
+        self.search_box.set_sensitive(False)
         ## hbox for menu and search Entry
         menu_search_hbox = gtk.HBox(False)
-        menu_search_hbox.pack_end(search_box, True)
+        menu_search_hbox.pack_end(self.search_box, True)
         menu_search_hbox.pack_end(search_label, False, False, 10)
         menu_search_hbox.pack_start(menu_bar, True)
 
@@ -285,7 +285,7 @@ class MainWindow():
         vbox.pack_start(button_box, False, False, 5)
         
         ## signals
-        expander.connect('notify::expanded', self.expanded_cb, notebook, treeview, liststore)
+        expander.connect('notify::expanded', self.expanded_cb, notebook, treeview, liststore, self.search_box)
         window.connect("delete_event", self.delete_event)
         add_tab_button.connect("clicked", tabs.add_tab, notebook)
         ## right click menu event capture
