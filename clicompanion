@@ -3,13 +3,17 @@
 import locale
 import gettext
 import os
+import sys
 from optparse import OptionParser
 
 from clicompanionlib.view import run
 
-
-BASEDIR = '/usr/share/clicompanion/'
-
+if (os.path.exists ('/usr/share/clicompanion/')):
+    BASEDIR = '/usr/share/clicompanion/'
+    print "using locale in system"
+else:
+    BASEDIR = os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0])))
+    print "using locale in source code folder"
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename",
@@ -34,7 +38,6 @@ def get_language():
     if loc in traducidos:
         return loc
     return
-
 
 locale_dir = os.path.join(BASEDIR, "locale")
 gettext.install('clicompanion', locale_dir, unicode=True)
