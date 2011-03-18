@@ -45,7 +45,7 @@ except:
     sys.exit (1)
     
 from clicompanionlib.utils import get_user_shell
-import clicompanionlib.tabs
+import tabs
 import view
 
 
@@ -179,13 +179,13 @@ class Actions(object):
 
         row_int = int(view.ROW[0][0])
 
-        row_obj1 = liststore[row_int][0]
+        row_obj1 = view.MainWindow.liststore[row_int][0]
         text1 = "".join(row_obj1)
 
-        row_obj2 = liststore[row_int][1]
+        row_obj2 = view.MainWindow.liststore[row_int][1]
         text2 = "".join(row_obj2)
 
-        row_obj3 = liststore[row_int][2]
+        row_obj3 = view.MainWindow.liststore[row_int][2]
         text3 = "".join(row_obj3)
 
         ## Create Dialog object
@@ -557,6 +557,40 @@ class Actions(object):
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
+        
+        
+    ## drag and drop
+    def drag_data_get_data(self, treeview, context, selection, target_id,
+                           etime):
+        treeselection = treeview.get_selection()
+        model, iter = treeselection.get_selected()
+        data = model.get(iter, 0,1,2)
+        
+
+        selection.set(selection.target, 8, str(data))
+    ## drag and drop
+    def drag_data_received_data(self, treeview, context, x, y, selection,
+                                info, etime):
+        model = treeview.get_model()
+        data_selection = selection.data
+        data = str(data_selection).split(',')
+        print data[0][2:-1]
+        print data[1][2:-1]
+        print data[2][2:-2]
+        drop_info = treeview.get_dest_row_at_pos(x, y)
+        if drop_info:
+            path, position = drop_info
+            iter = model.get_iter(path)
+            if (position == gtk.TREE_VIEW_DROP_BEFORE
+                or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                model.set(iter, 0, data[0][2:-1],1, data[1][2:-1],2, data[2][2:-2])
+            else:
+                model.set(iter, 0, data[0][2:-1],1, data[1][2:-1],2, data[2][2:-2])
+        else:
+            model.append([data])
+        if context.action == gtk.gdk.ACTION_MOVE:
+            context.finish(True, True, etime)
+        return
         
         
 

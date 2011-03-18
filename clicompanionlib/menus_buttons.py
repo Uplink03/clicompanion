@@ -21,7 +21,7 @@
 #
 
 import gtk
-import clicompanionlib.tabs
+import tabs
 
 
 class FileMenu(object):
@@ -55,14 +55,14 @@ class FileMenu(object):
         menu_item3.show()
         
         ## Make 'Add Tab' file menu entry
-        tabs = clicompanionlib.tabs.Tabs()
+        tab = tabs.Tabs()
         menu_item4 = gtk.MenuItem(_("Add Tab"))
         menu.append(menu_item4)
-        menu_item4.connect("activate", tabs.add_tab, notebook)
+        menu_item4.connect("activate", tab.add_tab, notebook)
         menu_item4.show()
         
         ## Make 'User Preferences' file menu entry
-        tabs = clicompanionlib.tabs.Tabs()
+        #tab = tabs.Tabs()
         menu_item5 = gtk.MenuItem(_("Preferences"))
         menu.append(menu_item5)
         menu_item5.connect("activate", actions.preferences)

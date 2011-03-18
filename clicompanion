@@ -15,6 +15,7 @@ else:
     BASEDIR = os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0])))
     print "using locale in source code folder"
 
+
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename",
                   help="write report to FILE", metavar="FILE")
@@ -23,7 +24,6 @@ parser.add_option("-q", "--quiet",
                   help="don't print status messages to stdout")
 
 (options, args) = parser.parse_args()
-
 
 
 def get_language():
@@ -38,6 +38,7 @@ def get_language():
     if loc in traducidos:
         return loc
     return
+    
 
 locale_dir = os.path.join(BASEDIR, "locale")
 gettext.install('clicompanion', locale_dir, unicode=True)
@@ -49,6 +50,7 @@ if idioma is not None:
                       "not the clicompanion.mo file" % idioma)
     trans = gettext.translation('clicompanion', locale_dir, languages=[idioma])
     trans.install(unicode=True)
+
 
 if __name__ == "__main__":
     run()

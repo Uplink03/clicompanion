@@ -57,6 +57,7 @@ ROW = '1' ## holds the currently selected row
 
 
 class MainWindow():
+    liststore = gtk.ListStore(str, str, str)
 
     ## open file containing command list and put it in a variable
     def update(self, liststore):
@@ -69,14 +70,14 @@ class MainWindow():
             ## So, run self.setup() again.
             self.setup()
             ## Then, run me again.
-            self.update(liststore)
+            self.update(self.liststore)
 
         ## add bug data from .clicompanion --> bugdata --> to the liststore
         for line in bugdata.splitlines():
             l = line.split(':',2)
             commandplus = l[0], l[1]
             CMNDS.append(commandplus)
-            liststore.append([l[0],l[1],l[2]])
+            self.liststore.append([l[0],l[1],l[2]])
 
           
     #copy config file to user $HOME if does not exist
@@ -97,18 +98,18 @@ class MainWindow():
     
     
     #liststore in a scrolled window in an expander
-    def expanded_cb(self, expander, params, notebook, treeview, liststore, search_box):
+    def expanded_cb(self, expander, params, window, search_box):
         if expander.get_expanded():
 
             # Activate the search box when expanded
             search_box.set_sensitive(True)
         else:
             # De-activate the search box when not expanded
-            search_box.set_sensitive(False)
+            self.search_box.set_sensitive(False)
             expander.set_expanded(False)
             #expander.remove(expander.child)
             ##reset the size of the window to its original one
-            self.window.resize(1, 1)
+            window.resize(1, 1)
         return  
         
 
@@ -141,7 +142,7 @@ class MainWindow():
         
         ## Create UI widgets
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        liststore = gtk.ListStore(str, str, str)
+
         treeview = gtk.TreeView()
         expander = gtk.Expander()
         scrolledwindow = gtk.ScrolledWindow()
@@ -163,7 +164,7 @@ class MainWindow():
         window.set_icon(icon)
         
         # get commands and put in liststore
-        self.update(liststore) 
+        self.update(self.liststore) 
         ## create the TreeViewColumns to display the data
         treeview.columns = [None]*3
         treeview.columns[0] = gtk.TreeViewColumn(_('Command'))
@@ -185,7 +186,7 @@ class MainWindow():
         
         ''' set treeview model and put treeview in the scrolled window
         and the scrolled window in the expander. '''
-        treeview.set_model(liststore)
+        treeview.set_model(self.liststore)
         scrolledwindow.add(treeview)
         expander.add(scrolledwindow)
         #self.window.show_all()
@@ -196,7 +197,7 @@ class MainWindow():
         actions = clicompanionlib.controller.Actions()
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         bar = clicompanionlib.menus_buttons.FileMenu()
-        menu_bar = bar.the_menu(actions, notebook, liststore)
+        menu_bar = bar.the_menu(actions, notebook, self.liststore)
         
 
         ## get row of a selection
@@ -209,7 +210,7 @@ class MainWindow():
         ## double click to run a command    
         def treeview_clicked(widget, event):
             if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-                actions.run_command(self, notebook, liststore)
+                actions.run_command(self, notebook, self.liststore)
 
         ## press enter to run a command                   
         def treeview_button(widget, event):
@@ -217,7 +218,7 @@ class MainWindow():
             #print keyname ##debug
             if event.type == gtk.gdk.KEY_PRESS:
                 if keyname == 'RETURN':
-                    actions.run_command(self, notebook, liststore)
+                    actions.run_command(self, notebook, self.liststore)
                     
 
         selection = treeview.get_selection()
@@ -230,12 +231,17 @@ class MainWindow():
         #press enter to run command
         treeview.connect("key-press-event", treeview_button)
         
+        ##drag and drop
+        treeview.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, TARGETS, gtk.gdk.ACTION_MOVE)
+        treeview.enable_model_drag_dest(TARGETS, gtk.gdk.ACTION_MOVE)
+        treeview.connect("drag_data_get", actions.drag_data_get_data)
+        treeview.connect("drag_data_received", actions.drag_data_received_data)
         
         ## The search section
         search_label = gtk.Label(_("Search:"))
         search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
-        self.search_box.connect("changed", actions._filter_commands, liststore, treeview)
+        self.search_box.connect("changed", actions._filter_commands, self.liststore, treeview)
         ## search box tooltip
         self.search_box.set_tooltip_text(_("Search your list of commands"))
         ## Set the search box sensitive OFF at program start, because
@@ -272,7 +278,7 @@ class MainWindow():
         notebook.append_page(gtk.Label(""), add_tab_button)
         
         ## buttons at bottom of main window [menus_buttons.py]
-        button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, notebook, liststore)
+        button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, notebook, self.liststore)
 
         ## vbox for search, notebook, buttonbar
         vbox = gtk.VBox()
@@ -285,11 +291,11 @@ class MainWindow():
         vbox.pack_start(button_box, False, False, 5)
         
         ## signals
-        expander.connect('notify::expanded', self.expanded_cb, notebook, treeview, liststore, self.search_box)
+        expander.connect('notify::expanded', self.expanded_cb, window, self.search_box)
         window.connect("delete_event", self.delete_event)
         add_tab_button.connect("clicked", tabs.add_tab, notebook)
         ## right click menu event capture
-        treeview.connect ("button_press_event", bar.right_click, actions, treeview, notebook, liststore)
+        treeview.connect ("button_press_event", bar.right_click, actions, treeview, notebook, self.liststore)
 
 
         #self.vte.grab_focus()
