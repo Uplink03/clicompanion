@@ -423,7 +423,34 @@ class Actions(object):
     
     ## Help --> About and Help --> Help menus
     def about_event(self, widget, data=None):
-        pass
+        # Create AboutDialog object
+        dialog = gtk.AboutDialog()
+
+        # Add the application name to the dialog
+        dialog.set_name('CLI Companion ')
+
+        # Set the application version
+        dialog.set_version('1.0')
+
+        # Pass a list of authors.  This is then connected to the 'Credits'
+        # button.  When clicked the buttons opens a new window showing
+        # each author on their own line.
+        dialog.set_authors(['Duane Hinnen', 'Kenny Meyer', 'Marcos Vanetta'])
+
+        # Add a short comment about the application, this appears below the application
+        # name in the dialog
+        dialog.set_comments('This is a CLI Companion program.')
+
+        # Add license information, this is connected to the 'License' button
+        # and is displayed in a new window.
+        dialog.set_license('Distributed under the GNU license. You can see it at <http://www.gnu.org/licenses/>.')
+
+        # Show the dialog
+        dialog.run()
+
+        # The destroy method must be called otherwise the 'Close' button will
+        # not work.
+        dialog.destroy()
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
         
