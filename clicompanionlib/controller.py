@@ -183,7 +183,7 @@ class Actions(object):
         if view.FILTER == 1:
             with open(CHEATSHEET, "r") as cheatfile:
                 cheatlines = cheatfile.readlines()
-                for i in range(len(cheatlines)-1):
+                for i in range(len(cheatlines)):
 			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i] :
 				    	row_int = i 
                 cheatfile.close()
@@ -281,7 +281,7 @@ class Actions(object):
         if view.FILTER == 1:
             with open(CHEATSHEET, "r") as cheatfile:
                 cheatlines = cheatfile.readlines()
-                for i in range(len(cheatlines)-1):
+                for i in range(len(cheatlines)):
 			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i]:
 				    	row_int = i 
                 cheatfile.close()
@@ -331,6 +331,11 @@ class Actions(object):
                 ## Python raises a TypeError if row data doesn't exist. Catch
                 ## that and fail silently.
                 pass
+            except AttributeError:
+                ## Python raises a AttributeError if row data was modified . Catch
+                ## that and fail silently.
+                pass
+
 
         modelfilter.set_visible_func(search, search_term)
         treeview.set_model(modelfilter)
@@ -398,7 +403,21 @@ class Actions(object):
         
     ## open the man page for selected command
     def man_page(self, widget, notebook):
-        row_int = int(view.ROW[0][0]) # removes everything but number from EX: [5,]
+        try:
+            row_int = int(view.ROW[0][0]) # removes everything but number from EX: [5,]
+        except IndexError:  
+            ## When user not choose row, when is in filter mode
+            dialog = gtk.MessageDialog(
+                None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_QUESTION,
+                gtk.BUTTONS_OK,
+                None)
+            dialog.set_markup('You must choose row to view help')
+            dialog.show_all()
+            dialog.run()
+            dialog.destroy()     
+            return 
         cmnd = view.CMNDS[row_int][0] #CMNDS is where commands are store
         splitcommand = self._filter_sudo_from(cmnd.split(" "))
         ## get current notebook tab to use in function
