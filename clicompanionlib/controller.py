@@ -176,22 +176,21 @@ class Actions(object):
 
     ## This the edit function
     def edit_command(self, widget , liststore):
+		
+        row_int_x = int(view.ROW[0][0])
+        row_int = 0
 		## TODO: Not implemented with filted yet
         if view.FILTER == 1:
-            dialog = gtk.MessageDialog(
-		        None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_QUESTION,
-                gtk.BUTTONS_OK,
-                None)   
-            dialog.set_markup('You must clear search string before do that')
-            dialog.show_all()
-            dialog.run()
-            dialog.destroy()                
-            return 
-         
-        row_int = int(view.ROW[0][0])
+            with open(CHEATSHEET, "r") as cheatfile:
+                cheatlines = cheatfile.readlines()
+                for i in range(len(cheatlines)-1):
+			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i] :
+				    	row_int = i 
+                cheatfile.close()
+        else:
+			row_int = row_int_x
 
+         
         row_obj1 = view.MainWindow.liststore[row_int][0]
         text1 = "".join(row_obj1)
 
@@ -275,21 +274,21 @@ class Actions(object):
 
     ## Remove command from command file and GUI
     def remove_command(self, widget, liststore):
+		
+        row_int_x = int(view.ROW[0][0])
+        row_int = 0
 		## TODO: Not implemented with filted yet
         if view.FILTER == 1:
-            dialog = gtk.MessageDialog(
-		        None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_QUESTION,
-                gtk.BUTTONS_OK,
-                None)   
-            dialog.set_markup('You must clear search string before do that')
-            dialog.show_all()
-            dialog.run()
-            dialog.destroy()                
-            return 
-        row_int = int(view.ROW[0][0]) #convert pathlist into something usable   
-        del view.CMNDS[row_int]
+            with open(CHEATSHEET, "r") as cheatfile:
+                cheatlines = cheatfile.readlines()
+                for i in range(len(cheatlines)-1):
+			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i]:
+				    	row_int = i 
+                cheatfile.close()
+        else:
+			row_int = row_int_x
+
+        del view.CMNDS[row_int_x]
         del liststore[row_int]
 
         ## open command file and delete line so the change is persistent
