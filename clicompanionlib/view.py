@@ -62,11 +62,18 @@ TARGETS = [
     ('STRING', 0, 3),
     ]
 FILTER = 0
+NETBOOKMODE = 0
 
 
 class MainWindow():
     liststore = gtk.ListStore(str, str, str)
-
+    os.system("xrandr | grep \* | cut -d' ' -f4 > res.temp")
+    global NETBOOKMODE
+    with open ("res.temp", "r") as tempfile:
+        resolution = tempfile.read()
+        tempfile.close()
+    if "1024x600" in resolution:
+        NETBOOKMODE = 1
     ## open file containing command list and put it in a variable
     def update(self, liststore):
         try:
@@ -157,8 +164,14 @@ class MainWindow():
         notebook = gtk.Notebook()
 
         ## set sizes and borders
-        scrolledwindow.set_size_request(700, 220)
-        window.set_default_size(700, 625)
+        
+        global NETBOOKMODE
+        if NETBOOKMODE == 1:
+            scrolledwindow.set_size_request(700, 200)
+            window.set_default_size(700, 500)
+        else:
+            scrolledwindow.set_size_request(700, 220)
+            window.set_default_size(700, 625)
         window.set_border_width(10)
         ## Sets the position of the window relative to the screen
         window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
