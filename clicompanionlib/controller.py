@@ -163,7 +163,7 @@ class Actions(object):
                     l = str(text1+":"+text2+":"+text3)
                     #ls = l.split(':',2)
                     ## update view.CMNDS variable
-                    filteredcommandplus = text1, text2
+                    filteredcommandplus = text1, text2, text3
                     view.CMNDS.append(filteredcommandplus)
                     ## update the command list on screen
                     liststore.append([text1,text2,text3])
@@ -176,7 +176,20 @@ class Actions(object):
 
     ## This the edit function
     def edit_command(self, widget , liststore):
-
+		## TODO: Not implemented with filted yet
+        if view.FILTER == 1:
+            dialog = gtk.MessageDialog(
+		        None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_QUESTION,
+                gtk.BUTTONS_OK,
+                None)   
+            dialog.set_markup('You must clear search string before do that')
+            dialog.show_all()
+            dialog.run()
+            dialog.destroy()                
+            return 
+         
         row_int = int(view.ROW[0][0])
 
         row_obj1 = view.MainWindow.liststore[row_int][0]
@@ -250,7 +263,7 @@ class Actions(object):
                         l = str(text1+":"+text2+":"+text3)
                         #ls = l.split(':',2)
                         ## update view.CMNDS variable
-                        filteredcommandplus = text1, text2
+                        filteredcommandplus = text1, text2, text3
                         view.CMNDS.append(filteredcommandplus)
                         ## update the command list on screen
                         liststore.append([text1,text2,text3])
@@ -262,7 +275,19 @@ class Actions(object):
 
     ## Remove command from command file and GUI
     def remove_command(self, widget, liststore):
-
+		## TODO: Not implemented with filted yet
+        if view.FILTER == 1:
+            dialog = gtk.MessageDialog(
+		        None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_QUESTION,
+                gtk.BUTTONS_OK,
+                None)   
+            dialog.set_markup('You must clear search string before do that')
+            dialog.show_all()
+            dialog.run()
+            dialog.destroy()                
+            return 
         row_int = int(view.ROW[0][0]) #convert pathlist into something usable   
         del view.CMNDS[row_int]
         del liststore[row_int]
@@ -285,6 +310,10 @@ class Actions(object):
         Pretty straight-forward.
         """
         search_term = widget.get_text().lower()
+        if search_term == "":
+		    view.FILTER = 0
+        else:
+		    view.FILTER = 1
         
         ## Create a TreeModelFilter object which provides auxiliary functions for
         ## filtering data.
@@ -312,13 +341,14 @@ class Actions(object):
         view.CMNDS = []
         for line in modelfilter:
             linelist = line
-            filteredcommandplus = linelist[0], linelist[1]
+            filteredcommandplus = linelist[0], linelist[1], linelist[2]
             view.CMNDS.append(filteredcommandplus)
 
 
 
     ## send the command to the terminal
     def run_command(self, widget, notebook, liststore):
+
         text = ""
         row_int = int(view.ROW[0][0]) ## removes everything but number from [5,]
 

@@ -51,7 +51,9 @@ from clicompanionlib.config import Config
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
-CMNDS = [] ## will hold the commands. Actually the first two columns
+
+## Changed two->three columns
+CMNDS = [] ## will hold the commands. Actually the first three columns
 ROW = '1' ## holds the currently selected row
 TARGETS = [
     ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
@@ -59,6 +61,7 @@ TARGETS = [
     ('TEXT', 0, 2),
     ('STRING', 0, 3),
     ]
+FILTER = 0
 
 
 class MainWindow():
@@ -80,7 +83,7 @@ class MainWindow():
         ## add bug data from .clicompanion --> bugdata --> to the liststore
         for line in bugdata.splitlines():
             l = line.split(':',2)
-            commandplus = l[0], l[1]
+            commandplus = l[0], l[1], l[2]
             CMNDS.append(commandplus)
             self.liststore.append([l[0],l[1],l[2]])
 
