@@ -53,7 +53,12 @@ CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 CMNDS = [] ## will hold the commands. Actually the first two columns
 ROW = '1' ## holds the currently selected row
-
+TARGETS = [
+    ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
+    ('text/plain', 0, 1),
+    ('TEXT', 0, 2),
+    ('STRING', 0, 3),
+    ]
 
 
 class MainWindow():
@@ -159,7 +164,7 @@ class MainWindow():
         
         
         ## set Window title and icon
-        window.set_title("CLI Companion")
+        window.set_title("CLI ompanion")
         icon = gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/clicompanion.16.png")
         window.set_icon(icon)
         
