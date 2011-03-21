@@ -154,6 +154,7 @@ class MainWindow():
         expander = gtk.Expander()
         scrolledwindow = gtk.ScrolledWindow()
         notebook = gtk.Notebook()
+        notebook.set_show_tabs(0)
 
         ## set sizes and borders
         
