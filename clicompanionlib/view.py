@@ -67,13 +67,12 @@ NETBOOKMODE = 0
 
 class MainWindow():
     liststore = gtk.ListStore(str, str, str)
-    os.system("xrandr | grep \* | cut -d' ' -f4 > res.temp")
+    screen = gtk.gdk.display_get_default().get_default_screen()
+    screen_size = screen.get_monitor_geometry(0)
+    height =  screen.get_height() ## screen height ##
     global NETBOOKMODE
-    with open ("res.temp", "r") as tempfile:
-        resolution = tempfile.read()
-        tempfile.close()
-    if "1024x600" in resolution:
-        NETBOOKMODE = 1
+    if height < 750:
+		NETBOOKMODE = 1
     ## open file containing command list and put it in a variable
     def update(self, liststore):
         try:
@@ -147,13 +146,6 @@ class MainWindow():
         ##create the config file
         conf_mod = Config()
         conf_mod.create_config()
-
-        
-        #TODO: do we want to do this? Or just keep the height under 600.
-        ##Get user screen size##
-        #screen = gtk.gdk.display_get_default().get_default_screen()
-        #screen_size = screen.get_monitor_geometry(0)
-        #height =  screen.get_height() ## screen height ##
         
         ## Create UI widgets
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
