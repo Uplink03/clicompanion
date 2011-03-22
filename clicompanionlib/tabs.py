@@ -26,6 +26,7 @@ import ConfigParser
 
 from clicompanionlib.utils import get_user_shell
 import clicompanionlib.controller
+import view
 
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 gcp=0;
@@ -36,7 +37,11 @@ class Tabs(object):
     '''
     def add_tab(self,widget, notebook):
         _vte = vte.Terminal()
-        _vte.set_size_request(700, 220)
+        if view.NETBOOKMODE == 1:
+            _vte.set_size_request(700, 120)
+        else:
+		    _vte.set_size_request(700, 220) 
+       
         _vte.connect ("child-exited", lambda term: gtk.main_quit())
         _vte.fork_command(get_user_shell()) # Get the user's default shell
         
