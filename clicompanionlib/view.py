@@ -18,7 +18,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
+import gobject
 import pygtk
 pygtk.require('2.0')
 import os
@@ -120,11 +120,12 @@ class MainWindow():
             window.resize(1, 1)
         return  
         
-
+        
     # close the window and quit
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
         return False
+  
   
     def __init__(self):
         #import pdb  ##debug
@@ -141,12 +142,22 @@ class MainWindow():
         conf_mod = Config()
         conf_mod.create_config()
 
-        
         #TODO: do we want to do this? Or just keep the height under 600.
         ##Get user screen size##
         #screen = gtk.gdk.display_get_default().get_default_screen()
         #screen_size = screen.get_monitor_geometry(0)
         #height =  screen.get_height() ## screen height ##
+        
+        ## style
+    	gtk.rc_parse_string ("style \"ephy-tab-close-button-style\"\n"
+		     "{\n"
+		       "GtkWidget::focus-padding = 0\n"
+		       "GtkWidget::focus-line-width = 0\n"
+		       "xthickness = 0\n"
+		       "ythickness = 0\n"
+		     "}\n"
+		     "widget \"*.ephy-tab-close-button\" style \"ephy-tab-close-button-style\"");
+        
         
         ## Create UI widgets
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -155,11 +166,14 @@ class MainWindow():
         expander = gtk.Expander()
         scrolledwindow = gtk.ScrolledWindow()
         notebook = gtk.Notebook()
+        
+        ##attach the style to the widget
+        notebook.set_name ("ephy-tab-close-button")
 
         ## set sizes and borders
         scrolledwindow.set_size_request(700, 220)
         window.set_default_size(700, 625)
-        window.set_border_width(10)
+        #window.set_border_width(10)
         ## Sets the position of the window relative to the screen
         window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
         ## Allow user to resize window
