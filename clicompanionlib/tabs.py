@@ -29,6 +29,9 @@ import clicompanionlib.controller
 import view
 
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
+
+
+#definition gcp - how many pages is visible
 gcp=0;
 
 class Tabs(object):
@@ -55,7 +58,8 @@ class Tabs(object):
         global gcp
         gcp += 1
         pagenum = ('Tab %d') % gcp
-
+        if gcp > 1:
+			notebook.set_show_tabs(True)
         box = gtk.HBox()
         label = gtk.Label(pagenum)
         box.pack_start(label, True, True)
