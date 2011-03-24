@@ -61,8 +61,18 @@ TARGETS = [
     ('TEXT', 0, 2),
     ('STRING', 0, 3),
     ]
+
 FILTER = 0
 NETBOOKMODE = 0
+HIDEUI = 0
+FULLSCREEN = 0
+
+treeview = ''
+expander = ''
+scrolledwindow = ''
+notebook = ''
+menu_search_hbox = ''
+button_box = ''
 
 
 class MainWindow():
@@ -131,6 +141,40 @@ class MainWindow():
     def delete_event(self, widget,  data=None):
         gtk.main_quit()
         return False
+        
+    def key_clicked(self, widget, event):
+        global HIDEUI
+        global FULLSCREEN
+        global treeview
+        global expander
+        global scrolledwindow
+        global notebook
+        global menu_search_hbox
+        global button_box
+        keyname = gtk.gdk.keyval_name(event.keyval).upper()
+        #print keyname ##debug
+        if keyname == "F12":
+            HIDEUI = 1 - HIDEUI
+        if HIDEUI == 1:
+            treeview.hide_all()
+            expander.hide_all()
+            scrolledwindow.hide_all()
+            menu_search_hbox.hide_all()
+            button_box.hide_all()
+        else:
+            treeview.show_all()
+            expander.show_all()
+            scrolledwindow.show_all()
+            menu_search_hbox.show_all()
+            button_box.show_all()
+        if keyname == "F11":
+            FULLSCREEN = 1 - FULLSCREEN
+        if FULLSCREEN == 1:
+            pwin = button_box.get_window()
+            pwin.fullscreen()
+        else: 
+            pwin = button_box.get_window()
+            pwin.unfullscreen()
   
     def __init__(self):
         #import pdb  ##debug
@@ -147,17 +191,35 @@ class MainWindow():
         conf_mod = Config()
         conf_mod.create_config()
         
+        
+        ## style to reduce padding around tabs
+        ## TODO: Find a better place for this? 
+    	gtk.rc_parse_string ("style \"tab-close-button-style\"\n"
+		     "{\n"
+		       "GtkWidget::focus-padding = 0\n"
+		       "GtkWidget::focus-line-width = 0\n"
+		       "xthickness = 0\n"
+		       "ythickness = 0\n"
+		     "}\n"
+		     "widget \"*.tab-close-button\" style \"tab-close-button-style\"");
+        
         ## Create UI widgets
-        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-
+        window = gtk.Window(gtk.WINDOW_TOPLEVEL) 	
+        global treeview
+        global expander
+        global scrolledwindow
+        global notebook
         treeview = gtk.TreeView()
         expander = gtk.Expander()
         scrolledwindow = gtk.ScrolledWindow()
         notebook = gtk.Notebook()
         notebook.set_show_tabs(0)
 
+        ##attach the style to the widget
+        notebook.set_name ("tab-close-button")
+
+
         ## set sizes and borders
-        
         global NETBOOKMODE
         if NETBOOKMODE == 1:
             scrolledwindow.set_size_request(700, 200)
@@ -234,6 +296,7 @@ class MainWindow():
                 if keyname == 'RETURN':
                     actions.run_command(self, notebook, self.liststore)
                     
+                    
 
         selection = treeview.get_selection()
         #selection.set_mode(gtk.SELECTION_SINGLE)
@@ -250,6 +313,8 @@ class MainWindow():
         treeview.enable_model_drag_dest(TARGETS, gtk.gdk.ACTION_MOVE)
         treeview.connect("drag_data_get", actions.drag_data_get_data)
         treeview.connect("drag_data_received", actions.drag_data_received_data)
+        
+        global menu_search_hbox
         
         ## The search section
         search_label = gtk.Label(_("Search:"))
@@ -291,6 +356,7 @@ class MainWindow():
         ## create first tab
         notebook.append_page(gtk.Label(""), add_tab_button)
         
+        global button_box
         ## buttons at bottom of main window [menus_buttons.py]
         button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, notebook, self.liststore)
 
@@ -307,6 +373,7 @@ class MainWindow():
         ## signals
         expander.connect('notify::expanded', self.expanded_cb, window, self.search_box)
         window.connect("delete_event", self.delete_event)
+        window.connect("key-press-event", self.key_clicked)
         add_tab_button.connect("clicked", tabs.add_tab, notebook)
         ## right click menu event capture
         treeview.connect ("button_press_event", bar.right_click, actions, treeview, notebook, self.liststore)
