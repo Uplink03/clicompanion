@@ -34,6 +34,9 @@ CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 #definition gcp - how many pages is visible
 gcp=0;
 
+#definition nop - (no of pages) reflects no of terminal tabs left (some may be closed by the user)
+nop=0;
+
 class Tabs(object):
     '''
     add a new terminal in a tab above the current terminal
@@ -56,10 +59,12 @@ class Tabs(object):
         #notebook.set_show_border(True)
         
         global gcp
+        global nop
+        nop += 1
         gcp += 1
         pagenum = ('Tab %d') % gcp
-        if gcp > 1:
-			notebook.set_show_tabs(True)
+        if nop > 1:
+            notebook.set_show_tabs(True)
         box = gtk.HBox()
         label = gtk.Label(pagenum)
         box.pack_start(label, True, True)
@@ -93,7 +98,12 @@ class Tabs(object):
         ## get the page number of the tab we wanted to close
         pagenum = notebook.page_num(widget)
         ## and close it
-        notebook.remove_page(pagenum) 
+        notebook.remove_page(pagenum)
+        global nop
+        nop -= 1
+        if nop <= 1:
+            notebook.set_show_tabs(False)
+        
         
     def update_term_config(self, _vte):
         ##read config file
