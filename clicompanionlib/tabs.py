@@ -104,6 +104,11 @@ class Tabs(object):
         if nop <= 1:
             notebook.set_show_tabs(False)
         
+        # check if the focus does not go to the last page (ie with only a + sign)
+        if notebook.get_current_page() == nop:
+            notebook.prev_page()
+        
+        
         
     def update_term_config(self, _vte):
         ##read config file
