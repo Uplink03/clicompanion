@@ -380,8 +380,14 @@ class Actions(object):
 
 
         if not view.CMNDS[row_int][1] == "": # command with user input
-            text = self.get_info(self, liststore)
-            c = new_cmnd.format(text)
+            c = ""
+            try:
+                text = self.get_info(self, liststore)
+                c = new_cmnd.format(text)
+            except: 
+                error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                    _("You need to enter full input. Click on [x] to continue."))
+                error.run()
             page_widget.feed_child(c+"\n") #send command w/ input
             page_widget.show()
             page_widget.grab_focus()
