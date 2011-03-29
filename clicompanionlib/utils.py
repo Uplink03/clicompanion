@@ -54,3 +54,7 @@ def get_user_shell():
             # Don't forget to strip the newline at the end of the string!
             return i.split(":")[-1:][0].strip('\n')
 
+class Borg:
+    __shared_state = {}
+    def __init__(self):
+        self.__dict__ = self.__shared_state
