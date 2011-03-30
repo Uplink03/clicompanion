@@ -147,6 +147,8 @@ class MainWindow(Borg):
         return False
         
     def key_clicked(self, widget, event):
+        actions = clicompanionlib.controller.Actions()
+        tabs = clicompanionlib.tabs.Tabs()
         global HIDEUI
         global FULLSCREEN
         global notebook
@@ -176,6 +178,14 @@ class MainWindow(Borg):
         else: 
             pwin = button_box.get_window()
             pwin.unfullscreen()
+        if keyname == "F4":
+			actions.run_command(self, self.notebook, self.liststore)
+        if keyname == "F5":
+			actions.add_command(self, self.liststore)
+        if keyname == "F6":
+			actions.remove_command(self, self.liststore)
+        if keyname == "F7":
+			tabs.add_tab(self, self.notebook)
   
     def __init__(self):
         #import pdb  ##debug
