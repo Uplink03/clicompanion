@@ -510,6 +510,28 @@ class Actions(object):
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
         
+    def usage_event(self, widget, data=None):
+        mw = view.MainWindow
+        dialog = gtk.Dialog("Usage",
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
+        hbox1 = gtk.HBox()
+        hbox1.pack_start(gtk.Label(_("To maximize window, press F11")), False, 5, 5)
+        hbox2 = gtk.HBox()
+        hbox2.pack_start(gtk.Label(_("To hide UI, press F12")), False, 5, 5)
+ 
+        
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.show_all()
+        
+        result = dialog.run()
+        ## The destroy method must be called otherwise the 'Close' button will
+        ## not work.
+        dialog.destroy()
+        
+        
     ## File --> Preferences    
     def changed_cb(self, combobox, config):
         config.read(CONFIGFILE)
