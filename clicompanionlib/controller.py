@@ -19,13 +19,16 @@
 #
 #
 
+from clicompanionlib.utils import get_user_shell
+
+import tabs
+import view
 
 import pygtk
 pygtk.require('2.0')
 import re
 import webbrowser
 import ConfigParser
-
 import os
 # import vte and gtk or print error
 try:
@@ -44,9 +47,6 @@ except:
     error.run()
     sys.exit (1)
     
-from clicompanionlib.utils import get_user_shell
-import tabs
-import view
 
 
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
@@ -54,6 +54,8 @@ CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 class Actions(object):
+    #make instances of the Classes we are going to use
+    #main_window = view.MainWindow
     ## Info Dialog Box
     ## if a command needs more info EX: a package name, a path
     def get_info(self, widget, liststore):
@@ -176,7 +178,7 @@ class Actions(object):
 
     ## This the edit function
     def edit_command(self, widget , liststore):
-		
+
         row_int_x = int(view.ROW[0][0])
         row_int = 0
 		## TODO: Not implemented with filted yet

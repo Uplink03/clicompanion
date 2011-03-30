@@ -64,11 +64,14 @@ class Tabs(object):
         gcp += 1
         pagenum = ('Tab %d') % gcp
         if nop > 1:
-            notebook.set_show_tabs(True)
+            view.MainWindow.notebook.set_show_tabs(True)
         box = gtk.HBox()
         label = gtk.Label(pagenum)
         box.pack_start(label, True, True)
+        
 
+
+        
         ## x image for tab close button
         close_image = gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
         ## close button
@@ -81,13 +84,14 @@ class Tabs(object):
         box.pack_end(closebtn, False, False)
         box.show_all()
 
-        notebook.prepend_page(vte_tab, box) # add tab
-        notebook.set_scrollable(True)
+        view.MainWindow.notebook.prepend_page(vte_tab, box) # add tab
+        view.MainWindow.notebook.set_scrollable(True)
         actions = clicompanionlib.controller.Actions()
         _vte.connect ("button_press_event", actions.copy_paste, None)
         vte_tab.grab_focus()
         # signal handler for tab
-        closebtn.connect("clicked", self.close_tab, vte_tab, notebook) 
+        closebtn.connect("clicked", self.close_tab, vte_tab, notebook)
+                
         vte_tab.show_all()
 
         return vte_tab
@@ -96,17 +100,17 @@ class Tabs(object):
     ## Remove a page from the notebook
     def close_tab(self, sender, widget, notebook):
         ## get the page number of the tab we wanted to close
-        pagenum = notebook.page_num(widget)
+        pagenum = view.MainWindow.notebook.page_num(widget)
         ## and close it
-        notebook.remove_page(pagenum)
+        view.MainWindow.notebook.remove_page(pagenum)
         global nop
         nop -= 1
         if nop <= 1:
-            notebook.set_show_tabs(False)
+            view.MainWindow.notebook.set_show_tabs(False)
         
         # check if the focus does not go to the last page (ie with only a + sign)
-        if notebook.get_current_page() == nop:
-            notebook.prev_page()
+        if view.MainWindow.notebook.get_current_page() == nop:
+            view.MainWindow.notebook.prev_page()
         
         
         
