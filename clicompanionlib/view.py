@@ -263,6 +263,7 @@ class MainWindow():
         ''' set treeview model and put treeview in the scrolled window
         and the scrolled window in the expander. '''
         treeview.set_model(self.liststore)
+        treeview.set_reorderable(True)
         scrolledwindow.add(treeview)
         expander.add(scrolledwindow)
         #self.window.show_all()
@@ -307,13 +308,7 @@ class MainWindow():
         treeview.connect("button-press-event", treeview_clicked)
         #press enter to run command
         treeview.connect("key-press-event", treeview_button)
-        
-        ##drag and drop
-        treeview.enable_model_drag_source(gtk.gdk.BUTTON1_MASK, TARGETS, gtk.gdk.ACTION_MOVE)
-        treeview.enable_model_drag_dest(TARGETS, gtk.gdk.ACTION_MOVE)
-        treeview.connect("drag_data_get", actions.drag_data_get_data)
-        treeview.connect("drag_data_received", actions.drag_data_received_data)
-        
+                
         global menu_search_hbox
         
         ## The search section
