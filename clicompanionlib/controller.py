@@ -21,7 +21,7 @@
 
 from clicompanionlib.utils import get_user_shell
 
-import tabs
+import clicompanionlib.tabs
 import view
 
 import pygtk
@@ -633,6 +633,7 @@ class Actions(object):
             with open(CONFIGFILE, 'wb') as f:
                 config.write(f)
    
+
             ## instantiate tabs
             tabs = clicompanionlib.tabs.Tabs()
             tabs.update_term_config
