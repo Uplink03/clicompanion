@@ -510,6 +510,45 @@ class Actions(object):
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
         
+    def usage_event(self, widget, data=None):
+        mw = view.MainWindow
+        dialog = gtk.Dialog("Usage",
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
+            
+        hbox1 = gtk.HBox()
+        hbox2 = gtk.HBox()
+        hbox21 = gtk.HBox()
+        hbox3 = gtk.HBox()
+        hbox4 = gtk.HBox()
+        hbox5 = gtk.HBox()
+        hbox6 = gtk.HBox()
+
+        hbox1.pack_start(gtk.Label(_("To maximize window, press F11")), False, 5, 5)
+        hbox2.pack_start(gtk.Label(_("To hide UI, press F12")), False, 5, 5)
+        hbox21.pack_start(gtk.Label(_("--------------------")), False, 5, 5)
+        hbox3.pack_start(gtk.Label(_("Run command - F4")), False, 5, 5) 
+        hbox4.pack_start(gtk.Label(_("Add command - F5")), False, 5, 5)        
+        hbox5.pack_start(gtk.Label(_("Remove command - F6")), False, 5, 5) 
+        hbox6.pack_start(gtk.Label(_("Add tab - F7")), False, 5, 5)        
+        
+        dialog.vbox.pack_end(hbox1, True, True, 0)
+        dialog.vbox.pack_end(hbox2, True, True, 0)
+        dialog.vbox.pack_end(hbox21, True, True, 0)
+        dialog.vbox.pack_end(hbox3, True, True, 0)
+        dialog.vbox.pack_end(hbox4, True, True, 0)
+        dialog.vbox.pack_end(hbox5, True, True, 0)
+        dialog.vbox.pack_end(hbox6, True, True, 0)
+        
+        dialog.show_all()
+        
+        result = dialog.run()
+        ## The destroy method must be called otherwise the 'Close' button will
+        ## not work.
+        dialog.destroy()
+        
+        
     ## File --> Preferences    
     def changed_cb(self, combobox, config):
         config.read(CONFIGFILE)

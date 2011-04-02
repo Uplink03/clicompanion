@@ -37,26 +37,26 @@ class FileMenu(object):
 
         ##FILE MENU ##     
         ## Make 'Run' menu entry
-        menu_item1 = gtk.MenuItem(_("Run Command"))
+        menu_item1 = gtk.MenuItem(_("Run Command [F4]"))
         menu.append(menu_item1)
         menu_item1.connect("activate", actions.run_command, notebook, liststore)
         menu_item1.show()
 
         ## Make 'Add' file menu entry
-        menu_item2 = gtk.MenuItem(_("Add Command"))
+        menu_item2 = gtk.MenuItem(_("Add Command [F5]"))
         menu.append(menu_item2)
         menu_item2.connect("activate", actions.add_command, liststore)
         menu_item2.show()
         
         ## Make 'Remove' file menu entry
-        menu_item3 = gtk.MenuItem(_("Remove Command"))
+        menu_item3 = gtk.MenuItem(_("Remove Command [F6]"))
         menu.append(menu_item3)
         menu_item3.connect("activate", actions.remove_command, liststore)
         menu_item3.show()
         
         ## Make 'Add Tab' file menu entry
         tab = tabs.Tabs()
-        menu_item4 = gtk.MenuItem(_("Add Tab"))
+        menu_item4 = gtk.MenuItem(_("Add Tab [F7]"))
         menu.append(menu_item4)
         menu_item4.connect("activate", tab.add_tab, notebook)
         menu_item4.show()
@@ -82,12 +82,18 @@ class FileMenu(object):
         menu_item11.connect("activate", actions.about_event)
         menu_item11.show()
 
-
+        ## Make 'Usage' file menu entry
+        menu_item22 = gtk.MenuItem(_("Usage"))
+        menu2.append(menu_item22)
+        menu_item22.connect("activate", actions.usage_event)
+        menu_item22.show()
+        
         ## Make 'Help' file menu entry
-        menu_item22 = gtk.MenuItem(_("Help"))
+        menu_item22 = gtk.MenuItem(_("Help-online"))
         menu2.append(menu_item22)
         menu_item22.connect("activate", actions.help_event)
         menu_item22.show()
+       
         
 
         menu_bar = gtk.MenuBar()
