@@ -265,10 +265,10 @@ class MainWindow(Borg):
         
         ''' set treeview model and put treeview in the scrolled window
         and the scrolled window in the expander. '''
-        treeview.set_model(self.liststore)
-        treeview.set_reorderable(True)
-        scrolledwindow.add(treeview)
-        expander.add(scrolledwindow)
+        self.treeview.set_model(self.liststore)
+        self.treeview.set_reorderable(True)
+        self.scrolledwindow.add(self.treeview)
+        self.expander.add(self.scrolledwindow)
         #self.window.show_all()
 
         ## instantiate tabs
@@ -310,7 +310,7 @@ class MainWindow(Borg):
         ## double-click
         self.treeview.connect("button-press-event", treeview_clicked)
         #press enter to run command
-        treeview.connect("key-press-event", treeview_button)
+        self.treeview.connect("key-press-event", treeview_button)
                 
         global menu_search_hbox
         
