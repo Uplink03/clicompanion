@@ -21,7 +21,7 @@
 
 from clicompanionlib.utils import get_user_shell
 
-import tabs
+import clicompanionlib.tabs
 import view
 
 import pygtk
@@ -672,6 +672,7 @@ class Actions(object):
             with open(CONFIGFILE, 'wb') as f:
                 config.write(f)
    
+
             ## instantiate tabs
             tabs = clicompanionlib.tabs.Tabs()
             tabs.update_term_config
@@ -680,45 +681,3 @@ class Actions(object):
         ## not work.
         dialog.destroy()
         
-        
-    ## drag and drop
-    def drag_data_get_data(self, treeview, context, selection, target_id,
-                           etime):
-        treeselection = treeview.get_selection()
-        model, iter = treeselection.get_selected()
-        data = model.get(iter, 0,1,2)
-        
-
-        selection.set(selection.target, 8, str(data))
-    ## drag and drop
-    def drag_data_received_data(self, treeview, context, x, y, selection,
-                                info, etime):
-        model = treeview.get_model()
-        data_selection = selection.data
-        data = str(data_selection).split(',')
-        print data[0][2:-1]
-        print data[1][2:-1]
-        print data[2][2:-2]
-        drop_info = treeview.get_dest_row_at_pos(x, y)
-        if drop_info:
-            path, position = drop_info
-            iter = model.get_iter(path)
-            if (position == gtk.TREE_VIEW_DROP_BEFORE
-                or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                model.set(iter, 0, data[0][2:-1],1, data[1][2:-1],2, data[2][2:-2])
-            else:
-                model.set(iter, 0, data[0][2:-1],1, data[1][2:-1],2, data[2][2:-2])
-        else:
-            model.append([data])
-        if context.action == gtk.gdk.ACTION_MOVE:
-            context.finish(True, True, etime)
-        return
-        
-        
-
-
-
-
-
-            
-            
