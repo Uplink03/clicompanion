@@ -157,11 +157,14 @@ class Actions(object):
             text3 = entry3.get_text()
             '''open flat file, add the new command, update CMNDS variable
             ## update commands in liststore (on screen) '''
-            with open(CHEATSHEET, "a") as cheatfile:
-                if text1 != "":
-                    ## write new commands to .clicompanion2 file
-                    cheatfile.write(text1+":"+text2+":"+text3+'\n')
+            if text1 != "":
+                with open(CHEATSHEET, "r") as cheatfile:
+                    cheatlines = cheatfile.readlines()
+                    cheatlines.append(text1+":"+text2+":"+text3+'\n')
                     cheatfile.close()
+                with open(CHEATSHEET, "w") as cheatfile2:
+                    cheatfile2.writelines(cheatlines)
+                    cheatfile2.close()
                     l = str(text1+":"+text2+":"+text3)
                     #ls = l.split(':',2)
                     ## update view.CMNDS variable
@@ -257,18 +260,22 @@ class Actions(object):
                 self.remove_command(widget, liststore)
                 '''open flat file, add the new command, update CMNDS variable
                 ## update commands in liststore (on screen) '''
-                with open(CHEATSHEET, "a") as cheatfile:
-                        ## write new commands to .clicompanion2 file
-                        cheatfile.write(text1+":"+text2+":"+text3+'\n')
-                        cheatfile.close()
-                        l = str(text1+":"+text2+":"+text3)
-                        #ls = l.split(':',2)
-                        ## update view.CMNDS variable
-                        filteredcommandplus = text1, text2, text3
-                        view.CMNDS.append(filteredcommandplus)
-                        ## update the command list on screen
-                        liststore.append([text1,text2,text3])
-
+                
+                with open(CHEATSHEET, "r") as cheatfile:
+                    cheatlines = cheatfile.readlines()
+                    cheatlines.append(text1+":"+text2+":"+text3+'\n')
+                    cheatfile.close()
+                with open(CHEATSHEET, "w") as cheatfile2:
+                    cheatfile2.writelines(cheatlines)
+                    cheatfile2.close()
+                    l = str(text1+":"+text2+":"+text3)
+                    #ls = l.split(':',2)
+                    ## update view.CMNDS variable
+                    filteredcommandplus = text1, text2, text3
+                    view.CMNDS.append(filteredcommandplus)
+                    ## update the command list on screen
+                    liststore.append([text1,text2,text3])
+                
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
