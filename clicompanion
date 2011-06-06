@@ -16,7 +16,7 @@ else:
     print "using locale in source code folder"
 
 
-parser = OptionParser()
+parser = OptionParser(usage="%prog [-f] [-q]", version="%prog 1.0")
 parser.add_option("-f", "--file", dest="filename",
                   help="write report to FILE", metavar="FILE")
 parser.add_option("-q", "--quiet",
