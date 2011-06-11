@@ -153,7 +153,6 @@ class MainWindow(Borg):
         tabs = clicompanionlib.tabs.Tabs()
         global HIDEUI
         global FULLSCREEN
-        global notebook
         global menu_search_hbox
         global button_box
         keyname = gtk.gdk.keyval_name(event.keyval).upper()
