@@ -28,10 +28,14 @@ class FileMenu(object):
 
     def the_menu(self, actions, notebook, liststore):
         menu = gtk.Menu()
+        color = gtk.gdk.Color(65555, 62000, 65555)
+        menu.modify_bg(gtk.STATE_NORMAL, color)
         root_menu = gtk.MenuItem(_("File"))       
         root_menu.set_submenu(menu)
  
         menu2 = gtk.Menu()       
+        color = gtk.gdk.Color(65555, 62000, 60000)
+        menu2.modify_bg(gtk.STATE_NORMAL, color)
         root_menu2 = gtk.MenuItem(_("Help"))
         root_menu2.set_submenu(menu2)
 
@@ -97,6 +101,8 @@ class FileMenu(object):
         
 
         menu_bar = gtk.MenuBar()
+        color = gtk.gdk.Color(60000, 65533, 60000) 
+        menu_bar.modify_bg(gtk.STATE_NORMAL, color)
         
         menu_bar.append (root_menu) ##Menu bar(file)
         menu_bar.append (root_menu2) ##Menu bar(help)       
@@ -115,6 +121,7 @@ class FileMenu(object):
         frame.add(bbox)
 
         # Set the appearance of the Button Box
+        color = gtk.gdk.Color(65000, 61000, 61000)
         bbox.set_layout(layout)
         bbox.set_spacing(spacing)
         # Run button
@@ -122,32 +129,49 @@ class FileMenu(object):
         bbox.add(buttonRun)
         buttonRun.connect("clicked", actions.run_command, notebook, liststore)
         buttonRun.set_tooltip_text(_("Click to run a highlighted command"))
+        buttonRun.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonRun.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonRun.modify_bg(gtk.STATE_INSENSITIVE, color)        
         # Add button
         buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
         bbox.add(buttonAdd)
         buttonAdd.connect("clicked", actions.add_command, liststore)
         buttonAdd.set_tooltip_text(_("Click to add a command to your command list"))
+        buttonAdd.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonAdd.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonAdd.modify_bg(gtk.STATE_INSENSITIVE, color)
         # Edit button
         buttonEdit = gtk.Button(_("Edit"))
         bbox.add(buttonEdit)
         buttonEdit.connect("clicked", actions.edit_command, liststore)
         buttonEdit.set_tooltip_text(_("Click to edit a command in your command list"))
+        buttonEdit.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonEdit.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonEdit.modify_bg(gtk.STATE_INSENSITIVE, color)
         # Delete button
         buttonDelete = gtk.Button(stock=gtk.STOCK_DELETE)
         bbox.add(buttonDelete)
         buttonDelete.connect("clicked", actions.remove_command, liststore)
         buttonDelete.set_tooltip_text(_("Click to delete a command in your command list"))
+        buttonDelete.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonDelete.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonDelete.modify_bg(gtk.STATE_INSENSITIVE, color)
         #Help Button
         buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
         bbox.add(buttonHelp)
         buttonHelp.connect("clicked", actions.man_page, notebook)
         buttonHelp.set_tooltip_text(_("Click to get help with a command in your command list"))
+        buttonHelp.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonHelp.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonHelp.modify_bg(gtk.STATE_INSENSITIVE, color)
         # Cancel button
         buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
         bbox.add(buttonCancel)
         buttonCancel.connect("clicked", actions.delete_event)
         buttonCancel.set_tooltip_text(_("Click to quit CLI Companion"))
-
+        buttonCancel.modify_bg(gtk.STATE_NORMAL, color)        
+        buttonCancel.modify_bg(gtk.STATE_PRELIGHT, color)        
+        buttonCancel.modify_bg(gtk.STATE_INSENSITIVE, color)
         return frame      
         
         
