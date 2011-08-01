@@ -160,12 +160,12 @@ class Actions(object):
             if text1 != "":
                 with open(CHEATSHEET, "r") as cheatfile:
                     cheatlines = cheatfile.readlines()
-                    cheatlines.append(text1+":"+text2+":"+text3+'\n')
+                    cheatlines.append(text1+"\t"+text2+"\t"+text3+'\n')
                     cheatfile.close()
                 with open(CHEATSHEET, "w") as cheatfile2:
                     cheatfile2.writelines(cheatlines)
                     cheatfile2.close()
-                    l = str(text1+":"+text2+":"+text3)
+                    l = str(text1+"\t"+text2+"\t"+text3)
                     #ls = l.split(':',2)
                     ## update view.CMNDS variable
                     filteredcommandplus = text1, text2, text3

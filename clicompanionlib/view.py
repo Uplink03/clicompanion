@@ -104,7 +104,7 @@ class MainWindow(Borg):
 
         ## add bug data from .clicompanion --> bugdata --> to the liststore
         for line in bugdata.splitlines():
-            l = line.split(':',2)
+            l = line.split('\t',2)
             commandplus = l[0], l[1], l[2]
             CMNDS.append(commandplus)
             self.liststore.append([l[0],l[1],l[2]])
