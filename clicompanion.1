@@ -1,0 +1,61 @@
+.\" Process this file with
+   
+.\" groff -man -Tascii clicompanion.1
+   
+.\"
+   
+.TH CLIcompanion 1 "21 May 2011" "clicompanion_1.0-4ubuntu1" "User Manuals"
+   
+.SH NAME
+   
+.B clicompanion
+- GUI learning tool for the terminal with emphasis on command storage
+
+.SH SYNOPSIS
+.B clicompanion
+\-f [filename] \-q [quiet]
+
+
+ The switches '\-' and whitespace are optional.
+   
+
+   
+.SH DESCRIPTION
+   
+.B CLIcompanion
+
+is a tool to store and run Terminal commands from a GUI. People
+unfamiliar with the Terminal will find CLIcompanion a useful way to
+become acquainted with the Terminal and unlock its
+potential. Experienced users can use CLIcompanion to store their
+extensive list of commands in a searchable list. For all commands,
+CLIcompanion provides the ability to name its arguments and put them
+through a special window.
+  
+  
+.SH Commands
+.IP "\-f \-\-file filename"
+Write report to filename
+
+.IP "\-q \-\-quiet"
+Don't print status messages to stdout
+
+.SH Files
+.I ~/.clicompanion2
+.RS
+Clicompanion config file (store a command list)
+
+.SH BUGS
+Please report all bugs to https://bugs.launchpad.net/clicompanion/trunk  
+  
+.SH AUTHORS
+  
+This documenmtation was written by:
+
+Matthew Byers <stlsaint at ubuntu dot com>
+
+Marek Bardoński <bdfhjk at gmail dot com>
+
+  
+.SH "SEE ALSO"
+.BR bash(1)
