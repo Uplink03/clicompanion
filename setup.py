@@ -24,7 +24,7 @@ from DistUtilsExtra.command import *
 
 
 setup(  name='clicompanion',
-        version='0.1.1',
+        version='1.1',
         description='Run Terminal commands from a GUI. Store commands for later use.',
         author='Duane Hinnen',
         author_email='duanedesign@gmail.com',
