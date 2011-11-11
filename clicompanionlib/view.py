@@ -74,8 +74,8 @@ button_box = ''
 
 class MainWindow(Borg):
     window = gtk.Window(gtk.WINDOW_TOPLEVEL) 
-    color = gtk.gdk.Color(60000, 65533, 60000)
-    window.modify_bg(gtk.STATE_NORMAL, color)
+    #color = gtk.gdk.Color(60000, 65533, 60000)
+    #window.modify_bg(gtk.STATE_NORMAL, color)
     liststore = gtk.ListStore(str, str, str)	
     treeview = gtk.TreeView()
     expander = gtk.Expander()
@@ -249,11 +249,11 @@ class MainWindow(Borg):
         self.update(self.liststore) 
         
         ## set renderer and colors
-        color = gtk.gdk.Color(65000,55000,62000)
-        color2 = gtk.gdk.Color(5000,5000,65000)
+
+        #color2 = gtk.gdk.Color(5000,5000,65000)
         renderer = gtk.CellRendererText()
-        renderer.set_property("cell-background-gdk", color)
-        renderer.set_property("foreground-gdk", color2)
+        #renderer.set_property("cell-background-gdk", color)
+        #renderer.set_property("foreground-gdk", color2)
         
         ## create the TreeViewColumns to display the data
         self.treeview.columns = [None]*3
@@ -266,8 +266,8 @@ class MainWindow(Borg):
             self.treeview.append_column(self.treeview.columns[n])
             ## create a CellRenderers to render the data
             self.treeview.columns[n].cell = gtk.CellRendererText()
-            self.treeview.columns[n].cell.set_property("cell-background-gdk", color)
-            self.treeview.columns[n].cell.set_property("foreground-gdk", color2)
+            #self.treeview.columns[n].cell.set_property("cell-background-gdk", color)
+            #self.treeview.columns[n].cell.set_property("foreground-gdk", color2)
             ## add the cells to the columns
             self.treeview.columns[n].pack_start(self.treeview.columns[n].cell,
                                                 True)
