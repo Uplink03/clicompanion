@@ -493,12 +493,12 @@ class Actions(object):
         dialog.set_name('CLI Companion ')
 
         # Set the application version
-        dialog.set_version('1.0')
+        dialog.set_version('1.1')
 
         # Pass a list of authors.  This is then connected to the 'Credits'
         # button.  When clicked the buttons opens a new window showing
         # each author on their own line.
-        dialog.set_authors(['Duane Hinnen', 'Kenny Meyer', 'Marcos Vanetta'])
+        dialog.set_authors(['Duane Hinnen', 'Kenny Meyer', 'Marcos Vanettai', 'Marek Bardoński'])
 
         # Add a short comment about the application, this appears below the application
         # name in the dialog
