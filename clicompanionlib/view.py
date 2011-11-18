@@ -103,8 +103,16 @@ class MainWindow(Borg):
             self.update(self.liststore)
 
         ## add bug data from .clicompanion --> bugdata --> to the liststore
-        for line in bugdata.splitlines():
-            l = line.split(':',2)
+        for line in bugdata.splitlines(): 
+            l = line.split('\t',2) 
+            if len(l) < 2:
+                """
+                If for any reason we have a old file, we must
+                replace it by new one
+                """
+                print "PLEASE RESTART APPLICATION TO FINISH UPDATE"
+                self.setup()
+                return
             commandplus = l[0], l[1], l[2]
             CMNDS.append(commandplus)
             self.liststore.append([l[0],l[1],l[2]])
@@ -125,7 +133,42 @@ class MainWindow(Borg):
                 # Oops! Looks like there's no cheatsheet in CHEATSHEET.
                 # Then, create an empty cheatsheet.
                 open(CHEATSHEET, 'w').close()
-    
+        """
+        If we have old file, we must replace it by fresh list
+        """ 
+        cheatlines = []
+        try:
+            with open(CHEATSHEET, "r") as cheatfile:
+                bugdata=cheatfile.read()
+                cheatfile.close()
+                for line in bugdata.splitlines():
+                    l = line.split('\t', 2)
+                    if len(l) < 2:
+                        l = line.split(':', 2)
+                        p = str(l[0] + "\t"+ l[1] +"\t"+ l[2])
+                        cheatlines.append(p)
+                    else:
+                        cheatlines.append(l)
+                        
+            with open(CHEATSHEET, "w") as cheatfile2:
+                cheatfile2.writelines(cheatlines)
+                cheatfile2.close()        
+                                     
+        except IOError:
+            ## CHEATSHEET is not there. Oh, no!
+            ## So, run self.setup() again.
+            self.setup()
+            ## Then, run me again.
+            self.update(self.liststore)
+
+                
+        except IOError:
+            ## CHEATSHEET is not there. Oh, no!
+            ## So, run self.setup() again.
+            self.setup()
+            ## Then, run me again.
+            self.update(self.liststore)
+
     
     #liststore in a scrolled window in an expander
     def expanded_cb(self, expander, params, window, search_box):
