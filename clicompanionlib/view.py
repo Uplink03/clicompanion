@@ -145,23 +145,15 @@ class MainWindow(Borg):
                     l = line.split('\t', 2)
                     if len(l) < 2:
                         l = line.split(':', 2)
-                        p = str(l[0] + "\t"+ l[1] +"\t"+ l[2])
+                        p = str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n")
                         cheatlines.append(p)
                     else:
-                        cheatlines.append(l)
+                        cheatlines.append(str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n"))
                         
             with open(CHEATSHEET, "w") as cheatfile2:
                 cheatfile2.writelines(cheatlines)
-                cheatfile2.close()        
+                cheatfile2.close()      
                                      
-        except IOError:
-            ## CHEATSHEET is not there. Oh, no!
-            ## So, run self.setup() again.
-            self.setup()
-            ## Then, run me again.
-            self.update(self.liststore)
-
-                
         except IOError:
             ## CHEATSHEET is not there. Oh, no!
             ## So, run self.setup() again.
