@@ -6,7 +6,7 @@ clicompanionlib/menus_buttons.py
 clicompanionlib/tabs.py
 clicompanionlib/utils.py
 clicompanionlib/view.py
-data/ubuntuone-indicator.desktop
-data/clicompanion.config
+data/clicompanion.desktop
+data/clicompanion2.config
 data/clicompanion.16.png
 data/clicompanion.64.png
