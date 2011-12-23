@@ -13,12 +13,15 @@ share_dirs = os.environ.get('XDG_BASE_PDATA',
 
 BASEDIR = ''
 for path in share_dirs:
-    if (os.path.exists ('%s/clicompanion/'%path)):
+    if (os.path.exists('%s/clicompanion/'%path)):
         BASEDIR = '%s/clicompanion/'%path
         print "Using locale in system"
         break
 if not BASEDIR:
     BASEDIR = os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0])))
+    if (os.path.exists(BASEDIR)):
+        print "ERROR: locales dir not found."
+        sys.exit(1)
     print "Using locale in source code folder"
 
 
