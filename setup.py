@@ -17,9 +17,15 @@
 #
 #
 
+import sys
 import glob
 from distutils.core import setup
-from DistUtilsExtra.command import *
+try:
+    from DistUtilsExtra.command import *
+except ImportError:
+    print "This program needs python's DistUtilsExtra module to run, see https://launchpad.net/python-distutils-extra"
+    sys.exit(1)
+
 
 
 
