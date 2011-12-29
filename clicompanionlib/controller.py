@@ -362,6 +362,10 @@ class Actions(object):
     ## send the command to the terminal
     def run_command(self, widget, notebook, liststore):
 
+        ## if called without selecting a command from the list return
+        if not view.ROW:
+            return
+
         text = ""
         row_int = int(view.ROW[0][0]) ## removes everything but number from [5,]
 
