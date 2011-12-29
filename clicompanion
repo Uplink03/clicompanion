@@ -8,12 +8,21 @@ from optparse import OptionParser
 
 from clicompanionlib.view import run
 
-if (os.path.exists ('/usr/share/clicompanion/')):
-    BASEDIR = '/usr/share/clicompanion/'
-    print "using locale in system"
-else:
+share_dirs = os.environ.get('XDG_BASE_PDATA', 
+                            '/usr/local/share:/usr/share').split(os.pathsep)
+
+BASEDIR = ''
+for path in share_dirs:
+    if (os.path.exists('%s/clicompanion/'%path)):
+        BASEDIR = '%s/clicompanion/'%path
+        print "Using locale in system"
+        break
+if not BASEDIR:
     BASEDIR = os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0])))
-    print "using locale in source code folder"
+    if (os.path.exists(BASEDIR)):
+        print "ERROR: locales dir not found."
+        sys.exit(1)
+    print "Using locale in source code folder"
 
 
 parser = OptionParser(usage="%prog [-f] [-q]", version="%prog 1.1")
