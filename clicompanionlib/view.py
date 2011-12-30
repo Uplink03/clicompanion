@@ -425,12 +425,6 @@ class MainWindow(Borg):
         ## right click menu event capture
         self.treeview.connect ("button_press_event", bar.right_click, self.actions, self.treeview, self.notebook, self.liststore)
 
-        TARGETS = [
-           ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
-           ('text/plain', 0, 1),
-           ('TEXT', 0, 2),
-           ('STRING', 0, 3),
-           ]
         # Allow enable drag and drop of rows including row move
         self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
                                                 TARGETS,
