@@ -60,6 +60,8 @@ class Actions(object):
     ## if a command needs more info EX: a package name, a path
     def get_info(self, widget, liststore):
 
+        if not view.ROW:
+            return
         row_int = int(view.ROW[0][0])
 
         ## Create Dialog object
@@ -286,6 +288,8 @@ class Actions(object):
     ## Remove command from command file and GUI
     def remove_command(self, widget, liststore):
 		
+        if not view.ROW:
+            return
         row_int_x = int(view.ROW[0][0])
         row_int = 0
 		## TODO: Not implemented with filted yet
@@ -364,6 +368,8 @@ class Actions(object):
     ## send the command to the terminal
     def run_command(self, widget, notebook, liststore):
 
+        if not view.ROW:
+            return
         text = ""
         row_int = int(view.ROW[0][0]) ## removes everything but number from [5,]
 
