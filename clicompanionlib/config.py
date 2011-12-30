@@ -23,30 +23,40 @@ import ConfigParser
 
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
+DEFAULTS = { "scrollb": '500',
+             "colorf": '#FFFFFF',
+             "colorb": '#000000',
+             "encoding": 'UTF-8'}
 
-class Config(object):
+def create_config(conffile=CONFIGFILE):
+    configdir = conffile.rsplit(os.sep,1)[0]
+    if not os.path.exists(configdir):
+        try:
+            os.makedirs(configdir)
+        except Exception, e:
+            print 'Unable to create config at dir %s (%s)'%(configdir,e)
+            return False
+     # set a number of parameters
+    config = ConfigParser.SafeConfigParser()
+    config.add_section("terminal")
+    for option, value in DEFAULTS.items():
+        config.set("terminal", option, value)
+    # Writing our configuration file
+    with open(CONFIGFILE, 'wb') as f:
+       config.write(f)
+    print "INFO: Created config file at %s."%conffile
+    return config
+        
 
-    ''' 
-    create configuration file
-    '''
-
-    def create_config(self):
-    
-        if not os.path.exists(CONFIGFILE):
-            os.makedirs(CONFIGDIR)
-            config = ConfigParser.ConfigParser()
-            # set a number of parameters
-            config.add_section("terminal")
-            config.set("terminal", "scrollb", 500)
-            config.set("terminal", "colorf", '#FFFFFF')
-            config.set("terminal", "colorb", '#000000')
-            config.set("terminal", "encoding", 'utf-8')
-            # Writing our configuration file
-            with open(CONFIGFILE, 'wb') as f:
-                config.write(f)
-            
-        else:
-            pass
+def get_config(conffile=CONFIGFILE, confdir=CONFIGDIR):
+    config = None
+    if not os.path.isfile(conffile):
+        config = create_config(conffile)
+    if not config:
+        config = ConfigParser.SafeConfigParser(DEFAULTS)
+        config.add_section("terminal")
+        config.read([conffile])
+    return config
 
 
 

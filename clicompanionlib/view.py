@@ -22,7 +22,6 @@
 import pygtk
 pygtk.require('2.0')
 import os
-import ConfigParser
 
 # import vte and gtk or print error
 try:
@@ -45,7 +44,7 @@ import clicompanionlib.menus_buttons
 import clicompanionlib.controller
 from clicompanionlib.utils import get_user_shell , Borg
 import clicompanionlib.tabs
-from clicompanionlib.config import Config
+import clicompanionlib.config as cc_config
 
 
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
@@ -235,9 +234,7 @@ class MainWindow(Borg):
         self.setup()
 
         ##create the config file
-        conf_mod = Config()
-        conf_mod.create_config()
-        
+        cc_config.create_config()
         
         ## style to reduce padding around tabs
         ## TODO: Find a better place for this? 

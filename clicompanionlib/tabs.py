@@ -22,13 +22,11 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import vte
-import ConfigParser
+import clicompanionlib.config as cc_config
 
 from clicompanionlib.utils import get_user_shell
 import clicompanionlib.controller
 import view
-
-CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 
 #definition gcp - how many pages is visible
@@ -116,11 +114,17 @@ class Tabs(object):
         
     def update_term_config(self, _vte):
         ##read config file
-        config = ConfigParser.RawConfigParser()
-        config.read(CONFIGFILE)
+        config = cc_config.get_config()
 
         ##set terminal preferences from conig file data
-        config_scrollback = config.getint('terminal', 'scrollb')
+        try:
+            config_scrollback = config.getint('terminal', 'scrollb')
+        except ValueError:
+            print "WARNING: Invalid value for property 'terminal', int expected:"
+            print "    got '%s', using default '%s'"%(
+                        config.get('terminal', 'scrollb'),
+                        config.get('DEFAULT', 'scrollb'))
+            config_scrollback = config.getint('DEFAULT', 'scrollb')
         _vte.set_scrollback_lines(config_scrollback)
         
         color = '#2e3436:#cc0000:#4e9a06:#c4a000:#3465a4:#75507b:#06989a:#d3d7cf:#555753:#ef2929:#8ae234:#fce94f:#729fcf:#ad7fa8:#34e2e2:#eeeeec'
@@ -130,14 +134,29 @@ class Tabs(object):
             if color:
                 palette.append(gtk.gdk.color_parse(color))
         
-        config_color_fore = gtk.gdk.color_parse(config.get('terminal', 'colorf'))
-        #_vte.set_color_foreground(config_color_fore)
-        
-        config_color_back = gtk.gdk.color_parse(config.get('terminal', 'colorb'))
-        #_vte.set_color_background( config_color_back)
-        
+        try:
+            config_color_fore = gtk.gdk.color_parse(config.get('terminal', 'colorf'))
+        except ValueError, e:
+            print "WARNING: Invalid value for property 'colorf':"
+            print "    got '%s', using default '%s'."%(
+                        config.get('terminal', 'colorf'),
+                        config.get('DEFAULT', 'colorf'))
+            config_color_fore = gtk.gdk.color_parse(config.get('DEFAULT', 'colorf'))
+        try:
+            config_color_back = gtk.gdk.color_parse(config.get('terminal', 'colorb'))
+        except ValueError, e:
+            print "WARNING: Invalid value for property 'colorb':"
+            print "    got '%s', using default '%s'."%(
+                        config.get('terminal', 'colorb'),
+                        config.get('DEFAULT', 'colorb'))
+            config_color_back = gtk.gdk.color_parse(config.get('DEFAULT', 'colorb'))
         _vte.set_colors(config_color_fore, config_color_back, palette)
         
         config_encoding = config.get('terminal', 'encoding')
+        if not config_encoding:
+            print "WARNING: Invalid value for property 'encoding':"
+            print "    got '', using default '%s'"%config.get('DEFAULT', 'encoding')
+            config_encoding = config.get('DEFAULT', 'encoding')
         _vte.set_encoding(config_encoding)
+
         
