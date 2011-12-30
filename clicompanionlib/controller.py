@@ -182,6 +182,8 @@ class Actions(object):
     ## This the edit function
     def edit_command(self, widget , liststore):
 
+        if not view.ROW:
+            return
         row_int_x = int(view.ROW[0][0])
         row_int = 0
 		## TODO: Not implemented with filted yet
