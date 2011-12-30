@@ -464,31 +464,41 @@ class MainWindow(Borg):
         """
         global CMNDS
         model = treeview.get_model()
-        orig = tuple(selection.data.split('\t',2))
-        del model[self.find_iter_by_tuple(orig, model)]
-        drop_info = treeview.get_dest_row_at_pos(x, y)
-        if drop_info:
-            path, position = drop_info
-            iter = model.get_iter(path)
-            dest = tuple(model.get(iter, 0, 1, 2))
-            if (position == gtk.TREE_VIEW_DROP_BEFORE
-                    or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                model.insert_before(iter, orig)
-                self.drag_cmnd(orig, dest, before=True)
+        for data in selection.data.split('\n'):
+            # if we got an empty line skip it
+            if not data.replace('\r',''): continue
+            # format the incoming string
+            orig = data.replace('\r','').split('\t',2)
+            orig = tuple([ fld.strip() for fld in orig ])
+            # fill the empty fields
+            if len(orig) < 3: orig = orig + ('',)*(3-len(orig))
+            # if the element already exists delete it (dragged from clicompanion)
+            olditer = self.find_iter_by_tuple(orig, model)
+            if olditer: del model[olditer]
+
+            drop_info = treeview.get_dest_row_at_pos(x, y)
+            if drop_info:
+                path, position = drop_info
+                iter = model.get_iter(path)
+                dest = tuple(model.get(iter, 0, 1, 2))
+                if (position == gtk.TREE_VIEW_DROP_BEFORE
+                        or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                    model.insert_before(iter, orig)
+                    self.drag_cmnd(orig, dest, before=True)
+                else:
+                    model.insert_after(iter, orig)
+                    self.drag_cmnd(orig, dest, before=False)
             else:
-                model.insert_after(iter, orig)
+                if len(model) > 0:
+                    iter = model[-1].iter
+                    model.insert_after(iter, orig)
+                else:
+                    model.insert(0, orig)
+                    return
+                dest = tuple(model.get(iter, 0, 1, 2))
                 self.drag_cmnd(orig, dest, before=False)
-        else:
-            if len(model) > 0:
-                iter = model[-1].iter
-                model.insert_after(iter, orig)
-            else:
-                model.insert(0, orig)
-                return
-            dest = tuple(model.get(iter, 0, 1, 2))
-            self.drag_cmnd(orig, dest, before=False)
-        if context.action == gtk.gdk.ACTION_MOVE:
-            context.finish(True, True, etime)
+            if context.action == gtk.gdk.ACTION_MOVE:
+                context.finish(True, True, etime)
         self.actions.save_cmnds()
         
     def find_iter_by_tuple(self, data, model):
@@ -510,6 +520,7 @@ class MainWindow(Borg):
             elif cmnd == dest: 
                 j = pos
             pos += 1
+        ## both from clicompanion
         if i != None and j != None:
             cmnd = CMNDS.pop(i)
             if before and i<=j:
@@ -517,6 +528,13 @@ class MainWindow(Borg):
             elif before and i>j:
                 CMNDS.insert(j, cmnd)
             elif i<=j:
+                CMNDS.insert(j, cmnd)
+            else:
+                CMNDS.insert(j+1, cmnd)
+        ## origin unknown
+        elif j != None:
+            cmnd = orig
+            if before:
                 CMNDS.insert(j, cmnd)
             else:
                 CMNDS.insert(j+1, cmnd)
