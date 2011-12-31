@@ -323,23 +323,23 @@ class MainWindow(Borg):
         ## instantiate tabs
         tabs = clicompanionlib.tabs.Tabs()
         ## instantiate controller.Actions, where all the button actions are
-        actions = clicompanionlib.controller.Actions()
+        self.actions = clicompanionlib.controller.Actions()
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         bar = clicompanionlib.menus_buttons.FileMenu()
-        menu_bar = bar.the_menu(actions, self.notebook, self.liststore)
+        menu_bar = bar.the_menu(self.actions, self.notebook, self.liststore)
         
 
         ## get row of a selection
         def mark_selected(self, treeselection):
             global ROW
-            (model, pathlist)=treeselection.get_selected_rows()
+            (model, pathlist) = treeselection.get_selected_rows()
             ROW = pathlist
             
             
         ## double click to run a command    
         def treeview_clicked(widget, event):
             if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-                actions.run_command(self, self.notebook, self.liststore)
+                self.actions.run_command(self, self.notebook, self.liststore)
 
         ## press enter to run a command                   
         def treeview_button(widget, event):
@@ -347,7 +347,7 @@ class MainWindow(Borg):
             #print keyname ##debug
             if event.type == gtk.gdk.KEY_PRESS:
                 if keyname == 'RETURN':
-                    actions.run_command(self, self.notebook, self.liststore)
+                    self.actions.run_command(self, self.notebook, self.liststore)
                     
                     
 
@@ -367,7 +367,7 @@ class MainWindow(Borg):
         search_label = gtk.Label(_("Search:"))
         search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
-        self.search_box.connect("changed", actions._filter_commands, self.liststore, self.treeview)
+        self.search_box.connect("changed", self.actions._filter_commands, self.liststore, self.treeview)
         ## search box tooltip
         self.search_box.set_tooltip_text(_("Search your list of commands"))
         ## Set the search box sensitive OFF at program start, because
@@ -405,7 +405,7 @@ class MainWindow(Borg):
         
         global button_box
         ## buttons at bottom of main window [menus_buttons.py]
-        button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, self.notebook, self.liststore)
+        button_box = bar.buttons(self.actions, 10, gtk.BUTTONBOX_END, self.notebook, self.liststore)
 
         ## vbox for search, notebook, buttonbar
         vbox = gtk.VBox()
@@ -423,12 +423,116 @@ class MainWindow(Borg):
         self.window.connect("key-press-event", self.key_clicked)
         add_tab_button.connect("clicked", tabs.add_tab, self.notebook)
         ## right click menu event capture
-        self.treeview.connect ("button_press_event", bar.right_click, actions, self.treeview, self.notebook, self.liststore)
+        self.treeview.connect ("button_press_event", bar.right_click, self.actions, self.treeview, self.notebook, self.liststore)
+
+        # Allow enable drag and drop of rows including row move
+        self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
+                                                TARGETS,
+                                                gtk.gdk.ACTION_DEFAULT |
+                                                gtk.gdk.ACTION_COPY)
+        self.treeview.enable_model_drag_dest(TARGETS,
+                                                gtk.gdk.ACTION_DEFAULT)
+
+        self.treeview.connect ("drag_data_get", self.drag_data_get_event)
+        self.treeview.connect ("drag_data_received", self.drag_data_received_event)
 
 
         #self.vte.grab_focus()
         self.window.show_all()
         return
+
+    def drag_data_get_event(self, treeview, context, selection, target_id, 
+                            etime):
+        """
+        Executed on dragging
+        """
+        treeselection = treeview.get_selection()
+        model, iter = treeselection.get_selected()
+        data = model.get(iter, 0, 1, 2)
+        selection.set(selection.target, 8, '\t'.join(data))
+
+    def drag_data_received_event(self, treeview, context, x, y, selection, info,
+                            etime):
+        """
+        Executed when dropping.
+        """
+        global CMNDS
+        model = treeview.get_model()
+        for data in selection.data.split('\n'):
+            # if we got an empty line skip it
+            if not data.replace('\r',''): continue
+            # format the incoming string
+            orig = data.replace('\r','').split('\t',2)
+            orig = tuple([ fld.strip() for fld in orig ])
+            # fill the empty fields
+            if len(orig) < 3: orig = orig + ('',)*(3-len(orig))
+            # if the element already exists delete it (dragged from clicompanion)
+            olditer = self.find_iter_by_tuple(orig, model)
+            if olditer: del model[olditer]
+
+            drop_info = treeview.get_dest_row_at_pos(x, y)
+            if drop_info:
+                path, position = drop_info
+                iter = model.get_iter(path)
+                dest = tuple(model.get(iter, 0, 1, 2))
+                if (position == gtk.TREE_VIEW_DROP_BEFORE
+                        or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                    model.insert_before(iter, orig)
+                    self.drag_cmnd(orig, dest, before=True)
+                else:
+                    model.insert_after(iter, orig)
+                    self.drag_cmnd(orig, dest, before=False)
+            else:
+                if len(model) > 0:
+                    iter = model[-1].iter
+                    model.insert_after(iter, orig)
+                else:
+                    model.insert(0, orig)
+                    return
+                dest = tuple(model.get(iter, 0, 1, 2))
+                self.drag_cmnd(orig, dest, before=False)
+            if context.action == gtk.gdk.ACTION_MOVE:
+                context.finish(True, True, etime)
+        self.actions.save_cmnds()
+        
+    def find_iter_by_tuple(self, data, model):
+        for row in model:
+            if tuple(model.get(row.iter, 0, 1, 2)) == data:
+                return row.iter
+        return None
+    
+    def drag_cmnd(self, orig, dest, before=True):
+        """
+        Sync the CMNDS array with the drag and drop of the treeview.
+        """
+        global CMNDS
+        i = j = None
+        pos = 0
+        for cmnd in CMNDS:
+            if cmnd == orig: 
+                i = pos
+            elif cmnd == dest: 
+                j = pos
+            pos += 1
+        ## both from clicompanion
+        if i != None and j != None:
+            cmnd = CMNDS.pop(i)
+            if before and i<=j:
+                CMNDS.insert(j-1, cmnd)
+            elif before and i>j:
+                CMNDS.insert(j, cmnd)
+            elif i<=j:
+                CMNDS.insert(j, cmnd)
+            else:
+                CMNDS.insert(j+1, cmnd)
+        ## origin unknown
+        elif j != None:
+            cmnd = orig
+            if before:
+                CMNDS.insert(j, cmnd)
+            else:
+                CMNDS.insert(j+1, cmnd)
+    
 
     def main(self):
         try:

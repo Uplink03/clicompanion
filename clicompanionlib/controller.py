@@ -143,7 +143,13 @@ class Actions(object):
         ## cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
-        dialog.format_secondary_markup(_("When entering a command use question marks(?) as placeholders if user input is required when the command runs. Example: ls /any/directory would be entered as, ls ? .For each question mark(?) in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
+        dialog.format_secondary_markup(_('When entering a command use question '
+                'marks(?) as placeholders if user input is required when the '
+                'command runs. Example: ls /any/directory would be entered as, '
+                'ls ? .For each question mark(?) in your command, if any, use '
+                'the User Input field to provide a hint for each variable. '
+                'Using our example ls ? you could put directory as the User '
+                'Input. Lastly provide a brief Description.'))
 
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -359,8 +365,7 @@ class Actions(object):
         #clear CMNDS list then populate it with the filteredlist of commands
         view.CMNDS = []
         for line in modelfilter:
-            linelist = line
-            filteredcommandplus = linelist[0], linelist[1], linelist[2]
+            filteredcommandplus = tuple(line[0:2])
             view.CMNDS.append(filteredcommandplus)
 
 
@@ -377,6 +382,7 @@ class Actions(object):
         pagenum = notebook.get_current_page()
         widget = notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
+
         ## view.CMNDS is where commands are stored
         cmnd = view.CMNDS[row_int][0]
             
@@ -695,4 +701,10 @@ class Actions(object):
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
+
+    def save_cmnds(self):
+        with open(CHEATSHEET, "w") as cheatfile:
+            for command in  view.CMNDS:
+                cheatfile.write('\t'.join(command)+'\n')
+       
         
