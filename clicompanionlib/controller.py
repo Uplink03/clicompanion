@@ -365,7 +365,7 @@ class Actions(object):
         #clear CMNDS list then populate it with the filteredlist of commands
         view.CMNDS = []
         for line in modelfilter:
-            filteredcommandplus = tuple(line[0:2])
+            filteredcommandplus = tuple(modelfilter.get(line.iter, 0, 1, 2))
             view.CMNDS.append(filteredcommandplus)
 
 
