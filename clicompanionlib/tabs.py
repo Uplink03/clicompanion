@@ -24,29 +24,30 @@ import gtk
 import vte
 import clicompanionlib.config as cc_config
 
-from clicompanionlib.utils import get_user_shell
+from clicompanionlib.utils import get_user_shell, dbg
 import clicompanionlib.controller
 import view
 
-
-#definition gcp - how many pages is visible
-gcp=0;
-
-#definition nop - (no of pages) reflects no of terminal tabs left (some may be closed by the user)
-nop=0;
 
 class Tabs(object):
     '''
     add a new terminal in a tab above the current terminal
     '''
-    def add_tab(self,widget, notebook):
+    def __init__(self):
+        #definition nop - (no of pages) reflects no of terminal tabs left (some may be closed by the user)
+        self.nop = 0
+        #definition gcp - how many pages is visible
+        self.gcp = 0
+
+    def add_tab(self, widget, notebook):
+        dbg('Adding a new tab')
         _vte = vte.Terminal()
         if view.NETBOOKMODE == 1:
             _vte.set_size_request(700, 120)
         else:
 		    _vte.set_size_request(700, 220) 
        
-        _vte.connect ("child-exited", lambda term: gtk.main_quit())
+        _vte.connect("child-exited", lambda term: gtk.main_quit())
         _vte.fork_command(get_user_shell()) # Get the user's default shell
         
         self.update_term_config(_vte)
@@ -56,19 +57,16 @@ class Tabs(object):
         #notebook.set_show_tabs(True)
         #notebook.set_show_border(True)
         
-        global gcp
-        global nop
-        nop += 1
-        gcp += 1
-        pagenum = ('Tab %d') % gcp
-        if nop > 1:
+        self.nop += 1
+        self.gcp += 1
+        pagenum = ('Tab %d') % self.gcp
+        if self.nop > 1:
+            dbg('More than one tab, showing them.')
             view.MainWindow.notebook.set_show_tabs(True)
         box = gtk.HBox()
         label = gtk.Label(pagenum)
         box.pack_start(label, True, True)
         
-
-
         
         ## x image for tab close button
         close_image = gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
@@ -101,22 +99,27 @@ class Tabs(object):
         pagenum = view.MainWindow.notebook.page_num(widget)
         ## and close it
         view.MainWindow.notebook.remove_page(pagenum)
-        global nop
-        nop -= 1
-        if nop <= 1:
+        self.nop -= 1
+        if self.nop <= 1:
             view.MainWindow.notebook.set_show_tabs(False)
         
         # check if the focus does not go to the last page (ie with only a + sign)
-        if view.MainWindow.notebook.get_current_page() == nop:
+        if view.MainWindow.notebook.get_current_page() == self.nop:
             view.MainWindow.notebook.prev_page()
         
-        
+    def update_all_term_config(self):
+        for pagenum in range(view.MainWindow.notebook.get_n_pages()):
+            page = view.MainWindow.notebook.get_nth_page(pagenum)
+            dbg(page)
+            if isinstance(page, gtk.ScrolledWindow):
+                for grandson in page.get_children():
+                    dbg(grandson)
+                    if isinstance(grandson,vte.Terminal):
+                        self.update_term_config(grandson)
         
     def update_term_config(self, _vte):
-        ##read config file
-        config = cc_config.get_config()
-
         ##set terminal preferences from conig file data
+        config = cc_config.get_config()
         try:
             config_scrollback = config.getint('terminal', 'scrollb')
         except ValueError:

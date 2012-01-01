@@ -28,7 +28,7 @@ import pygtk
 pygtk.require('2.0')
 import re
 import webbrowser
-import ConfigParser
+import clicompanionlib.config as cc_config
 import os
 # import vte and gtk or print error
 try:
@@ -48,10 +48,6 @@ except:
     sys.exit (1)
     
 
-
-CHEATSHEET = os.path.expanduser("~/.clicompanion2")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
-CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 
 class Actions(object):
     #make instances of the Classes we are going to use
@@ -141,7 +137,14 @@ class Actions(object):
         ## cancel button
         dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
-        dialog.format_secondary_markup(_("When entering a command use question marks(?) as placeholders if user input is required when the command runs. Example: ls /any/directory would be entered as, ls ? .For each question mark(?) in your command, if any, use the User Input field to provide a hint for each variable. Using our example ls ? you could put directory as the User Input. Lastly provide a brief Description."))
+        dialog.format_secondary_markup(
+            _("When entering a command use question marks(?) as placeholders if"
+              " user input is required when the command runs. Example: ls "
+              "/any/directory would be entered as, ls ? .For each question "
+              "mark(?) in your command, if any, use the User Input field to "
+              "provide a hint for each variable. Using our example ls ? you "
+              "could put directory as the User Input. Lastly provide a brief "
+              "Description."))
 
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
@@ -157,22 +160,8 @@ class Actions(object):
             text3 = entry3.get_text()
             '''open flat file, add the new command, update CMNDS variable
             ## update commands in liststore (on screen) '''
-            if text1 != "":
-                with open(CHEATSHEET, "r") as cheatfile:
-                    cheatlines = cheatfile.readlines()
-                    cheatlines.append(text1+"\t"+text2+"\t"+text3+'\n')
-                    cheatfile.close()
-                with open(CHEATSHEET, "w") as cheatfile2:
-                    cheatfile2.writelines(cheatlines)
-                    cheatfile2.close()
-                    l = str(text1+"\t"+text2+"\t"+text3)
-                    #ls = l.split(':',2)
-                    ## update view.CMNDS variable
-                    filteredcommandplus = text1, text2, text3
-                    view.CMNDS.append(filteredcommandplus)
-                    ## update the command list on screen
-                    liststore.append([text1,text2,text3])
-
+            view.CMNDS.insert([text1, text2, text3])
+            liststore.append([text1,text2,text3])
 
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
@@ -258,23 +247,8 @@ class Actions(object):
 
             if text1 != "":
                 self.remove_command(widget, liststore)
-                '''open flat file, add the new command, update CMNDS variable
-                ## update commands in liststore (on screen) '''
-                
-                with open(CHEATSHEET, "r") as cheatfile:
-                    cheatlines = cheatfile.readlines()
-                    cheatlines.append(text1+":"+text2+":"+text3+'\n')
-                    cheatfile.close()
-                with open(CHEATSHEET, "w") as cheatfile2:
-                    cheatfile2.writelines(cheatlines)
-                    cheatfile2.close()
-                    l = str(text1+":"+text2+":"+text3)
-                    #ls = l.split(':',2)
-                    ## update view.CMNDS variable
-                    filteredcommandplus = text1, text2, text3
-                    view.CMNDS.append(filteredcommandplus)
-                    ## update the command list on screen
-                    liststore.append([text1,text2,text3])
+                view.CMNDS.append([text1, text2, text3])
+                liststore.append([text1,text2,text3])
                 
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
@@ -282,7 +256,7 @@ class Actions(object):
 
 
     ## Remove command from command file and GUI
-    def remove_command(self, widget, liststore):
+    def remove_command(self, mainwindow, liststore):
 		
         row_int_x = int(view.ROW[0][0])
         row_int = 0
@@ -456,7 +430,6 @@ class Actions(object):
         return command
 
 
-
     #TODO: Move to menus_buttons
     def copy_paste(self, vte, event, data=None):
         if event.button == 3:
@@ -514,11 +487,13 @@ class Actions(object):
         # The destroy method must be called otherwise the 'Close' button will
         # not work.
         dialog.destroy()
+
+
     def help_event(self, widget, data=None):
         webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
         
+
     def usage_event(self, widget, data=None):
-        mw = view.MainWindow
         dialog = gtk.Dialog("Usage",
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -551,66 +526,55 @@ class Actions(object):
         dialog.show_all()
         
         result = dialog.run()
+        # Writing our configuration file before quitting
+        cc_config.save_config(config)
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
         
         
     ## File --> Preferences    
-    def changed_cb(self, combobox, config):
-        config.read(CONFIGFILE)
+    def changed_cb(self, combobox):
+        config = cc_config.get_config()
         model = combobox.get_model()
         index = combobox.get_active()
         if index:
             text_e = model[index][0]
             config.set("terminal", "encoding", text_e)
-            # Writing our configuration file
-            with open(CONFIGFILE, 'wb') as f:
-                config.write(f)
 
         
-    def color_set_fg_cb(self, colorbutton_fg, config):
-        config.read(CONFIGFILE)
+    def color_set_fg_cb(self, colorbutton_fg):
+        config = cc_config.get_config()
         #colorf16 = colorbutton_fg.get_color()
         colorf = self.color2hex(colorbutton_fg)
         config.set("terminal", "colorf", str(colorf))          
-        # Writing our configuration file
-        with open(CONFIGFILE, 'wb') as f:
-            config.write(f)
 
 
-
-    def color_set_bg_cb(self, colorbutton_bg, config):
-        config.read(CONFIGFILE)
+    def color_set_bg_cb(self, colorbutton_bg):
+        config = cc_config.get_config()
         #colorb16 = colorbutton_bg.get_color()
         colorb = self.color2hex(colorbutton_bg)
         config.set("terminal", "colorb", str(colorb))
-        # Writing our configuration file
-        with open(CONFIGFILE, 'wb') as f:
-            config.write(f)
-
         
         
     def color2hex(self, widget):
         """Pull the colour values out of a Gtk ColorPicker widget and return them
         as 8bit hex values, sinces its default behaviour is to give 16bit values"""
         widcol = widget.get_color()
-        print widcol
         return('#%02x%02x%02x' % (widcol.red>>8, widcol.green>>8, widcol.blue>>8))
         
-    def preferences(self, widget, data=None):
+    def preferences(self, widget, tabs, data=None):
         '''
         Preferences window
         '''
-        mw = view.MainWindow
         dialog = gtk.Dialog("User Preferences",
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE,
             gtk.STOCK_OK, gtk.RESPONSE_OK))
             
-        config = ConfigParser.RawConfigParser()
-        config.read(CONFIGFILE)
+        config = cc_config.get_config()
+
             
         ##create the text input fields
         entry1 = gtk.Entry()
@@ -624,15 +588,15 @@ class Actions(object):
         combobox.append_text('ISO-8859-1')
         combobox.append_text('ISO-8859-15')
 
-        combobox.connect('changed', self.changed_cb, config)
+        combobox.connect('changed', self.changed_cb)
         combobox.set_active(0)
         
         ##colorbox for selecting text and background color
-        colorbutton_fg = gtk.ColorButton(gtk.gdk.color_parse('white'))
-        colorbutton_bg = gtk.ColorButton(gtk.gdk.color_parse('black'))
+        colorbutton_fg = gtk.ColorButton(gtk.gdk.color_parse(config.get('terminal','colorf')))
+        colorbutton_bg = gtk.ColorButton(gtk.gdk.color_parse(config.get('terminal','colorb')))
 
-        colorbutton_fg.connect('color-set', self.color_set_fg_cb, config)
-        colorbutton_bg.connect('color-set', self.color_set_bg_cb, config)
+        colorbutton_fg.connect('color-set', self.color_set_fg_cb)
+        colorbutton_bg.connect('color-set', self.color_set_bg_cb)
 
         #dialog.show_all()
         
@@ -666,24 +630,14 @@ class Actions(object):
         result = dialog.run()
 
         if result == gtk.RESPONSE_OK:
-
             ## user text assigned to a variable
             text_sb = entry1.get_text()
-            
-            config.read(CONFIGFILE)
             config.set("terminal", "scrollb", text_sb)
+            cc_config.save_config(config)
+            tabs.update_all_term_config()
 
-
-
-            # Writing our configuration file
-            with open(CONFIGFILE, 'wb') as f:
-                config.write(f)
-   
-
-            ## instantiate tabs
-            tabs = clicompanionlib.tabs.Tabs()
-            tabs.update_term_config
-
+        ## save config file
+        cc_config.save_config(config)
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()

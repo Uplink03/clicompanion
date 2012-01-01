@@ -25,9 +25,44 @@ A collection of useful functions.
 
 import getpass
 import os
+import sys 
+import gtk 
+import pwd 
+import inspect
 
-CHEATSHEET = os.path.expanduser("~/.clicompanion2")
-#CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
+
+## set to True if you want to see more logs
+DEBUG = True
+DEBUGFILES = False
+DEBUGCLASSES = []
+DEBUGMETHODS = []
+
+def dbg(log):
+    if DEBUG:
+        stackitem = inspect.stack()[1]
+        parent_frame = stackitem[0]
+        method = parent_frame.f_code.co_name
+        names, varargs, keywords, local_vars = inspect.getargvalues(parent_frame)
+        try:
+            self_name = names[0]
+            classname = local_vars[self_name].__class__.__name__
+        except IndexError:
+            classname = "noclass"
+        if DEBUGFILES:
+            line = stackitem[2]
+            filename = parent_frame.f_code.co_filename
+            extra = " (%s:%s)" % (filename, line)
+        else:
+            extra = ""
+        if DEBUGCLASSES != [] and classname not in DEBUGCLASSES:
+            return
+        if DEBUGMETHODS != [] and method not in DEBUGMETHODS:
+            return
+        try:
+            print >> sys.stderr, "%s::%s: %s%s" % (classname, method, log, extra)
+        except IOError:
+            pass
+    
 
 #TODO: Move this to controller.py
 def get_user_shell():

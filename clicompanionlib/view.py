@@ -42,17 +42,14 @@ except:
     
 import clicompanionlib.menus_buttons
 import clicompanionlib.controller
-from clicompanionlib.utils import get_user_shell , Borg
+from clicompanionlib.utils import get_user_shell , Borg, dbg
 import clicompanionlib.tabs
 import clicompanionlib.config as cc_config
 
 
-CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
-CHEATSHEET = os.path.expanduser("~/.clicompanion2")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
-
 ## Changed two->three columns
-CMNDS = [] ## will hold the commands. Actually the first three columns
+CMNDS = cc_config.Cheatsheet() ## will hold the commands. Actually the first three columns
+
 ROW = '1' ## holds the currently selected row
 TARGETS = [
     ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
@@ -89,76 +86,16 @@ class MainWindow(Borg):
     if height < 750:
 		NETBOOKMODE = 1
     ## open file containing command list and put it in a variable
-    def update(self, liststore):
-        try:
-            with open(CHEATSHEET, "r") as cheatfile:
-                bugdata=cheatfile.read()
-                cheatfile.close()
-        except IOError:
-            ## CHEATSHEET is not there. Oh, no!
-            ## So, run self.setup() again.
-            self.setup()
-            ## Then, run me again.
-            self.update(self.liststore)
-
-        ## add bug data from .clicompanion --> bugdata --> to the liststore
-        for line in bugdata.splitlines(): 
-            l = line.split('\t',2) 
-            if len(l) < 2:
-                """
-                If for any reason we have a old file, we must
-                replace it by new one
-                """
-                print "PLEASE RESTART APPLICATION TO FINISH UPDATE"
-                self.setup()
-                return
-            commandplus = l[0], l[1], l[2]
-            CMNDS.append(commandplus)
-            self.liststore.append([l[0],l[1],l[2]])
-
-          
-    #copy config file to user $HOME if does not exist
-    def setup(self):
-        """
-        Check if ~/.clicompanion2 exists. If not check for original
-        installed in /etc/clicompanion.d/. If origianl exists copy to $HOME.
-        if not create a new, blank ~/.clicompanion2 so program will not crash
-        """
-
-        if not os.path.exists(CHEATSHEET):
-            if os.path.exists(CONFIG_ORIG):
-                os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
-            else:
-                # Oops! Looks like there's no cheatsheet in CHEATSHEET.
-                # Then, create an empty cheatsheet.
-                open(CHEATSHEET, 'w').close()
-        """
-        If we have old file, we must replace it by fresh list
-        """ 
-        cheatlines = []
-        try:
-            with open(CHEATSHEET, "r") as cheatfile:
-                bugdata=cheatfile.read()
-                cheatfile.close()
-                for line in bugdata.splitlines():
-                    l = line.split('\t', 2)
-                    if len(l) < 2:
-                        l = line.split(':', 2)
-                        p = str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n")
-                        cheatlines.append(p)
-                    else:
-                        cheatlines.append(str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n"))
-                        
-            with open(CHEATSHEET, "w") as cheatfile2:
-                cheatfile2.writelines(cheatlines)
-                cheatfile2.close()      
-                                     
-        except IOError:
-            ## CHEATSHEET is not there. Oh, no!
-            ## So, run self.setup() again.
-            self.setup()
-            ## Then, run me again.
-            self.update(self.liststore)
+    def sync_cmnds(self, liststore, rld=False):
+        global CMNDS
+        dbg('syncing commands')
+        if rld:
+            ## reload the commands list from the file
+            CMNDS.load()
+        liststore.clear()
+        for command in CMNDS:
+            liststore.append(command)
+        return liststore
 
     
     #liststore in a scrolled window in an expander
@@ -184,7 +121,6 @@ class MainWindow(Borg):
         
     def key_clicked(self, widget, event):
         actions = clicompanionlib.controller.Actions()
-        tabs = clicompanionlib.tabs.Tabs()
         global HIDEUI
         global FULLSCREEN
         global menu_search_hbox
@@ -220,7 +156,7 @@ class MainWindow(Borg):
         if keyname == "F6":
 			actions.remove_command(self, self.liststore)
         if keyname == "F7":
-			tabs.add_tab(self, self.notebook)
+			self.tabs.add_tab(self, self.notebook)
   
     def __init__(self):
         #import pdb  ##debug
@@ -229,9 +165,6 @@ class MainWindow(Borg):
         ##For now TERM is hardcoded to xterm because of a change
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
-
-        ## copy command list to user $HOME if does not exist
-        self.setup()
 
         ##create the config file
         cc_config.create_config()
@@ -254,7 +187,6 @@ class MainWindow(Borg):
         ##attach the style to the widget
         self.notebook.set_name ("tab-close-button")
 
-
         ## set sizes and borders
         global NETBOOKMODE
         if NETBOOKMODE == 1:
@@ -269,19 +201,15 @@ class MainWindow(Borg):
         ## Allow user to resize window
         self.window.set_resizable(True)
         
-        
         ## set Window title and icon
         self.window.set_title("CLI Companion")
         icon = gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/clicompanion.16.png")
         self.window.set_icon(icon)
-        
-        
 	   
-        # get commands and put in liststore
-        self.update(self.liststore) 
+        # sync liststore with commands
+        self.liststore = self.sync_cmnds(self.liststore) 
         
         ## set renderer and colors
-
         #color2 = gtk.gdk.Color(5000,5000,65000)
         renderer = gtk.CellRendererText()
         #renderer.set_property("cell-background-gdk", color)
@@ -318,12 +246,12 @@ class MainWindow(Borg):
         #self.window.show_all()
 
         ## instantiate tabs
-        tabs = clicompanionlib.tabs.Tabs()
+        self.tabs = clicompanionlib.tabs.Tabs()
         ## instantiate controller.Actions, where all the button actions are
         actions = clicompanionlib.controller.Actions()
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         bar = clicompanionlib.menus_buttons.FileMenu()
-        menu_bar = bar.the_menu(actions, self.notebook, self.liststore)
+        menu_bar = bar.the_menu(actions, self.notebook, self.liststore, self.tabs)
         
 
         ## get row of a selection
@@ -390,7 +318,7 @@ class MainWindow(Borg):
         self.expander.set_label_widget(expander_hbox)
 
         ## Add the first tab with the Terminal
-        tabs.add_tab(self, self.notebook)
+        self.tabs.add_tab(self, self.notebook)
         self.notebook.set_tab_pos(2)
 
         ## The "Add Tab" tab
@@ -418,7 +346,7 @@ class MainWindow(Borg):
         self.expander.connect('notify::expanded', self.expanded_cb, self.window, self.search_box)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("key-press-event", self.key_clicked)
-        add_tab_button.connect("clicked", tabs.add_tab, self.notebook)
+        add_tab_button.connect("clicked", self.tabs.add_tab, self.notebook)
         ## right click menu event capture
         self.treeview.connect ("button_press_event", bar.right_click, actions, self.treeview, self.notebook, self.liststore)
 
@@ -433,7 +361,8 @@ class MainWindow(Borg):
         except KeyboardInterrupt:
             pass
         
-def run():
-    
+def run( options=None ):
+    CMNDS.load(options and options.cheatsheet or None)
+    dbg('Got now commands %s'%CMNDS)
     main_window = MainWindow()
     main_window.main()
