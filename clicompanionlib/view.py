@@ -44,13 +44,18 @@ import clicompanionlib.menus_buttons
 import clicompanionlib.controller
 from clicompanionlib.utils import get_user_shell , Borg, dbg
 import clicompanionlib.tabs
+import clicompanionlib.utils as utils
 import clicompanionlib.config as cc_config
 
 
 ## Changed two->three columns
-CMNDS = cc_config.Cheatsheet() ## will hold the commands. Actually the first three columns
+CMNDS = cc_config.Cheatsheet() 
+## will hold the commands. Actually the first three columns
+## note that this commands list will not change with searchers and filters, 
+## instead, when adding a command to the liststore, we will add also the index 
+## of the command in the CMND list
 
-ROW = '1' ## holds the currently selected row
+ROW = '0' ## holds the currently selected row
 TARGETS = [
     ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
     ('text/plain', 0, 1),
@@ -63,7 +68,6 @@ NETBOOKMODE = 0
 HIDEUI = 0
 FULLSCREEN = 0
 
-
 menu_search_hbox = ''
 button_box = ''
 
@@ -72,12 +76,11 @@ class MainWindow(Borg):
     window = gtk.Window(gtk.WINDOW_TOPLEVEL) 
     #color = gtk.gdk.Color(60000, 65533, 60000)
     #window.modify_bg(gtk.STATE_NORMAL, color)
-    liststore = gtk.ListStore(str, str, str)	
+    liststore = gtk.ListStore(str, str, str, int)	
     treeview = gtk.TreeView()
     expander = gtk.Expander()
     scrolledwindow = gtk.ScrolledWindow()
     notebook = gtk.Notebook()
-
 
     screen = gtk.gdk.display_get_default().get_default_screen()
     screen_size = screen.get_monitor_geometry(0)
@@ -85,17 +88,20 @@ class MainWindow(Borg):
     global NETBOOKMODE
     if height < 750:
 		NETBOOKMODE = 1
-    ## open file containing command list and put it in a variable
-    def sync_cmnds(self, liststore, rld=False):
+
+
+    def sync_cmnds(self, rld=False):
         global CMNDS
         dbg('syncing commands')
         if rld:
             ## reload the commands list from the file
             CMNDS.load()
-        liststore.clear()
-        for command in CMNDS:
-            liststore.append(command)
-        return liststore
+        self.liststore.clear()
+        ## Store also the index of the command in the CMNDS list
+        i = 0
+        for cmd, ui, desc in CMNDS:
+            self.liststore.append((cmd, ui, desc, i))
+            i = i +1
 
     
     #liststore in a scrolled window in an expander
@@ -126,7 +132,6 @@ class MainWindow(Borg):
         global menu_search_hbox
         global button_box
         keyname = gtk.gdk.keyval_name(event.keyval).upper()
-        #print keyname ##debug
         if keyname == "F12":
             HIDEUI = 1 - HIDEUI
         if HIDEUI == 1:
@@ -150,13 +155,13 @@ class MainWindow(Borg):
             pwin = button_box.get_window()
             pwin.unfullscreen()
         if keyname == "F4":
-			actions.run_command(self, self.notebook, self.liststore)
+			actions.run_command(self)
         if keyname == "F5":
-			actions.add_command(self, self.liststore)
+			actions.add_command(self)
         if keyname == "F6":
-			actions.remove_command(self, self.liststore)
+			actions.remove_command(self)
         if keyname == "F7":
-			self.tabs.add_tab(self, self.notebook)
+			self.tabs.add_tab(self)
   
     def __init__(self):
         #import pdb  ##debug
@@ -166,9 +171,7 @@ class MainWindow(Borg):
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
 
-        ##create the config file
-        cc_config.create_config()
-        
+
         ## style to reduce padding around tabs
         ## TODO: Find a better place for this? 
     	gtk.rc_parse_string ("style \"tab-close-button-style\"\n"
@@ -207,7 +210,7 @@ class MainWindow(Borg):
         self.window.set_icon(icon)
 	   
         # sync liststore with commands
-        self.liststore = self.sync_cmnds(self.liststore) 
+        self.sync_cmnds()
         
         ## set renderer and colors
         #color2 = gtk.gdk.Color(5000,5000,65000)
@@ -233,7 +236,7 @@ class MainWindow(Borg):
                                                 True)
             ## set the cell attributes to the appropriate liststore column
             self.treeview.columns[n].set_attributes(
-            self.treeview.columns[n].cell, text=n)   
+                    self.treeview.columns[n].cell, text=n)   
             self.treeview.columns[n].set_resizable(True)  
         
         ''' set treeview model and put treeview in the scrolled window
@@ -248,31 +251,31 @@ class MainWindow(Borg):
         ## instantiate tabs
         self.tabs = clicompanionlib.tabs.Tabs()
         ## instantiate controller.Actions, where all the button actions are
-        actions = clicompanionlib.controller.Actions()
+        self.actions = clicompanionlib.controller.Actions()
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         bar = clicompanionlib.menus_buttons.FileMenu()
-        menu_bar = bar.the_menu(actions, self.notebook, self.liststore, self.tabs)
+        menu_bar = bar.the_menu(self)
         
 
         ## get row of a selection
         def mark_selected(self, treeselection):
             global ROW
-            (model, pathlist)=treeselection.get_selected_rows()
+            (model, pathlist) = treeselection.get_selected_rows()
             ROW = pathlist
             
             
         ## double click to run a command    
-        def treeview_clicked(widget, event):
-            if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-                actions.run_command(self, self.notebook, self.liststore)
+        def treeview_clicked(widget, path, column):
+            self.actions.run_command(self)
+
 
         ## press enter to run a command                   
         def treeview_button(widget, event):
             keyname = gtk.gdk.keyval_name(event.keyval).upper()
-            #print keyname ##debug
+            dbg('Key %s pressed'%keyname)
             if event.type == gtk.gdk.KEY_PRESS:
                 if keyname == 'RETURN':
-                    actions.run_command(self, self.notebook, self.liststore)
+                    self.actions.run_command(self)
                     
                     
 
@@ -282,7 +285,7 @@ class MainWindow(Borg):
         selection.select_path(0) 
         selection.connect("changed", mark_selected, selection)
         ## double-click
-        self.treeview.connect("button-press-event", treeview_clicked)
+        self.treeview.connect("row-activated", treeview_clicked)
         #press enter to run command
         self.treeview.connect("key-press-event", treeview_button)
                 
@@ -292,7 +295,7 @@ class MainWindow(Borg):
         search_label = gtk.Label(_("Search:"))
         search_label.set_alignment(xalign=-1, yalign=0)
         self.search_box = gtk.Entry()
-        self.search_box.connect("changed", actions._filter_commands, self.liststore, self.treeview)
+        self.search_box.connect("changed", self.actions._filter_commands, self.liststore, self.treeview)
         ## search box tooltip
         self.search_box.set_tooltip_text(_("Search your list of commands"))
         ## Set the search box sensitive OFF at program start, because
@@ -318,7 +321,7 @@ class MainWindow(Borg):
         self.expander.set_label_widget(expander_hbox)
 
         ## Add the first tab with the Terminal
-        self.tabs.add_tab(self, self.notebook)
+        self.tabs.add_tab(self.notebook)
         self.notebook.set_tab_pos(2)
 
         ## The "Add Tab" tab
@@ -330,7 +333,7 @@ class MainWindow(Borg):
         
         global button_box
         ## buttons at bottom of main window [menus_buttons.py]
-        button_box = bar.buttons(actions, 10, gtk.BUTTONBOX_END, self.notebook, self.liststore)
+        button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
 
         ## vbox for search, notebook, buttonbar
         vbox = gtk.VBox()
@@ -346,15 +349,89 @@ class MainWindow(Borg):
         self.expander.connect('notify::expanded', self.expanded_cb, self.window, self.search_box)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("key-press-event", self.key_clicked)
-        add_tab_button.connect("clicked", self.tabs.add_tab, self.notebook)
+        add_tab_button.connect("clicked", lambda *x: self.tabs.add_tab(self.notebook))
         ## right click menu event capture
-        self.treeview.connect ("button_press_event", bar.right_click, actions, self.treeview, self.notebook, self.liststore)
+        self.treeview.connect("button_press_event", bar.right_click, self)
+
+        # Allow enable drag and drop of rows including row move
+        self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
+                                                TARGETS,
+                                                gtk.gdk.ACTION_DEFAULT |
+                                                gtk.gdk.ACTION_COPY)
+        self.treeview.enable_model_drag_dest(TARGETS,
+                                                gtk.gdk.ACTION_DEFAULT)
+
+        self.treeview.connect ("drag_data_get", self.drag_data_get_event)
+        self.treeview.connect ("drag_data_received", self.drag_data_received_event)
+        self.treeview.connect("drag_drop", self.on_drag_drop )
 
 
         #self.vte.grab_focus()
         self.window.show_all()
         return
 
+    def on_drag_drop(self, treeview, *x):
+        '''
+        Stop the signal when in search mode
+        '''
+        if FILTER:
+            treeview.stop_emission('drag_drop')
+
+    def drag_data_get_event(self, treeview, context, selection, target_id, 
+                            etime):
+        """
+        Executed on dragging
+        """
+        treeselection = treeview.get_selection()
+        model, iter = treeselection.get_selected()
+        data = model.get(iter, 0, 1, 2)
+        selection.set(selection.target, 8, '\t'.join(data))
+
+    def drag_data_received_event(self, treeview, context, x, y, selection, info,
+                            etime):
+        """
+        Executed when dropping.
+        """
+        global CMNDS
+        global FILTER
+        ## if we are in a search, do nothing
+        if FILTER == 1:
+            return
+        model = treeview.get_model()
+        ## get the destination
+        drop_info = treeview.get_dest_row_at_pos(x, y)
+        if drop_info: 
+            path, position = drop_info
+            iter = model.get_iter(path)
+            dest = list(model.get(iter, 0, 1, 2))
+
+        ## parse all the incoming commands
+        for data in selection.data.split('\n'):
+            # if we got an empty line skip it
+            if not data.replace('\r',''): continue
+            # format the incoming string
+            orig = data.replace('\r','').split('\t',2)
+            orig = [ fld.strip() for fld in orig ]
+            # fill the empty fields
+            if len(orig) < 3: orig = orig + ('',)*(3-len(orig))
+            dbg('Got drop of command %s'%'_\t_'.join(orig))
+
+            if drop_info:
+                if (position == gtk.TREE_VIEW_DROP_BEFORE
+                        or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
+                    dbg('\t to before dest %s'%'_\t_'.join(dest))
+                    CMNDS.drag_n_drop(orig, dest, before=True)
+                else:
+                    dbg('\t to after dest %s'%'_\t_'.join(dest))
+                    CMNDS.drag_n_drop(orig, dest, before=False)
+            else:
+                dbg('\t to the end')
+                CMNDS[len(CMNDS)] = orig
+        if context.action == gtk.gdk.ACTION_MOVE:
+            context.finish(True, True, etime)
+        self.sync_cmnds()
+        CMNDS.save()
+        
     def main(self):
         try:
             gtk.main()
@@ -362,7 +439,11 @@ class MainWindow(Borg):
             pass
         
 def run( options=None ):
+    ##create the config file
+    config = cc_config.create_config()
+    if config.get('terminal','debug') == 'True':
+        utils.DEBUG = True
     CMNDS.load(options and options.cheatsheet or None)
-    dbg('Got now commands %s'%CMNDS)
+    dbg('Loaded commands %s'%CMNDS)
     main_window = MainWindow()
     main_window.main()

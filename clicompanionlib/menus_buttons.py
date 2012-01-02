@@ -26,7 +26,11 @@ import tabs
 
 class FileMenu(object):
 
-    def the_menu(self, actions, notebook, liststore, tabs):
+    def the_menu(self, mw):
+        actions = mw.actions
+        liststore = mw.liststore
+        tabs = mw.tabs
+        notebook = mw.notebook
         menu = gtk.Menu()
         #color = gtk.gdk.Color(65555, 62000, 65555)
         #menu.modify_bg(gtk.STATE_NORMAL, color)
@@ -43,31 +47,31 @@ class FileMenu(object):
         ## Make 'Run' menu entry
         menu_item1 = gtk.MenuItem(_("Run Command [F4]"))
         menu.append(menu_item1)
-        menu_item1.connect("activate", actions.run_command, notebook, liststore)
+        menu_item1.connect("activate", lambda *x: actions.run_command(mw))
         menu_item1.show()
 
         ## Make 'Add' file menu entry
         menu_item2 = gtk.MenuItem(_("Add Command [F5]"))
         menu.append(menu_item2)
-        menu_item2.connect("activate", actions.add_command, liststore)
+        menu_item2.connect("activate", lambda *x: actions.add_command(mw))
         menu_item2.show()
         
         ## Make 'Remove' file menu entry
         menu_item3 = gtk.MenuItem(_("Remove Command [F6]"))
         menu.append(menu_item3)
-        menu_item3.connect("activate", actions.remove_command, liststore)
+        menu_item3.connect("activate", lambda *x: actions.remove_command(mw))
         menu_item3.show()
         
         ## Make 'Add Tab' file menu entry
         menu_item4 = gtk.MenuItem(_("Add Tab [F7]"))
         menu.append(menu_item4)
-        menu_item4.connect("activate", tabs.add_tab, notebook)
+        menu_item4.connect("activate", lambda *x: tabs.add_tab(notebook))
         menu_item4.show()
         
         ## Make 'User Preferences' file menu entry
         menu_item5 = gtk.MenuItem(_("Preferences"))
         menu.append(menu_item5)
-        menu_item5.connect("activate", actions.preferences, tabs)
+        menu_item5.connect("activate", lambda *x: actions.preferences(tabs))
         menu_item5.show()
 
         ## Make 'Quit' file menu entry
@@ -111,7 +115,7 @@ class FileMenu(object):
         
         
         
-    def buttons(self, actions,  spacing, layout, notebook, liststore):
+    def buttons(self, mw,  spacing, layout):
         #button box at bottom of main window
         frame = gtk.Frame()
         bbox = gtk.HButtonBox()
@@ -123,9 +127,9 @@ class FileMenu(object):
         bbox.set_layout(layout)
         bbox.set_spacing(spacing)
         # Run button
-        buttonRun = gtk.Button(_("Run"))
+        buttonRun = gtk.Button('_'+_("Run"))
         bbox.add(buttonRun)
-        buttonRun.connect("clicked", actions.run_command, notebook, liststore)
+        buttonRun.connect("clicked", lambda *x: mw.actions.run_command(mw))
         buttonRun.set_tooltip_text(_("Click to run a highlighted command"))
         #buttonRun.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonRun.modify_bg(gtk.STATE_PRELIGHT, color)        
@@ -133,15 +137,15 @@ class FileMenu(object):
         # Add button
         buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
         bbox.add(buttonAdd)
-        buttonAdd.connect("clicked", actions.add_command, liststore)
+        buttonAdd.connect("clicked", lambda *x: mw.actions.add_command(mw))
         buttonAdd.set_tooltip_text(_("Click to add a command to your command list"))
         #buttonAdd.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonAdd.modify_bg(gtk.STATE_PRELIGHT, color)        
         #buttonAdd.modify_bg(gtk.STATE_INSENSITIVE, color)
         # Edit button
-        buttonEdit = gtk.Button(_("Edit"))
+        buttonEdit = gtk.Button('_'+_("Edit"))
         bbox.add(buttonEdit)
-        buttonEdit.connect("clicked", actions.edit_command, liststore)
+        buttonEdit.connect("clicked", lambda *x: mw.actions.edit_command(mw))
         buttonEdit.set_tooltip_text(_("Click to edit a command in your command list"))
         #buttonEdit.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonEdit.modify_bg(gtk.STATE_PRELIGHT, color)        
@@ -149,7 +153,7 @@ class FileMenu(object):
         # Delete button
         buttonDelete = gtk.Button(stock=gtk.STOCK_DELETE)
         bbox.add(buttonDelete)
-        buttonDelete.connect("clicked", actions.remove_command, liststore)
+        buttonDelete.connect("clicked", lambda *x: mw.actions.remove_command(mw))
         buttonDelete.set_tooltip_text(_("Click to delete a command in your command list"))
         #buttonDelete.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonDelete.modify_bg(gtk.STATE_PRELIGHT, color)        
@@ -157,7 +161,7 @@ class FileMenu(object):
         #Help Button
         buttonHelp = gtk.Button(stock=gtk.STOCK_HELP)
         bbox.add(buttonHelp)
-        buttonHelp.connect("clicked", actions.man_page, notebook)
+        buttonHelp.connect("clicked", lambda *x: mw.actions.man_page(mw.notebook))
         buttonHelp.set_tooltip_text(_("Click to get help with a command in your command list"))
         #buttonHelp.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonHelp.modify_bg(gtk.STATE_PRELIGHT, color)        
@@ -165,7 +169,7 @@ class FileMenu(object):
         # Cancel button
         buttonCancel = gtk.Button(stock=gtk.STOCK_QUIT)
         bbox.add(buttonCancel)
-        buttonCancel.connect("clicked", actions.delete_event)
+        buttonCancel.connect("clicked", mw.actions.delete_event)
         buttonCancel.set_tooltip_text(_("Click to quit CLI Companion"))
         #buttonCancel.modify_bg(gtk.STATE_NORMAL, color)        
         #buttonCancel.modify_bg(gtk.STATE_PRELIGHT, color)        
@@ -174,34 +178,34 @@ class FileMenu(object):
         
         
     #right-click popup menu for the Liststore(command list)
-    def right_click(self, widget, event, actions, treeview, notebook, liststore):
+    def right_click(self, widget, event, mw):
         if event.button == 3:
             x = int(event.x)
             y = int(event.y)
             time = event.time
-            pthinfo = treeview.get_path_at_pos(x, y)
+            pthinfo = mw.treeview.get_path_at_pos(x, y)
             if pthinfo is not None:
                 path, col, cellx, celly = pthinfo
-                treeview.grab_focus()
-                treeview.set_cursor( path, col, 0)
+                mw.treeview.grab_focus()
+                mw.treeview.set_cursor( path, col, 0)
                 
                 # right-click popup menu Apply(run)
                 popupMenu = gtk.Menu()
                 menuPopup1 = gtk.ImageMenuItem (gtk.STOCK_APPLY)
                 popupMenu.add(menuPopup1)
-                menuPopup1.connect("activate", actions.run_command, notebook, liststore)
+                menuPopup1.connect("activate", lambda self, *x: mw.actions.run_command(mw))
                 # right-click popup menu Edit        
                 menuPopup2 = gtk.ImageMenuItem (gtk.STOCK_EDIT)
                 popupMenu.add(menuPopup2)
-                menuPopup2.connect("activate", actions.edit_command, liststore)
+                menuPopup2.connect("activate", lambda self, *x: mw.actions.edit_command(mw))
                 # right-click popup menu Delete                 
                 menuPopup3 = gtk.ImageMenuItem (gtk.STOCK_DELETE)
                 popupMenu.add(menuPopup3)
-                menuPopup3.connect("activate", actions.remove_command, liststore)
+                menuPopup3.connect("activate", lambda self, *x: mw.actions.remove_command(mw))
                 # right-click popup menu Help                
                 menuPopup4 = gtk.ImageMenuItem (gtk.STOCK_HELP)
                 popupMenu.add(menuPopup4)
-                menuPopup4.connect("activate", actions.man_page, notebook)
+                menuPopup4.connect("activate", lambda self, *x: mw.actions.man_page(mw.notebook))
                 # Show popup menu
                 popupMenu.show_all()
                 popupMenu.popup( None, None, None, event.button, time)

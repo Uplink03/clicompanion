@@ -19,17 +19,21 @@
 #
 #
 
-from clicompanionlib.utils import get_user_shell
-
-import clicompanionlib.tabs
-import view
-
+import os
 import pygtk
 pygtk.require('2.0')
 import re
 import webbrowser
+import view
+import copy
+import clicompanionlib.tabs
 import clicompanionlib.config as cc_config
-import os
+import clicompanionlib.utils  as utils
+from clicompanionlib.utils import get_user_shell, dbg
+
+#if cc_config.get_config().get('terminal','debug') == 'True':
+#    utils.DEBUG = True
+
 # import vte and gtk or print error
 try:
     import gtk
@@ -50,20 +54,16 @@ except:
 
 
 class Actions(object):
-    #make instances of the Classes we are going to use
-    #main_window = view.MainWindow
     ## Info Dialog Box
     ## if a command needs more info EX: a package name, a path
-    def get_info(self, widget, liststore):
-
-        row_int = int(view.ROW[0][0])
-
+    def get_info(self, cmd, ui, desc):
+        dbg('Got command with user input')
         ## Create Dialog object
         dialog = gtk.MessageDialog(
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK,
+            gtk.BUTTONS_OK_CANCEL,
             None)
 
         # Primary text
@@ -76,16 +76,16 @@ class Actions(object):
 
         ## create a horizontal box to pack the entry and a label
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label(liststore[row_int][1]+":"), False, 5, 5)
+        hbox.pack_start(gtk.Label(ui+":"), False, 5, 5)
         hbox.pack_end(entry)
         ## some secondary text
-        dialog.format_secondary_markup(_("Please provide a "+liststore[row_int][1]))
+        dialog.format_secondary_markup(_("Please provide a "+ui))
         ## add it and show it
         dialog.vbox.pack_end(hbox, True, True, 0)
         dialog.show_all()
 
         ## Show the dialog
-        dialog.run()
+        response = dialog.run()
 
         ## user text assigned to a variable
         text = entry.get_text()
@@ -94,13 +94,15 @@ class Actions(object):
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
+        if response != gtk.RESPONSE_OK:
+            user_input = None
         return user_input
 
     def responseToDialog(self, text, dialog, response):
         dialog.response(response)
 
     ## Add command dialog box
-    def add_command(self, widget, liststore):
+    def add_command(self, mw):
 
         ## Create Dialog object
         dialog = gtk.MessageDialog(
@@ -135,7 +137,7 @@ class Actions(object):
         hbox2.pack_start(entry3, True, 5, 5)
 
         ## cancel button
-        dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
+        dialog.add_button(_('Cancel'), gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
         dialog.format_secondary_markup(
             _("When entering a command use question marks(?) as placeholders if"
@@ -158,10 +160,10 @@ class Actions(object):
             text1 = entry1.get_text()
             text2 = entry2.get_text()
             text3 = entry3.get_text()
-            '''open flat file, add the new command, update CMNDS variable
-            ## update commands in liststore (on screen) '''
-            view.CMNDS.insert([text1, text2, text3])
-            liststore.append([text1,text2,text3])
+            ## update commandsand sync with screen '''
+            view.CMNDS.append(text1, text2, text3)
+            mw.sync_cmnds()
+            view.CMNDS.save()
 
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
@@ -169,30 +171,14 @@ class Actions(object):
         #return text
 
     ## This the edit function
-    def edit_command(self, widget , liststore):
-
-        row_int_x = int(view.ROW[0][0])
-        row_int = 0
-		## TODO: Not implemented with filted yet
-        if view.FILTER == 1:
-            with open(CHEATSHEET, "r") as cheatfile:
-                cheatlines = cheatfile.readlines()
-                for i in range(len(cheatlines)):
-			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i] :
-				    	row_int = i 
-                cheatfile.close()
-        else:
-			row_int = row_int_x
-
-         
-        row_obj1 = view.MainWindow.liststore[row_int][0]
-        text1 = "".join(row_obj1)
-
-        row_obj2 = view.MainWindow.liststore[row_int][1]
-        text2 = "".join(row_obj2)
-
-        row_obj3 = view.MainWindow.liststore[row_int][2]
-        text3 = "".join(row_obj3)
+    def edit_command(self, mw):
+        if not view.ROW:
+            return
+        lst_index = int(view.ROW[0][0])
+        model = mw.treeview.get_model()
+        cmd = ''.join(model[lst_index][0])
+        ui = ''.join(model[lst_index][1])
+        desc = ''.join(model[lst_index][2])
 
         ## Create Dialog object
         dialog = gtk.MessageDialog(
@@ -207,11 +193,11 @@ class Actions(object):
 
         ## create the text input fields
         entry1 = gtk.Entry()
-        entry1.set_text(text1)
+        entry1.set_text(cmd)
         entry2 = gtk.Entry()
-        entry2.set_text(text2)
+        entry2.set_text(ui)
         entry3 = gtk.Entry()
-        entry3.set_text(text3)
+        entry3.set_text(desc)
         ## allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
@@ -228,7 +214,7 @@ class Actions(object):
         hbox2.pack_start(entry3, True, 5, 5)
 
         ## cancel button
-        dialog.add_button('Cancel', gtk.RESPONSE_DELETE_EVENT)
+        dialog.add_button(_('Cancel'), gtk.RESPONSE_DELETE_EVENT)
         ## some secondary text
         dialog.format_secondary_markup(_("Please provide a command, description, and what type of user variable, if any, is required."))
 
@@ -241,47 +227,35 @@ class Actions(object):
 
         if result == gtk.RESPONSE_OK:
             ## user text assigned to a variable
-            text1 = entry1.get_text()
-            text2 = entry2.get_text()
-            text3 = entry3.get_text()
+            cmd = entry1.get_text()
+            ui = entry2.get_text()
+            desc = entry3.get_text()
 
-            if text1 != "":
-                self.remove_command(widget, liststore)
-                view.CMNDS.append([text1, text2, text3])
-                liststore.append([text1,text2,text3])
-                
+            if cmd != "":
+                cmd_index = model[lst_index][3]
+                dbg('Got index %d for command at pos %d'%(cmd_index, lst_index))
+                view.CMNDS[cmd_index] = [cmd, ui, desc]
+            mw.sync_cmnds()
+            view.CMNDS.save()
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
 
 
     ## Remove command from command file and GUI
-    def remove_command(self, mainwindow, liststore):
-		
-        row_int_x = int(view.ROW[0][0])
-        row_int = 0
-		## TODO: Not implemented with filted yet
-        if view.FILTER == 1:
-            with open(CHEATSHEET, "r") as cheatfile:
-                cheatlines = cheatfile.readlines()
-                for i in range(len(cheatlines)):
-			    	if view.CMNDS[row_int_x][0] in cheatlines[i] and view.CMNDS[row_int_x][1] in cheatlines[i]:
-				    	row_int = i 
-                cheatfile.close()
-        else:
-			row_int = row_int_x
-
-        del view.CMNDS[row_int_x]
-        del liststore[row_int]
-
-        ## open command file and delete line so the change is persistent
-        with open(CHEATSHEET, "r") as cheatfile:
-            cheatlines = cheatfile.readlines()
-            del cheatlines[row_int]
-            cheatfile.close()
-        with open(CHEATSHEET, "w") as cheatfile2:
-            cheatfile2.writelines(cheatlines)
-            cheatfile2.close()
+    def remove_command(self, mw):
+        if not view.ROW:
+            return
+        ## get selected row
+        lst_index = int(view.ROW[0][0])
+        ## get selected element index, even from search filter
+        model = mw.treeview.get_model()
+        cmd_index = model[lst_index][3]
+        ## delete element from liststore and CMNDS
+        del view.CMNDS[cmd_index]
+        mw.sync_cmnds()
+        ## save changes
+        view.CMNDS.save()
 
 
     def _filter_commands(self, widget, liststore, treeview):
@@ -292,11 +266,13 @@ class Actions(object):
         Pretty straight-forward.
         """
         search_term = widget.get_text().lower()
+        ## If the search term is empty, restore the liststore
         if search_term == "":
-		    view.FILTER = 0
-        else:
-		    view.FILTER = 1
-        
+            view.FILTER = 0
+            treeview.set_model(liststore)
+            return
+
+        view.FILTER = 1
         ## Create a TreeModelFilter object which provides auxiliary functions for
         ## filtering data.
         ## http://www.pygtk.org/pygtk2tutorial/sec-TreeModelSortAndTreeModelFilter.html
@@ -318,36 +294,31 @@ class Actions(object):
                 ## Python raises a AttributeError if row data was modified . Catch
                 ## that and fail silently.
                 pass
-
-
         modelfilter.set_visible_func(search, search_term)
+        ## save the old liststore and cmnds
         treeview.set_model(modelfilter)
-        
-
-        #clear CMNDS list then populate it with the filteredlist of commands
-        view.CMNDS = []
-        for line in modelfilter:
-            linelist = line
-            filteredcommandplus = linelist[0], linelist[1], linelist[2]
-            view.CMNDS.append(filteredcommandplus)
-
-
 
     ## send the command to the terminal
-    def run_command(self, widget, notebook, liststore):
+    def run_command(self, mw):
 
+        ## if called without selecting a command from the list return
+        if not view.ROW:
+            return
         text = ""
-        row_int = int(view.ROW[0][0]) ## removes everything but number from [5,]
+        lst_index = int(view.ROW[0][0]) ## removes everything but number from [5,]
 
         ## get the current notebook page so the function knows which terminal to run the command in.
-        pagenum = notebook.get_current_page()
-        widget = notebook.get_nth_page(pagenum)
+        pagenum = mw.notebook.get_current_page()
+        widget = mw.notebook.get_nth_page(pagenum)
         page_widget = widget.get_child()
-        ## view.CMNDS is where commands are stored
-        cmnd = view.CMNDS[row_int][0]
+
+        model = mw.treeview.get_model()
+        cmd = ''.join(model[lst_index][0])
+        ui = ''.join(model[lst_index][1])
+        desc = ''.join(model[lst_index][2])
             
         ## find how many ?(user arguments) are in command
-        match = re.findall('\?', cmnd) 
+        match = re.findall('\?', cmd) 
         '''
         Make sure user arguments were found. Replace ? with something
         .format can read. This is done so the user can just enter ?, when
@@ -359,23 +330,33 @@ class Actions(object):
         else:
             num = len(match)
             ran = 0
-            new_cmnd = self.replace(cmnd, num, ran)
+            new_cmnd = self.replace(cmd, num, ran)
 
-
-        if not view.CMNDS[row_int][1] == "": # command with user input
-            c = ""
-            try:
-                text = self.get_info(self, liststore)
-                c = new_cmnd.format(text)
-            except: 
-                error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                    _("You need to enter full input. Click on [x] to continue."))
-                error.run()
-            page_widget.feed_child(c+"\n") #send command w/ input
+        if len(match) > 0: # command with user input
+            dbg('command with ui')
+            f_cmd = ""
+            while True:
+                try:
+                    ui_text = self.get_info(cmd, ui, desc)
+                    if ui_text == None:
+                        return
+                    dbg('Got ui "%s"'%' '.join(ui_text))
+                    if ''.join(ui_text) == '':
+                        raise IndexError
+                    f_cmd = new_cmnd.format(ui_text)
+                except IndexError, e: 
+                    error = gtk.MessageDialog (None, gtk.DIALOG_MODAL, \
+                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                        _("You need to enter full input. Space separated."))
+                    error.connect('response', lambda err, *x: err.destroy())
+                    error.run()
+                    continue
+                break
+            page_widget.feed_child(f_cmd+"\n") #send command w/ input
             page_widget.show()
             page_widget.grab_focus()
         else: ## command that has no user input
-            page_widget.feed_child(cmnd+"\n") #send command
+            page_widget.feed_child(cmd+"\n") #send command
             page_widget.show()
             page_widget.grab_focus()
             
@@ -391,7 +372,9 @@ class Actions(object):
         return cmnd
         
     ## open the man page for selected command
-    def man_page(self, widget, notebook):
+    def man_page(self, notebook):
+        import subprocess as sp
+        import shlex
         try:
             row_int = int(view.ROW[0][0]) # removes everything but number from EX: [5,]
         except IndexError:  
@@ -402,21 +385,67 @@ class Actions(object):
                 gtk.MESSAGE_QUESTION,
                 gtk.BUTTONS_OK,
                 None)
-            dialog.set_markup('You must choose row to view help')
+            dialog.set_markup(_('You must choose a row to view the help'))
             dialog.show_all()
             dialog.run()
             dialog.destroy()     
             return 
+        ## get the manpage for the command
         cmnd = view.CMNDS[row_int][0] #CMNDS is where commands are store
-        splitcommand = self._filter_sudo_from(cmnd.split(" "))
-        ## get current notebook tab to use in function
-        pagenum = notebook.get_current_page()
-        widget = notebook.get_nth_page(pagenum)
-        page_widget = widget.get_child()
-        #send command to Terminal
-        page_widget.feed_child("man "+splitcommand[0]+"| most \n") 
-        page_widget.grab_focus()
-        page_widget.show()
+        ## get each command for each pipe, It's not 100 accurate, but good 
+        ## enough (by now)
+        commands = []
+        next_part = True
+        found_sudo = False
+        for part in shlex.split(cmnd):
+            if next_part:
+                if part == 'sudo' and not found_sudo:
+                    found_sudo = True
+                    commands.append('sudo') 
+                else:
+                    if part not in commands:
+                        commands.append(part)
+                    next_part = False
+            else:
+                if part in [ '||', '&&', '&', '|']:
+                    next_part = True
+           
+        notebook = gtk.Notebook()
+        notebook.set_scrollable(True)
+        notebook.popup_enable()
+        notebook.set_properties(group_id=0, tab_vborder=0, tab_hborder=1, tab_pos=gtk.POS_TOP)
+        ## create a tab for each command
+        for command in commands:
+            scrolled_page = gtk.ScrolledWindow()
+            scrolled_page.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            tab = gtk.HBox()
+            tab_label = gtk.Label(command)
+            tab_label.show()
+            tab.pack_start(tab_label)
+            page = gtk.TextView()
+            page.set_wrap_mode(gtk.WRAP_WORD)
+            page.set_editable(False)
+            page.set_cursor_visible(False)
+            try:
+                manpage = sp.check_output(["man",command])
+            except sp.CalledProcessError, e:
+                manpage =  _('Failed to get manpage for command "%s"\nReason:\n%s')%(
+                        command, e)
+            textbuffer = page.get_buffer()
+            textbuffer.set_text(manpage)
+            scrolled_page.add(page)
+            notebook.append_page(scrolled_page, tab)
+        
+        help_win = gtk.Dialog()
+        help_win.set_title(_("Man page for %s")%cmnd)
+        help_win.vbox.pack_start(notebook, True, True, 0)
+        button = gtk.Button("close")
+        button.connect_object("clicked", lambda self: self.destroy(), help_win)
+        button.set_flags(gtk.CAN_DEFAULT)
+        help_win.action_area.pack_start( button, True, True, 0)
+        button.grab_default()
+        help_win.set_default_size(500,600)
+        help_win.show_all()
 
 
     @staticmethod
@@ -475,11 +504,11 @@ class Actions(object):
 
         # Add a short comment about the application, this appears below the application
         # name in the dialog
-        dialog.set_comments('This is a CLI Companion program.')
+        dialog.set_comments(_('This is a CLI Companion program.'))
 
         # Add license information, this is connected to the 'License' button
         # and is displayed in a new window.
-        dialog.set_license('Distributed under the GNU license. You can see it at <http://www.gnu.org/licenses/>.')
+        dialog.set_license(_('Distributed under the GNU license. You can see it at <http://www.gnu.org/licenses/>.'))
 
         # Show the dialog
         dialog.run()
@@ -490,7 +519,7 @@ class Actions(object):
 
 
     def help_event(self, widget, data=None):
-        webbrowser.open("http://okiebuntu.homelinux.com/okwiki/clicompanion")
+        webbrowser.open("http://launchpad.net/clicompanion")
         
 
     def usage_event(self, widget, data=None):
@@ -526,35 +555,35 @@ class Actions(object):
         dialog.show_all()
         
         result = dialog.run()
-        # Writing our configuration file before quitting
-        cc_config.save_config(config)
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
         
         
     ## File --> Preferences    
-    def changed_cb(self, combobox):
-        config = cc_config.get_config()
+    def changed_cb(self, combobox, config):
+        dbg('Changed encoding')
         model = combobox.get_model()
         index = combobox.get_active()
-        if index:
+        if index>=0:
             text_e = model[index][0]
-            config.set("terminal", "encoding", text_e)
+            encoding = text_e.split(':',1)[0].strip()
+            dbg('Setting encoding to "%s"'%encoding)
+            config.set("terminal", "encoding", encoding)
 
         
-    def color_set_fg_cb(self, colorbutton_fg):
-        config = cc_config.get_config()
-        #colorf16 = colorbutton_fg.get_color()
+    def color_set_fg_cb(self, colorbutton_fg, config, tabs):
+        dbg('Changing fg color')
         colorf = self.color2hex(colorbutton_fg)
         config.set("terminal", "colorf", str(colorf))          
+        tabs.update_all_term_config(config)
 
 
-    def color_set_bg_cb(self, colorbutton_bg):
-        config = cc_config.get_config()
-        #colorb16 = colorbutton_bg.get_color()
+    def color_set_bg_cb(self, colorbutton_bg, config, tabs):
+        dbg('Changing bg color')
         colorb = self.color2hex(colorbutton_bg)
         config.set("terminal", "colorb", str(colorb))
+        tabs.update_all_term_config(config)
         
         
     def color2hex(self, widget):
@@ -563,82 +592,74 @@ class Actions(object):
         widcol = widget.get_color()
         return('#%02x%02x%02x' % (widcol.red>>8, widcol.green>>8, widcol.blue>>8))
         
-    def preferences(self, widget, tabs, data=None):
+    def preferences(self, tabs, data=None):
         '''
         Preferences window
         '''
-        dialog = gtk.Dialog("User Preferences",
+        dialog = gtk.Dialog(_("User Preferences"),
             None,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE,
             gtk.STOCK_OK, gtk.RESPONSE_OK))
             
-        config = cc_config.get_config()
-
-            
+        config = cc_config.get_config_copy()
+           
         ##create the text input fields
         entry1 = gtk.Entry()
         entry1.set_text(config.get('terminal', 'scrollb'))
-
         
         ##combobox for selecting encoding
         combobox = gtk.combo_box_new_text()
-        combobox.append_text('Select encoding:')
-        combobox.append_text('UTF-8')
-        combobox.append_text('ISO-8859-1')
-        combobox.append_text('ISO-8859-15')
-
-        combobox.connect('changed', self.changed_cb)
-        combobox.set_active(0)
+        i=0
+        for encoding, desc in utils.encodings:
+            combobox.append_text(encoding + ': '+desc)
+            if encoding.strip().upper() == config.get('terminal','encoding').upper():
+                active = i
+            i=i+1
+        combobox.set_active(active)
+        combobox.connect('changed', self.changed_cb, config)
         
         ##colorbox for selecting text and background color
-        colorbutton_fg = gtk.ColorButton(gtk.gdk.color_parse(config.get('terminal','colorf')))
-        colorbutton_bg = gtk.ColorButton(gtk.gdk.color_parse(config.get('terminal','colorb')))
+        colorbutton_fg = gtk.ColorButton(
+            gtk.gdk.color_parse(config.get('terminal','colorf')))
+        colorbutton_bg = gtk.ColorButton(
+            gtk.gdk.color_parse(config.get('terminal','colorb')))
 
-        colorbutton_fg.connect('color-set', self.color_set_fg_cb)
-        colorbutton_bg.connect('color-set', self.color_set_bg_cb)
-
-        #dialog.show_all()
+        colorbutton_fg.connect('color-set', self.color_set_fg_cb, config, tabs)
+        colorbutton_bg.connect('color-set', self.color_set_bg_cb, config, tabs)
         
         ## allow the user to press enter to do ok
         entry1.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
 
-
-
-        ## create three labels
+        ## create the labels
         hbox1 = gtk.HBox()
         hbox1.pack_start(gtk.Label(_("Scrollback")), False, 5, 5)
         hbox1.pack_start(entry1, False, 5, 5)
 
-        hbox1.pack_start(gtk.Label(_("encoding")), False, 5, 5)
+        hbox1.pack_start(gtk.Label(_("Encoding")), False, 5, 5)
         hbox1.pack_start(combobox, False, 5, 5)
 
-
         hbox2 = gtk.HBox()
-        hbox2.pack_start(gtk.Label(_("font color")), False, 5, 5)
+        hbox2.pack_start(gtk.Label(_("Font color")), False, 5, 5)
         hbox2.pack_start(colorbutton_fg, True, 5, 5)
         
-        hbox2.pack_start(gtk.Label(_("background color")), False, 5, 5)
+        hbox2.pack_start(gtk.Label(_("Background color")), False, 5, 5)
         hbox2.pack_start(colorbutton_bg, True, 5, 5)
-        
         
         ## add it and show it
         dialog.vbox.pack_end(hbox2, True, True, 0)
         dialog.vbox.pack_end(hbox1, True, True, 0)
         dialog.show_all()
-        
-        result = dialog.run()
 
+        result = dialog.run()
         if result == gtk.RESPONSE_OK:
             ## user text assigned to a variable
             text_sb = entry1.get_text()
             config.set("terminal", "scrollb", text_sb)
             cc_config.save_config(config)
-            tabs.update_all_term_config()
+        tabs.update_all_term_config()
 
-        ## save config file
-        cc_config.save_config(config)
         ## The destroy method must be called otherwise the 'Close' button will
         ## not work.
         dialog.destroy()
-        
+

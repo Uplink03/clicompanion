@@ -39,7 +39,7 @@ setup(  name='clicompanion',
         data_files=[('/etc/clicompanion.d/', ['data/clicompanion2.config']),
         ('/usr/share/pixmaps', ['data/clicompanion.16.png']),
         ('/usr/share/applications', ['data/clicompanion.desktop']),
-        ('share/clicompanion/locale/', glob.glob('locale/*/LC_MESSAGES/*.mo')),
+        ('/usr/share/clicompanion/locale/', glob.glob('locale/*/LC_MESSAGES/*.mo')),
          ],
          
         cmdclass = { 'build'       : build_extra.build_extra,

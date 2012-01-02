@@ -26,6 +26,7 @@ import clicompanionlib.config as cc_config
 
 from clicompanionlib.utils import get_user_shell, dbg
 import clicompanionlib.controller
+import clicompanionlib.utils as utils
 import view
 
 
@@ -39,7 +40,7 @@ class Tabs(object):
         #definition gcp - how many pages is visible
         self.gcp = 0
 
-    def add_tab(self, widget, notebook):
+    def add_tab(self, notebook):
         dbg('Adding a new tab')
         _vte = vte.Terminal()
         if view.NETBOOKMODE == 1:
@@ -83,10 +84,10 @@ class Tabs(object):
         view.MainWindow.notebook.prepend_page(vte_tab, box) # add tab
         view.MainWindow.notebook.set_scrollable(True)
         actions = clicompanionlib.controller.Actions()
-        _vte.connect ("button_press_event", actions.copy_paste, None)
+        _vte.connect("button_press_event", actions.copy_paste, None)
         vte_tab.grab_focus()
         # signal handler for tab
-        closebtn.connect("clicked", self.close_tab, vte_tab, notebook)
+        closebtn.connect("clicked", lambda *x: self.close_tab(vte_tab, notebook))
                 
         vte_tab.show_all()
 
@@ -94,9 +95,9 @@ class Tabs(object):
 
 
     ## Remove a page from the notebook
-    def close_tab(self, sender, widget, notebook):
+    def close_tab(self, vte_tab, notebook):
         ## get the page number of the tab we wanted to close
-        pagenum = view.MainWindow.notebook.page_num(widget)
+        pagenum = view.MainWindow.notebook.page_num(vte_tab)
         ## and close it
         view.MainWindow.notebook.remove_page(pagenum)
         self.nop -= 1
@@ -107,7 +108,7 @@ class Tabs(object):
         if view.MainWindow.notebook.get_current_page() == self.nop:
             view.MainWindow.notebook.prev_page()
         
-    def update_all_term_config(self):
+    def update_all_term_config(self, config=None):
         for pagenum in range(view.MainWindow.notebook.get_n_pages()):
             page = view.MainWindow.notebook.get_nth_page(pagenum)
             dbg(page)
@@ -115,18 +116,20 @@ class Tabs(object):
                 for grandson in page.get_children():
                     dbg(grandson)
                     if isinstance(grandson,vte.Terminal):
-                        self.update_term_config(grandson)
+                        self.update_term_config(grandson, config)
         
-    def update_term_config(self, _vte):
+    def update_term_config(self, _vte, config=None):
         ##set terminal preferences from conig file data
-        config = cc_config.get_config()
+        if not config:
+            config = cc_config.get_config()
         try:
             config_scrollback = config.getint('terminal', 'scrollb')
         except ValueError:
-            print "WARNING: Invalid value for property 'terminal', int expected:"
-            print "    got '%s', using default '%s'"%(
+            print _("WARNING: Invalid value for property 'terminal', int expected:"
+                    " got '%s', using default '%s'")%(
                         config.get('terminal', 'scrollb'),
                         config.get('DEFAULT', 'scrollb'))
+            config.set('terminal','scrollb',config.get('DEFAULT', 'scrollb'))
             config_scrollback = config.getint('DEFAULT', 'scrollb')
         _vte.set_scrollback_lines(config_scrollback)
         
@@ -140,26 +143,36 @@ class Tabs(object):
         try:
             config_color_fore = gtk.gdk.color_parse(config.get('terminal', 'colorf'))
         except ValueError, e:
-            print "WARNING: Invalid value for property 'colorf':"
-            print "    got '%s', using default '%s'."%(
+            print _("WARNING: Invalid value for property '%s':"
+                    " got '%s', using default '%s'.")%(
+                        'colorf',
                         config.get('terminal', 'colorf'),
                         config.get('DEFAULT', 'colorf'))
+            config.set('terminal','colorf',config.get('DEFAULT', 'colorf'))
             config_color_fore = gtk.gdk.color_parse(config.get('DEFAULT', 'colorf'))
+
         try:
             config_color_back = gtk.gdk.color_parse(config.get('terminal', 'colorb'))
         except ValueError, e:
-            print "WARNING: Invalid value for property 'colorb':"
-            print "    got '%s', using default '%s'."%(
+            print _("WARNING: Invalid value for property '%s':"
+                    " got '%s', using default '%s'.")%(
+                        'colorb',
                         config.get('terminal', 'colorb'),
                         config.get('DEFAULT', 'colorb'))
+            config.set('terminal','colorb',config.get('DEFAULT', 'colorb'))
             config_color_back = gtk.gdk.color_parse(config.get('DEFAULT', 'colorb'))
         _vte.set_colors(config_color_fore, config_color_back, palette)
         
         config_encoding = config.get('terminal', 'encoding')
-        if not config_encoding:
-            print "WARNING: Invalid value for property 'encoding':"
-            print "    got '', using default '%s'"%config.get('DEFAULT', 'encoding')
+        if config_encoding.upper() not in [ enc.upper() for enc, desc in utils.encodings]:
+            print _("WARNING: Invalid value for property '%s':"
+                    " got '%s', using default '%s'")%(
+                        'encoding',
+                        config_encoding,
+                        config.get('DEFAULT', 'encoding'))
+            config.set('terminal','encoding',config.get('DEFAULT', 'encoding'))
             config_encoding = config.get('DEFAULT', 'encoding')
         _vte.set_encoding(config_encoding)
+
 
         

@@ -22,6 +22,7 @@ import os
 import ConfigParser
 import clicompanionlib.utils as utils
 from clicompanionlib.utils import dbg
+import collections
 
 CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
@@ -44,7 +45,7 @@ def create_config(conffile=CONFIGFILE):
         try:
             os.makedirs(configdir)
         except Exception, e:
-            print 'Unable to create config at dir %s (%s)'%(configdir,e)
+            print _('Unable to create config at dir %s (%s)')%(configdir,e)
             return False
     # reuse the config if able
     if not config:
@@ -59,9 +60,21 @@ def create_config(conffile=CONFIGFILE):
         CONFIG = config
     # Writing our configuration file
     save_config(config, conffile)
-    print "INFO: Created config file at %s."%conffile
+    print _("INFO: Created config file at %s.")%conffile
     return config
         
+
+def get_config_copy(config=None):
+    global CONFIG
+    if not config:
+        config = CONFIG
+    new_cfg = ConfigParser.SafeConfigParser(DEFAULTS)
+    for section in config.sections():
+        new_cfg.add_section(section)
+        for option in config.options(section):
+            new_cfg.set(section, option, config.get(section, option))
+    return new_cfg
+    
 
 def get_config(conffile=CONFIGFILE, confdir=CONFIGDIR):
     global CONFIG
@@ -75,16 +88,16 @@ def get_config(conffile=CONFIGFILE, confdir=CONFIGDIR):
         config.read([conffile])
         CONFIG = config
     else:
-        dbg('Reusing config')
-    if config.get('terminal','debug') == 'True':
-        utils.DEBUG = True
+        dbg('Reusing already loaded config')
     return config
 
 
 def save_config(config, conffile=CONFIGFILE):
+    global CONFIG
     dbg('Saving conffile at %s'%conffile)
     with open(CONFIGFILE, 'wb') as f:
         config.write(f)
+    CONFIG = config
 
 class Cheatsheet:
     '''
@@ -138,7 +151,8 @@ class Cheatsheet:
                     line = line.strip()
                     if not line:
                         continue
-                    cmd, ui, desc = line.split('\t',2) + ['',]*(3-len(line.split('\t',2)))
+                    cmd, ui, desc = [ l.strip() for l in line.split('\t',2)] \
+                                        + ['',]*(3-len(line.split('\t',2)))
                     if ':' in cmd:
                         some_colon = True
                     if ui or desc:
@@ -149,14 +163,16 @@ class Cheatsheet:
                 if no_tabs and some_colon:
                     ## None of the commands had tabs, and all had ':' in the 
                     ## cmd... most probably old config style
-                    print "Detected old cheatsheet style at %s, parsing to new one."%self.file
+                    print _("Detected old cheatsheet style at")\
+                            +" %s"%self.file+_(", parsing to new one.")
                     for i in range(len(self.commands)):
                         cmd, ui, desc = self.commands[i]
-                        cmd, ui, desc = cmd.split(':',2) + ['',]*(3-len(cmd.split(':',2)))
+                        cmd, ui, desc = [ l.strip() for l in cmd.split(':',2)] \
+                                        + ['',]*(3-len(cmd.split(':',2)))
                         self.commands[i] = [cmd, ui, desc]
                     self.save()
         except IOError, e:
-            print "Error loading cheatfile %s: %s"%(self.file, e)
+            print _("Error while loading cheatfile")+" %s: %s"%(self.file, e)
 
     def save(self, cheatfile=None):
         '''
@@ -174,7 +190,7 @@ class Cheatsheet:
                 for command in self.commands:
                     ch_fd.write('\t'.join(command)+'\n')
         except IOError, e:
-            print "Error writing cheatfile %s: %s"%(cheatfile, e)
+            print _("Error writing cheatfile")+" %s: %s"%(cheatfile, e)
             return False
         return True
 
@@ -185,10 +201,15 @@ class Cheatsheet:
         return self.commands[key]
 
     def __setitem__(self, key, value):
-        try:
-            self.insert(*value, pos=key)
-        except ValueError, e:
+        if not isinstance(value, collections.Iterable) or len(value) < 3:
             raise ValueError('Value must be a container with three items, but got %s'%value)
+        if key < len(self.commands):
+            self.commands[key]=list(value)
+        else:
+            try:
+                self.insert(*value, pos=key)
+            except ValueError, e:
+                raise ValueError('Value must be a container with three items, but got %s'%value)
 
     def __iter__(self):
         for command in self.commands:
@@ -217,22 +238,26 @@ class Cheatsheet:
         if [cmd, ui, desc] in self.commands:
             return self.commands.pop(self.commands.index([cmd, ui, desc]))
 
-    def drag_n_drop(cmd1, cmd2, before=True):
+    def drag_n_drop(self, cmd1, cmd2, before=True):
         if cmd1 in self.commands:
+            dbg('Dropping command from inside %s'%'_\t_'.join(cmd1))
             i1 = self.commands.index(cmd1)
             del self.commands[i1]
             if cmd2:
                 i2 = self.commands.index(cmd2)
-                if before and i1<=i2:
-                    self.commands.insert(i2-1, cmd1)
-                elif before and i1>i2 or i1<=i2:
-                     self.commands.insert(i2, cmd1)
+                if before:
+                    self.commands.insert(i2, cmd1)
                 else:
-                     self.commands.insert(i2+1, cmd1)
+                    self.commands.insert(i2+1, cmd1)
             else:
                 self.commands.append(cmd1)
         else:
-            if before:
-                self.commands.insert(i2, cmd1)
+            dbg('Dropping command from outside %s'%'_\t_'.join(cmd1))
+            if cmd2:
+                i2 = self.commands.index(cmd2)
+                if before:
+                    self.commands.insert(i2, cmd1)
+                else:
+                    self.commands.insert(i2+1, cmd1)
             else:
-                self.commands.insert(i2+1, cmd1)
+                self.commands.append(cmd1)

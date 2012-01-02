@@ -6,7 +6,6 @@ import os
 import sys
 from optparse import OptionParser
 
-from clicompanionlib.view import run
 
 share_dirs = os.environ.get('XDG_BASE_PDATA', 
                             '/usr/local/share:/usr/share').split(os.pathsep)
@@ -64,4 +63,5 @@ if idioma is not None:
 
 
 if __name__ == "__main__":
+    from clicompanionlib.view import run
     run( options )
