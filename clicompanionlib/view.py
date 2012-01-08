@@ -22,7 +22,6 @@
 import pygtk
 pygtk.require('2.0')
 import os
-import ConfigParser
 
 # import vte and gtk or print error
 try:
@@ -43,18 +42,20 @@ except:
     
 import clicompanionlib.menus_buttons
 import clicompanionlib.controller
-from clicompanionlib.utils import get_user_shell , Borg
+from clicompanionlib.utils import get_user_shell , Borg, dbg
 import clicompanionlib.tabs
-from clicompanionlib.config import Config
+import clicompanionlib.utils as utils
+import clicompanionlib.config as cc_config
 
-
-CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
-CHEATSHEET = os.path.expanduser("~/.clicompanion2")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 
 ## Changed two->three columns
-CMNDS = [] ## will hold the commands. Actually the first three columns
-ROW = '1' ## holds the currently selected row
+CMNDS = cc_config.Cheatsheet() 
+## will hold the commands. Actually the first three columns
+## note that this commands list will not change with searchers and filters, 
+## instead, when adding a command to the liststore, we will add also the index 
+## of the command in the CMND list
+
+ROW = '0' ## holds the currently selected row
 TARGETS = [
     ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
     ('text/plain', 0, 1),
@@ -67,7 +68,6 @@ NETBOOKMODE = 0
 HIDEUI = 0
 FULLSCREEN = 0
 
-
 menu_search_hbox = ''
 button_box = ''
 
@@ -76,12 +76,11 @@ class MainWindow(Borg):
     window = gtk.Window(gtk.WINDOW_TOPLEVEL) 
     #color = gtk.gdk.Color(60000, 65533, 60000)
     #window.modify_bg(gtk.STATE_NORMAL, color)
-    liststore = gtk.ListStore(str, str, str)	
+    liststore = gtk.ListStore(str, str, str, int)	
     treeview = gtk.TreeView()
     expander = gtk.Expander()
     scrolledwindow = gtk.ScrolledWindow()
     notebook = gtk.Notebook()
-
 
     screen = gtk.gdk.display_get_default().get_default_screen()
     screen_size = screen.get_monitor_geometry(0)
@@ -89,77 +88,20 @@ class MainWindow(Borg):
     global NETBOOKMODE
     if height < 750:
 		NETBOOKMODE = 1
-    ## open file containing command list and put it in a variable
-    def update(self, liststore):
-        try:
-            with open(CHEATSHEET, "r") as cheatfile:
-                bugdata=cheatfile.read()
-                cheatfile.close()
-        except IOError:
-            ## CHEATSHEET is not there. Oh, no!
-            ## So, run self.setup() again.
-            self.setup()
-            ## Then, run me again.
-            self.update(self.liststore)
 
-        ## add bug data from .clicompanion --> bugdata --> to the liststore
-        for line in bugdata.splitlines(): 
-            l = line.split('\t',2) 
-            if len(l) < 2:
-                """
-                If for any reason we have a old file, we must
-                replace it by new one
-                """
-                print "PLEASE RESTART APPLICATION TO FINISH UPDATE"
-                self.setup()
-                return
-            commandplus = l[0], l[1], l[2]
-            CMNDS.append(commandplus)
-            self.liststore.append([l[0],l[1],l[2]])
 
-          
-    #copy config file to user $HOME if does not exist
-    def setup(self):
-        """
-        Check if ~/.clicompanion2 exists. If not check for original
-        installed in /etc/clicompanion.d/. If origianl exists copy to $HOME.
-        if not create a new, blank ~/.clicompanion2 so program will not crash
-        """
-
-        if not os.path.exists(CHEATSHEET):
-            if os.path.exists(CONFIG_ORIG):
-                os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
-            else:
-                # Oops! Looks like there's no cheatsheet in CHEATSHEET.
-                # Then, create an empty cheatsheet.
-                open(CHEATSHEET, 'w').close()
-        """
-        If we have old file, we must replace it by fresh list
-        """ 
-        cheatlines = []
-        try:
-            with open(CHEATSHEET, "r") as cheatfile:
-                bugdata=cheatfile.read()
-                cheatfile.close()
-                for line in bugdata.splitlines():
-                    l = line.split('\t', 2)
-                    if len(l) < 2:
-                        l = line.split(':', 2)
-                        p = str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n")
-                        cheatlines.append(p)
-                    else:
-                        cheatlines.append(str(l[0] + "\t"+ l[1] +"\t"+ l[2] + "\n"))
-                        
-            with open(CHEATSHEET, "w") as cheatfile2:
-                cheatfile2.writelines(cheatlines)
-                cheatfile2.close()      
-                                     
-        except IOError:
-            ## CHEATSHEET is not there. Oh, no!
-            ## So, run self.setup() again.
-            self.setup()
-            ## Then, run me again.
-            self.update(self.liststore)
+    def sync_cmnds(self, rld=False):
+        global CMNDS
+        dbg('syncing commands')
+        if rld:
+            ## reload the commands list from the file
+            CMNDS.load()
+        self.liststore.clear()
+        ## Store also the index of the command in the CMNDS list
+        i = 0
+        for cmd, ui, desc in CMNDS:
+            self.liststore.append((cmd, ui, desc, i))
+            i = i +1
 
     
     #liststore in a scrolled window in an expander
@@ -185,13 +127,11 @@ class MainWindow(Borg):
         
     def key_clicked(self, widget, event):
         actions = clicompanionlib.controller.Actions()
-        tabs = clicompanionlib.tabs.Tabs()
         global HIDEUI
         global FULLSCREEN
         global menu_search_hbox
         global button_box
         keyname = gtk.gdk.keyval_name(event.keyval).upper()
-        #print keyname ##debug
         if keyname == "F12":
             HIDEUI = 1 - HIDEUI
         if HIDEUI == 1:
@@ -215,13 +155,13 @@ class MainWindow(Borg):
             pwin = button_box.get_window()
             pwin.unfullscreen()
         if keyname == "F4":
-			actions.run_command(self, self.notebook, self.liststore)
+			actions.run_command(self)
         if keyname == "F5":
-			actions.add_command(self, self.liststore)
+			actions.add_command(self)
         if keyname == "F6":
-			actions.remove_command(self, self.liststore)
+			actions.remove_command(self)
         if keyname == "F7":
-			tabs.add_tab(self, self.notebook)
+			self.tabs.add_tab(self)
   
     def __init__(self):
         #import pdb  ##debug
@@ -231,14 +171,7 @@ class MainWindow(Borg):
         ##in libvte in Ubuntu Maverick
         os.putenv('TERM', 'xterm')
 
-        ## copy command list to user $HOME if does not exist
-        self.setup()
 
-        ##create the config file
-        conf_mod = Config()
-        conf_mod.create_config()
-        
-        
         ## style to reduce padding around tabs
         ## TODO: Find a better place for this? 
     	gtk.rc_parse_string ("style \"tab-close-button-style\"\n"
@@ -257,7 +190,6 @@ class MainWindow(Borg):
         ##attach the style to the widget
         self.notebook.set_name ("tab-close-button")
 
-
         ## set sizes and borders
         global NETBOOKMODE
         if NETBOOKMODE == 1:
@@ -272,19 +204,15 @@ class MainWindow(Borg):
         ## Allow user to resize window
         self.window.set_resizable(True)
         
-        
         ## set Window title and icon
         self.window.set_title("CLI Companion")
         icon = gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/clicompanion.16.png")
         self.window.set_icon(icon)
-        
-        
 	   
-        # get commands and put in liststore
-        self.update(self.liststore) 
+        # sync liststore with commands
+        self.sync_cmnds()
         
         ## set renderer and colors
-
         #color2 = gtk.gdk.Color(5000,5000,65000)
         renderer = gtk.CellRendererText()
         #renderer.set_property("cell-background-gdk", color)
@@ -308,7 +236,7 @@ class MainWindow(Borg):
                                                 True)
             ## set the cell attributes to the appropriate liststore column
             self.treeview.columns[n].set_attributes(
-            self.treeview.columns[n].cell, text=n)   
+                    self.treeview.columns[n].cell, text=n)   
             self.treeview.columns[n].set_resizable(True)  
         
         ''' set treeview model and put treeview in the scrolled window
@@ -321,12 +249,12 @@ class MainWindow(Borg):
         #self.window.show_all()
 
         ## instantiate tabs
-        tabs = clicompanionlib.tabs.Tabs()
+        self.tabs = clicompanionlib.tabs.Tabs()
         ## instantiate controller.Actions, where all the button actions are
         self.actions = clicompanionlib.controller.Actions()
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         bar = clicompanionlib.menus_buttons.FileMenu()
-        menu_bar = bar.the_menu(self.actions, self.notebook, self.liststore)
+        menu_bar = bar.the_menu(self)
         
 
         ## get row of a selection
@@ -337,17 +265,17 @@ class MainWindow(Borg):
             
             
         ## double click to run a command    
-        def treeview_clicked(widget, event):
-            if event.button == 1 and event.type == gtk.gdk._2BUTTON_PRESS:
-                self.actions.run_command(self, self.notebook, self.liststore)
+        def treeview_clicked(widget, path, column):
+            self.actions.run_command(self)
+
 
         ## press enter to run a command                   
         def treeview_button(widget, event):
             keyname = gtk.gdk.keyval_name(event.keyval).upper()
-            #print keyname ##debug
+            dbg('Key %s pressed'%keyname)
             if event.type == gtk.gdk.KEY_PRESS:
                 if keyname == 'RETURN':
-                    self.actions.run_command(self, self.notebook, self.liststore)
+                    self.actions.run_command(self)
                     
                     
 
@@ -357,7 +285,7 @@ class MainWindow(Borg):
         selection.select_path(0) 
         selection.connect("changed", mark_selected, selection)
         ## double-click
-        self.treeview.connect("button-press-event", treeview_clicked)
+        self.treeview.connect("row-activated", treeview_clicked)
         #press enter to run command
         self.treeview.connect("key-press-event", treeview_button)
                 
@@ -393,7 +321,7 @@ class MainWindow(Borg):
         self.expander.set_label_widget(expander_hbox)
 
         ## Add the first tab with the Terminal
-        tabs.add_tab(self, self.notebook)
+        self.tabs.add_tab(self.notebook)
         self.notebook.set_tab_pos(2)
 
         ## The "Add Tab" tab
@@ -405,7 +333,7 @@ class MainWindow(Borg):
         
         global button_box
         ## buttons at bottom of main window [menus_buttons.py]
-        button_box = bar.buttons(self.actions, 10, gtk.BUTTONBOX_END, self.notebook, self.liststore)
+        button_box = bar.buttons(self, 10, gtk.BUTTONBOX_END)
 
         ## vbox for search, notebook, buttonbar
         vbox = gtk.VBox()
@@ -421,9 +349,9 @@ class MainWindow(Borg):
         self.expander.connect('notify::expanded', self.expanded_cb, self.window, self.search_box)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("key-press-event", self.key_clicked)
-        add_tab_button.connect("clicked", tabs.add_tab, self.notebook)
+        add_tab_button.connect("clicked", lambda *x: self.tabs.add_tab(self.notebook))
         ## right click menu event capture
-        self.treeview.connect ("button_press_event", bar.right_click, self.actions, self.treeview, self.notebook, self.liststore)
+        self.treeview.connect("button_press_event", bar.right_click, self)
 
         # Allow enable drag and drop of rows including row move
         self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
@@ -435,11 +363,19 @@ class MainWindow(Borg):
 
         self.treeview.connect ("drag_data_get", self.drag_data_get_event)
         self.treeview.connect ("drag_data_received", self.drag_data_received_event)
+        self.treeview.connect("drag_drop", self.on_drag_drop )
 
 
         #self.vte.grab_focus()
         self.window.show_all()
         return
+
+    def on_drag_drop(self, treeview, *x):
+        '''
+        Stop the signal when in search mode
+        '''
+        if FILTER:
+            treeview.stop_emission('drag_drop')
 
     def drag_data_get_event(self, treeview, context, selection, target_id, 
                             etime):
@@ -457,90 +393,57 @@ class MainWindow(Borg):
         Executed when dropping.
         """
         global CMNDS
+        global FILTER
+        ## if we are in a search, do nothing
+        if FILTER == 1:
+            return
         model = treeview.get_model()
+        ## get the destination
+        drop_info = treeview.get_dest_row_at_pos(x, y)
+        if drop_info: 
+            path, position = drop_info
+            iter = model.get_iter(path)
+            dest = list(model.get(iter, 0, 1, 2))
+
+        ## parse all the incoming commands
         for data in selection.data.split('\n'):
             # if we got an empty line skip it
             if not data.replace('\r',''): continue
             # format the incoming string
             orig = data.replace('\r','').split('\t',2)
-            orig = tuple([ fld.strip() for fld in orig ])
+            orig = [ fld.strip() for fld in orig ]
             # fill the empty fields
             if len(orig) < 3: orig = orig + ('',)*(3-len(orig))
-            # if the element already exists delete it (dragged from clicompanion)
-            olditer = self.find_iter_by_tuple(orig, model)
-            if olditer: del model[olditer]
+            dbg('Got drop of command %s'%'_\t_'.join(orig))
 
-            drop_info = treeview.get_dest_row_at_pos(x, y)
             if drop_info:
-                path, position = drop_info
-                iter = model.get_iter(path)
-                dest = tuple(model.get(iter, 0, 1, 2))
                 if (position == gtk.TREE_VIEW_DROP_BEFORE
                         or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    model.insert_before(iter, orig)
-                    self.drag_cmnd(orig, dest, before=True)
+                    dbg('\t to before dest %s'%'_\t_'.join(dest))
+                    CMNDS.drag_n_drop(orig, dest, before=True)
                 else:
-                    model.insert_after(iter, orig)
-                    self.drag_cmnd(orig, dest, before=False)
+                    dbg('\t to after dest %s'%'_\t_'.join(dest))
+                    CMNDS.drag_n_drop(orig, dest, before=False)
             else:
-                if len(model) > 0:
-                    iter = model[-1].iter
-                    model.insert_after(iter, orig)
-                else:
-                    model.insert(0, orig)
-                    return
-                dest = tuple(model.get(iter, 0, 1, 2))
-                self.drag_cmnd(orig, dest, before=False)
-            if context.action == gtk.gdk.ACTION_MOVE:
-                context.finish(True, True, etime)
-        self.actions.save_cmnds()
+                dbg('\t to the end')
+                CMNDS[len(CMNDS)] = orig
+        if context.action == gtk.gdk.ACTION_MOVE:
+            context.finish(True, True, etime)
+        self.sync_cmnds()
+        CMNDS.save()
         
-    def find_iter_by_tuple(self, data, model):
-        for row in model:
-            if tuple(model.get(row.iter, 0, 1, 2)) == data:
-                return row.iter
-        return None
-    
-    def drag_cmnd(self, orig, dest, before=True):
-        """
-        Sync the CMNDS array with the drag and drop of the treeview.
-        """
-        global CMNDS
-        i = j = None
-        pos = 0
-        for cmnd in CMNDS:
-            if cmnd == orig: 
-                i = pos
-            elif cmnd == dest: 
-                j = pos
-            pos += 1
-        ## both from clicompanion
-        if i != None and j != None:
-            cmnd = CMNDS.pop(i)
-            if before and i<=j:
-                CMNDS.insert(j-1, cmnd)
-            elif before and i>j:
-                CMNDS.insert(j, cmnd)
-            elif i<=j:
-                CMNDS.insert(j, cmnd)
-            else:
-                CMNDS.insert(j+1, cmnd)
-        ## origin unknown
-        elif j != None:
-            cmnd = orig
-            if before:
-                CMNDS.insert(j, cmnd)
-            else:
-                CMNDS.insert(j+1, cmnd)
-    
-
     def main(self):
         try:
             gtk.main()
         except KeyboardInterrupt:
             pass
         
-def run():
-    
+def run( options=None ):
+    ##create the config file
+    config = cc_config.create_config()
+    if config.get('terminal','debug') == 'True':
+        utils.DEBUG = True
+    CMNDS.load(options and options.cheatsheet or None)
+    dbg('Loaded commands %s'%CMNDS)
     main_window = MainWindow()
     main_window.main()
