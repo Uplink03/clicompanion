@@ -25,13 +25,12 @@ if not BASEDIR:
 
 
 parser = OptionParser(usage="%prog [-f] [-q]", version="%prog 1.1")
-parser.add_option("-f", "--file", dest="filename",
-                  help="Write report to FILE", metavar="FILE")
+parser.add_option("-f", "--file", dest="conffile",
+                  help="Configuration file to use.", metavar="FILE")
 parser.add_option("-c", "--cheatsheet", dest="cheatsheet",
                   help="Read cheatsheet from FILE", metavar="FILE")
-parser.add_option("-q", "--quiet",
-                  action="store_false", dest="verbose", default=True,
-                  help="Don't print status messages to stdout")
+parser.add_option("-d", "--debug", dest="debug", action='store_true',
+                  default=False, help="Print debug messages",)
 
 (options, args) = parser.parse_args()
 

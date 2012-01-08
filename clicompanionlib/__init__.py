@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# clicompanion.py - commandline tool.
+# __init__.py
 #
 # Copyright 2010 Duane Hinnen, Kenny Meyer
 #

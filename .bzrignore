@@ -3,3 +3,6 @@
 .ropeproject/globalnames
 .ropeproject/history
 .ropeproject/objectdb
+./tags
+./build
+*~
