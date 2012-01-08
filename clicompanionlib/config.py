@@ -181,7 +181,7 @@ class CLIConfig(ConfigParser.RawConfigParser):
                                     raise ValueError(
                                         _('Option %s is not valid.') % test)
                             elif test == 'font':
-                                fname, fsize = val.split(' ', 2)
+                                fname, fsize = val.rsplit(' ', 1)
                                 fsize = int(fsize)
                                 cont = gtk.TextView().create_pango_context()
                                 avail_fonts = cont.list_families()
