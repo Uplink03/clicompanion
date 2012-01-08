@@ -468,6 +468,12 @@ class MainWindow(gtk.Window):
     def close_tab(self):
         self.term_notebook.quit_tab()
 
+    def next_tab(self):
+        self.term_notebook.next_tab()
+
+    def previous_tab(self):
+        self.term_notebook.prev_tab()
+
     def toggle_hide_ui(self):
         if self.hiddenui:
             self.show_ui()
