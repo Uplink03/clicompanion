@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# clicompanion.py - commandline tool.
+# config.py - Configuration classes for the clicompanion
 #
-# Copyright 2010 Duane Hinnen
+# Copyright 2012 David Caro <david.caro.estevez@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -18,246 +18,323 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
+# This file has the CLIConfig class definition, and the CLIConfigView, the
+# first is the main configuration model of the progran, where all the config
+# is stored and processed to be correct, also sets up all the required
+# configuration (default sections and keybindings) if they are not set.
+#
+# The CLIConfigViewer, is something similar to a view in MySQL, is an object
+# that has the same (almos all) methods than the normal CLIConfig, but only
+# shows a part of it, used to allow the plugins to handle their own
+# configurations (a prefix will be added, like the 'profiles::' prefix or the
+# name of the plugin that stores the config).
+
+
 import os
 import ConfigParser
-import clicompanionlib.utils as utils
-from clicompanionlib.utils import dbg
 import collections
+import gtk
+import pango
+import clicompanionlib.utils as cc_utils
+from clicompanionlib.utils import dbg
 
-CHEATSHEET = os.path.expanduser("~/.clicompanion2")
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
-DEFAULTS = { "scrollb": '500',
-             "colorf": '#FFFFFF',
-             "colorb": '#000000',
-             "encoding": 'UTF-8',
-             "debug": 'False'}
-
-## To avoid parsing the config file each time, we store the loaded config here
-CONFIG = None
-
-def create_config(conffile=CONFIGFILE):
-    global CONFIG
-    config = CONFIG
-    configdir = conffile.rsplit(os.sep,1)[0]
-    if not os.path.exists(configdir):
-        try:
-            os.makedirs(configdir)
-        except Exception, e:
-            print _('Unable to create config at dir %s (%s)')%(configdir,e)
-            return False
-    # reuse the config if able
-    if not config:
-        config = ConfigParser.SafeConfigParser(DEFAULTS)
-        # set a number of parameters
-        if os.path.isfile(conffile):
-            config.read([conffile])
-        else:
-            config.add_section("terminal")
-            for option, value in DEFAULTS.items():
-                config.set("terminal", option, value)
-        CONFIG = config
-    # Writing our configuration file
-    save_config(config, conffile)
-    print _("INFO: Created config file at %s.")%conffile
-    return config
-        
-
-def get_config_copy(config=None):
-    global CONFIG
-    if not config:
-        config = CONFIG
-    new_cfg = ConfigParser.SafeConfigParser(DEFAULTS)
-    for section in config.sections():
-        new_cfg.add_section(section)
-        for option in config.options(section):
-            new_cfg.set(section, option, config.get(section, option))
-    return new_cfg
-    
-
-def get_config(conffile=CONFIGFILE, confdir=CONFIGDIR):
-    global CONFIG
-    config = CONFIG
-    if not config:
-        dbg('Loading new config')
-        if not os.path.isfile(conffile):
-            config = create_config(conffile)
-        config = ConfigParser.SafeConfigParser(DEFAULTS)
-        config.add_section("terminal")
-        config.read([conffile])
-        CONFIG = config
-    else:
-        dbg('Reusing already loaded config')
-    return config
 
 
-def save_config(config, conffile=CONFIGFILE):
-    global CONFIG
-    dbg('Saving conffile at %s'%conffile)
-    with open(CONFIGFILE, 'wb') as f:
-        config.write(f)
-    CONFIG = config
+## All the options (except keybindings) passed as name: (default, test), where
+## test can be one of 'bool', 'str', 'encoding', 'font', or a function to test
+## the value (the function must throw an exception on fail)
+DEFAULTS = {'profile': {"scrollb": ('500', 'int'),
+                         "color_scheme": ("Custom", 'str'),
+                         "colorf": ('#FFFFFF', gtk.gdk.color_parse),
+                         "colorb": ('#000000', gtk.gdk.color_parse),
+                         "use_system_colors": ("False", 'bool'),
+                         "encoding": ('UTF-8', 'encoding'),
+                         "font": (cc_utils.get_system_font(), 'font'),
+                         "use_system_font": ("False", 'bool'),
+                         "use_system_colors": ("False", 'bool'),
+                         "bold_text": ("False", 'bool'),
+                         "antialias": ("True", 'bool'),
+                         "sel_word": (u"-A-Za-z0-9,./?%&#:_", 'str'),
+                         "update_login_records": ("True", 'bool'),
+                        },
+             'general': {"debug": ('False', 'bool'),
+                         "plugins": ('LocalCommandList, CommandLineFU', 'str')
+                        },
+             'LocalCommandList': {"cheatsheet":
+                               (os.path.expanduser("~/.clicompanion2"), 'str'),
+                        },
+             }
 
-class Cheatsheet:
-    '''
-    comtainer class for the cheatsheet
+## Note that the modifiers must be specified as 'mod1+mod2+key', where the
+## modifiers are 'shift', 'alt','ctrl', in that order (shift+alt+ctrl+key), and
+## that the key pressed is the key affecteed by the modifiers, for example,
+## shift+ctrl+D (not shift+ctrl+d). And the function keys go uppercase (F10).
+DEFAULT_KEY_BINDINGS = {
+        'run_command': 'F4',
+        'add_command': 'F5',
+        'remove_command': 'F6',
+        'edit_command': 'unused',
+        'add_tab': 'F7',
+        'close_tab': 'unused',
+        'toggle_fullscreen': 'F12',
+        'toggle_maximize': 'F11',
+        'toggle_hide_ui': 'F9',
+        }
 
-    Example of usage:
-    >>> c = config.Cheatsheet()
-    >>> c.load('/home/cascara/.clicompanion2')
-    >>> c[3]
-    ['uname -a', '', 'What kernel am I running\n']
-    >>> c.file
-    '/home/cascara/.clicompanion2'
-    >>> c[2]=[ 'mycmd', 'userui', 'desc' ]
-    >>> c[2]
-    ['mycmd', 'userui', 'desc']
-    >>> del c[2]
-    >>> c[2]
-    ['ps aux | grep ?', 'search string', 'Search active processes for search string\n']
-    >>> c.insert('cmd2','ui2','desc2',2)
-    >>> c[2]
-    ['cmd2', 'ui2', 'desc2']
+### funcname : labelname
+## a function with the name funcname and signature void(void) must exist in the
+## main window class, and is the one that will be called when the keybinding is
+## actibated
+KEY_BINDINGS = {
+        'run_command': 'Run command',
+        'add_command': 'Add command',
+        'remove_command': 'Remove command',
+        'edit_command': 'Edit command',
+        'add_tab': 'Add tab',
+        'close_tab': 'Close tab',
+        'toggle_fullscreen': 'Toggle fullscreen',
+        'toggle_maximize': 'Maximize',
+        'toggle_hide_ui': 'Hide UI',
+        }
 
-    '''
-    def __init__(self):
-        self.file = CHEATSHEET
-        self.commands = []
 
-    def __repr__(self):
-        return 'Config: %s - %s'%(self.file, self.commands)
-    
-    def load(self, cheatfile=None):
-        if not cheatfile:
-            self.file = CHEATSHEET
-            if not os.path.exists(CHEATSHEET):
-                if os.path.exists(CONFIG_ORIG):
-                    os.system ("cp %s %s" % (CONFIG_ORIG, CHEATSHEET))
-                else:
-                    # Oops! Looks like there's no default cheatsheet.
-                    # Then, create an empty cheatsheet.
-                    open(CHEATSHEET, 'w').close()
-        else:
-            self.file = cheatfile
-        try:
-            dbg('Reading cheatsheet from file %s'%self.file)
-            with open(self.file, 'r') as ch_fd:
-                ## try to detect if the line is a old fashines config line
-                ## (separated by ':'), when saved will rewrite it
-                no_tabs = True
-                some_colon = False
-                for line in ch_fd:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    cmd, ui, desc = [ l.strip() for l in line.split('\t',2)] \
-                                        + ['',]*(3-len(line.split('\t',2)))
-                    if ':' in cmd:
-                        some_colon = True
-                    if ui or desc:
-                        no_tabs = False
-                    if cmd and [ cmd, ui, desc ] not in self.commands:
-                        self.commands.append([cmd, ui, desc])
-                        dbg('Adding command %s'%[cmd, ui, desc])
-                if no_tabs and some_colon:
-                    ## None of the commands had tabs, and all had ':' in the 
-                    ## cmd... most probably old config style
-                    print _("Detected old cheatsheet style at")\
-                            +" %s"%self.file+_(", parsing to new one.")
-                    for i in range(len(self.commands)):
-                        cmd, ui, desc = self.commands[i]
-                        cmd, ui, desc = [ l.strip() for l in cmd.split(':',2)] \
-                                        + ['',]*(3-len(cmd.split(':',2)))
-                        self.commands[i] = [cmd, ui, desc]
-                    self.save()
-        except IOError, e:
-            print _("Error while loading cheatfile")+" %s: %s"%(self.file, e)
-
-    def save(self, cheatfile=None):
-        '''
-        Saves the current config to the file cheatfile, or the file that was 
-        loaded.
-        NOTE: It does not overwrite the value self.file, that points to the file 
-        that was loaded
-        '''
-        if not cheatfile and self.file:
-            cheatfile = self.file
-        elif not cheatfile:
-            return False
-        try:
-            with open(cheatfile, 'wb') as ch_fd:
-                for command in self.commands:
-                    ch_fd.write('\t'.join(command)+'\n')
-        except IOError, e:
-            print _("Error writing cheatfile")+" %s: %s"%(cheatfile, e)
-            return False
-        return True
-
-    def __len__(self):
-        return len(self.commands)
-
-    def __getitem__(self, key):
-        return self.commands[key]
-
-    def __setitem__(self, key, value):
-        if not isinstance(value, collections.Iterable) or len(value) < 3:
-            raise ValueError('Value must be a container with three items, but got %s'%value)
-        if key < len(self.commands):
-            self.commands[key]=list(value)
-        else:
+class CLIConfig(ConfigParser.RawConfigParser):
+    def __init__(self, defaults=DEFAULTS, conffile=CONFIGFILE):
+        ConfigParser.RawConfigParser.__init__(self)
+        self.conffile = os.path.abspath(conffile)
+        configdir = self.conffile.rsplit(os.sep, 1)[0]
+        if not os.path.exists(configdir):
             try:
-                self.insert(*value, pos=key)
-            except ValueError, e:
-                raise ValueError('Value must be a container with three items, but got %s'%value)
-
-    def __iter__(self):
-        for command in self.commands:
-            yield command
-
-    def insert(self, cmd, ui, desc, pos=None):
-        if not [cmd, ui, desc] in self.commands:
-            if not pos:
-                self.commands.append([cmd, ui, desc])
-            else:
-                self.commands.insert(pos, [cmd, ui, desc])
-
-    def append(self, cmd, ui, desc):
-        self.insert(cmd, ui, desc)
-
-    def index(self, cmd, ui, value):
-        return self.commands.index([cmd, ui, desc])
-                    
-    def __delitem__(self, key):
-        del self.commands[key]
-    
-    def pop(self, key):
-        return self.commands.pop(key)
-
-    def del_by_value(self, cmd, ui, desc):
-        if [cmd, ui, desc] in self.commands:
-            return self.commands.pop(self.commands.index([cmd, ui, desc]))
-
-    def drag_n_drop(self, cmd1, cmd2, before=True):
-        if cmd1 in self.commands:
-            dbg('Dropping command from inside %s'%'_\t_'.join(cmd1))
-            i1 = self.commands.index(cmd1)
-            del self.commands[i1]
-            if cmd2:
-                i2 = self.commands.index(cmd2)
-                if before:
-                    self.commands.insert(i2, cmd1)
-                else:
-                    self.commands.insert(i2+1, cmd1)
-            else:
-                self.commands.append(cmd1)
+                os.makedirs(configdir)
+            except Exception, e:
+                print _('Unable to create config at dir %s (%s)') \
+                        % (configdir, e)
+                return False
+        # set a number of default parameters, and fill the missing ones
+        if os.path.isfile(self.conffile):
+            self.read([self.conffile])
+            print _("INFO: Reading config file at %s.") % self.conffile
         else:
-            dbg('Dropping command from outside %s'%'_\t_'.join(cmd1))
-            if cmd2:
-                i2 = self.commands.index(cmd2)
-                if before:
-                    self.commands.insert(i2, cmd1)
+            print _("INFO: Creating config file at %s.") % self.conffile
+
+        for section in DEFAULTS.keys():
+            fullsection = section + '::default'
+            ## Set default profile options
+            if fullsection not in self.sections():
+                self.add_section(fullsection)
+                for option, optdesc in DEFAULTS[section].items():
+                    value, test = optdesc
+                    self.set(fullsection, option, value)
+        ## Set default keybindings
+        if 'keybindings' not in self.sections():
+            self.add_section("keybindings")
+        for option, value in DEFAULT_KEY_BINDINGS.items():
+            if not self.has_option('keybindings', option):
+                self.set('keybindings', option, value)
+        self.parse()
+        # Writing our configuration file
+        self.save()
+
+    def parse(self):
+        ## clean the default options to avoid seeing options where they are not
+        for option in self.defaults().keys():
+            self.remove_option('DEFAULT', option)
+        ## now parse the rest of sections
+        for section in self.sections():
+            for option in self.options(section):
+                if section == 'keybindings':
+                    if option not in KEY_BINDINGS.keys():
+                        print _("Option %s:%s not recognised, deleting." \
+                                % (section, option))
+                        self.remove_option(section, option)
                 else:
-                    self.commands.insert(i2+1, cmd1)
-            else:
-                self.commands.append(cmd1)
+                    if not '::' in section:
+                        print _("Deleting unrecognzed section %s." % section)
+                        self.remove_section(section)
+                        break
+                    secttype = section.split('::')[0]
+                    if secttype not in DEFAULTS:
+                        print _("Deleting unrecognized section %s." % section)
+                        self.remove_section(section)
+                        break
+                    if option not in DEFAULTS[secttype].keys():
+                        print _("Option %s:%s not recognised, deleting." \
+                                % (section, option))
+                        self.remove_option(section, option)
+                    else:
+                        val = self.get(section, option)
+                        defval, test = DEFAULTS[secttype][option]
+                        try:
+                            if test == 'str':
+                                continue
+                            elif test == 'int':
+                                res = self.getint(section, option)
+                            elif test == 'bool':
+                                res = self.getboolean(section, option)
+                            elif test == 'encoding':
+                                if val.lower() not in [enc.lower()
+                                                       for enc, desc
+                                                       in cc_utils.encodings]:
+                                    raise ValueError(
+                                        _('Option %s is not valid.') % test)
+                            elif test == 'font':
+                                fname, fsize = val.rsplit(' ', 1)
+                                fsize = int(fsize)
+                                cont = gtk.TextView().create_pango_context()
+                                avail_fonts = cont.list_families()
+                                found = False
+                                for font in avail_fonts:
+                                    if fname == font.get_name():
+                                        found = True
+                                        break
+                                if not found:
+                                    raise ValueError(
+                                        _('Option %s is not valid.') % type)
+                            elif callable(test):
+                                res = test(val)
+                                if not res:
+                                    raise Exception
+                            else:
+                                        print _("Wrong specification for "
+                                            "option %s in file %s") \
+                                            % (option, __file__)
+                        except Exception, e:
+                            print (_('ERROR: Wrong config value for %s: %s ') \
+                                    % (option, val) +
+                                    _(',using default one %s.') % defval)
+                            self.set(section, option, defval)
+
+    def set(self, section, option, value):
+        if section == 'DEFAULT':
+            raise ConfigParser.NoSectionError(
+                'Section "DEFAULT" is not allowed. Use section '
+                    '"TYPE::default instead"')
+        else:
+            return ConfigParser.RawConfigParser.set(self, section,
+                                                    option, value)
+
+    def get(self, section, option):
+        if '::' in section:
+            sectiontag = section.split('::')[0]
+            if not self.has_option(section, option):
+                if not self.has_option(sectiontag + '::default', option):
+                    raise ConfigParser.NoOptionError(option, section)
+                return ConfigParser.RawConfigParser.get(self,
+                            sectiontag + '::default', option)
+        elif not self.has_option(section, option):
+            raise ConfigParser.NoOptionError(option, section)
+        return ConfigParser.RawConfigParser.get(self, section, option)
+
+    def get_config_copy(self):
+        new_cfg = CLIConfig(DEFAULTS)
+        for section in self.sections():
+            if section not in new_cfg.sections():
+                new_cfg.add_section(section)
+            for option in self.options(section):
+                new_cfg.set(section, option, self.get(section, option))
+        return new_cfg
+
+    def save(self, conffile=None):
+        if not conffile:
+            conffile = self.conffile
+        dbg('Saving conffile at %s' % conffile)
+        with open(conffile, 'wb') as f:
+            self.write(f)
+
+    def get_plugin_conf(self, plugin):
+        return CLIConfigView(plugin, self)
+
+
+class CLIConfigView():
+    '''
+    This class implements an editable view (hiding unwanted options) of the
+    CLIConfig class, for example, to avoid the plugins editing other options
+    but their own, some methods of the configRaw Parser are not implemented.
+    '''
+    def __init__(self, sectionkey, config):
+        self.key = sectionkey + '::'
+        self._config = config
+
+    def get(self, section, option):
+        if section == 'DEFAULT':
+            section = 'default'
+        if self.key + section not in self._config.sections():
+            raise ConfigParser.NoSectionError(
+                'The section %s does not exist.' % section)
+        return self._config.get(self.key + section, option)
+
+    def getint(self, section, option):
+        return self._config.getint(self.key + section, option)
+
+    def getfloat(self, section, option):
+        return self._config.getfloat(self.key + section, option)
+
+    def getboolean(self, section, option):
+        return self._config.getboolean(self.key + section, option)
+
+    def items(self, section):
+        return self._config.items(self.key + section)
+
+    def write(self, fileobject):
+        pass
+
+    def remove_option(self, section, option):
+        return self._config.remove_option(self.key + section, option)
+
+    def optionxform(self, option):
+        pass
+
+    def set(self, section, option, value):
+        if section == 'DEFAULT':
+            section = 'default'
+        if self.key + section not in self._config.sections():
+            raise ConfigParser.NoSectionError(
+                'The section %s does not exist.' % section)
+        return self._config.set(self.key + section, option, value)
+
+    def add_section(self, section):
+        return self._config.add_section(self.key + section)
+
+    def remove_section(self, section):
+        return self._config.remove_section(self.key + section)
+
+    def sections(self):
+        sections = []
+        for section in self._config.sections():
+            if section.startswith(self.key):
+                sections.append(section.split('::', 1)[1])
+        return sections
+
+    def options(self, section):
+        return self._config.options(self.key + section)
+
+    def defaults(self):
+        return self._config.options(self.key + 'default')
+
+    def has_section(self, section):
+        return self._config.has_section(self.key + section)
+
+    def has_option(self, section, option):
+        return self._config.has_option(self.key + section, option)
+
+    def readfp(self, filedesc, name='<???>'):
+        tempconf = ConfigParser.RawConfigParser()
+        tempconf.readfp(filedesc, name)
+        for option in tempconf.defaults():
+            self.set('DEFAULT', option, tempconf.get('DEFAULT', option))
+        for section in tempconf.sections():
+            if not self.has_section(section):
+                self.add_section(section)
+            for option in tempconf.options():
+                self.set(section, option)
+
+    def read(self, files):
+        for file in files:
+            with open(file, 'r') as fd:
+                self.readfp(fd)
+
+    def save(self):
+        self._config.save()
