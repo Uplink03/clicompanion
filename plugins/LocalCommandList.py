@@ -613,59 +613,6 @@ class Cheatsheet:
                 self.commands.append(cmd1)
 
 
-## Some hlper popus like edit command and so
-class CommandInfoWindow(gtk.MessageDialog):
-    def __init__(self, cmd, ui, desc):
-        self.cmd, self.ui, self.desc = cmd, ui, desc
-        gtk.MessageDialog.__init__(self,
-            None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK_CANCEL,
-            None)
-        self.set_markup(_("This command requires more information."))
-        ## create the text input field
-        self.entry = gtk.Entry()
-        ## allow the user to press enter to do ok
-        self.entry.connect("activate", lambda *x: self.response(
-                                                    gtk.RESPONSE_OK))
-        ## create a horizontal box to pack the entry and a label
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label(self.ui + ":"), False, 5, 5)
-        hbox.pack_end(self.entry)
-        ## some secondary text
-        self.format_secondary_markup(_("Please provide a " + self.ui))
-        ## add it and show it
-        self.vbox.pack_end(hbox, True, True, 0)
-        self.show_all()
-        ## The destroy method must be called otherwise the 'Close' button will
-        ## not work.
-
-    def run(self):
-        result = False
-        while not result:
-            result = gtk.MessageDialog.run(self)
-            if result == gtk.RESPONSE_OK:
-                ui = self.entry.get_text().strip()
-                dbg('Got ui "%s"' % ui)
-                if not ui:
-                    self.show_error()
-                    result = None
-                try:
-                    cmd = self.cmd.format(ui.split(' '))
-                except:
-                    result = None
-            else:
-                cmd = None
-        self.destroy()
-        return cmd
-
-    def show_error(self):
-        error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, \
-            gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-            _("You need to enter full input. Space separated."))
-        error.connect('response', lambda *x: error.destroy())
-        error.run()
 
 ## Add command dialog box
 class AddCommandWindow(gtk.MessageDialog):
@@ -757,19 +704,7 @@ class EditCommandWindow(AddCommandWindow):
     """
     def __init__(self, cmd, ui, desc):
         if not cmd:
-            choose_row_error()
+            cc_helpers.choose_row_error()
             return
         AddCommandWindow.__init__(self, cmd, ui, desc)
         self.set_markup(_("Edit a command in your command list"))
-
-def choose_row_error():
-    dialog = gtk.MessageDialog(
-            None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK,
-            None)
-    dialog.set_markup(_('You must choose a row to view the help'))
-    dialog.show_all()
-    dialog.run()
-    dialog.destroy()
