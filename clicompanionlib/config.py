@@ -40,7 +40,6 @@ from clicompanionlib.utils import dbg
 
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 
 
 ## All the options (except keybindings) passed as name: (default, test), where
