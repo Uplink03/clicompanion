@@ -184,7 +184,7 @@ class CommandsNotebook(gtk.Notebook):
             self.config = config
         newplugins = self.pluginloader.get_plugins('CommandTab')
         for plugin in self.loaded_plugins.keys():
-            if plugin not in [ name for name, cl in newplugins]:
+            if plugin not in [name for name, cl in newplugins]:
                 dbg('Disabling plugin %s' % plugin)
                 self.remove_page(self.page_num(self.loaded_plugins[plugin]))
                 self.loaded_plugins.pop(plugin)
@@ -211,6 +211,8 @@ class MainWindow(gtk.Window):
         self.maximized = False
         self.filtered = False
         self.fullscr = False
+
+        self.clipboard = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
 
         self.config = config
 
@@ -459,6 +461,13 @@ class MainWindow(gtk.Window):
 
     def previous_tab(self):
         self.term_notebook.prev_tab()
+
+    def copy(self):
+        self.term_notebook.copy()
+
+    def paste(self):
+        text = self.clipboard.wait_for_text() or ''
+        self.term_notebook.paste(text)
 
     def toggle_hide_ui(self):
         if self.hiddenui:
