@@ -319,8 +319,30 @@ class TerminalsNotebook(gtk.Notebook):
         add_tab_button.set_tooltip_text(_("Click to add another tab"))
         ## create first tab
         self.append_page(gtk.Label(""), add_tab_button)
+        self.set_tab_reorderable(add_tab_button, False)
         add_tab_button.connect("clicked", lambda *x: self.add_tab())
         self.set_size_request(700, 120)
+        self.connect('page-reordered', self.check_order)
+
+    def check_order(self, notebook, child, page_num):
+        if page_num == self.get_n_pages() - 1:
+            self.reorder_child(child, self.get_n_pages() - 2)
+
+    def move_tab_right(self):
+        page = self.get_current_page()
+        child = self.get_nth_page(page)
+        if page != self.get_n_pages() - 2:
+            self.reorder_child(child, page + 1)
+        else:
+            self.reorder_child(child, 0)
+
+    def move_tab_left(self):
+        page = self.get_current_page()
+        child = self.get_nth_page(page)
+        if page == 0:
+            self.reorder_child(child, self.get_n_pages() - 2)
+        else:
+            self.reorder_child(child, page - 1)
 
     def focus(self):
         num = self.get_current_page()
@@ -347,6 +369,7 @@ class TerminalsNotebook(gtk.Notebook):
         newtab.connect("preferences", lambda *x: self.emit('preferences'))
         newtab.connect("rename",
                 lambda wg, text: self.rename_tab(newtab, text))
+        self.set_tab_reorderable(newtab, True)
         self.focus()
         return newtab
 
