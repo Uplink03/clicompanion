@@ -391,6 +391,18 @@ class TerminalsNotebook(gtk.Notebook):
         if self.get_n_pages() != 1:
             self.focus()
 
+    def next_tab(self):
+        if self.get_current_page() == self.get_n_pages() - 2:
+            self.set_current_page(0)
+        else:
+            self.next_page()
+
+    def prev_tab(self):
+        if self.get_current_page() == 0:
+            self.set_current_page(self.get_n_pages() - 2)
+        else:
+            self.prev_page()
+
     def quit_tab(self, tab=None):
         if not tab:
             tab = self.get_nth_page(self.get_current_page())

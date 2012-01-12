@@ -40,7 +40,6 @@ from clicompanionlib.utils import dbg
 
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 
 
 ## All the options (except keybindings) passed as name: (default, test), where
@@ -79,6 +78,8 @@ DEFAULT_KEY_BINDINGS = {
         'edit_command': 'unused',
         'add_tab': 'F7',
         'close_tab': 'unused',
+        'next_tab': 'unused',
+        'previous_tab': 'unused',
         'toggle_fullscreen': 'F12',
         'toggle_maximize': 'F11',
         'toggle_hide_ui': 'F9',
@@ -95,6 +96,8 @@ KEY_BINDINGS = {
         'edit_command': 'Edit command',
         'add_tab': 'Add tab',
         'close_tab': 'Close tab',
+        'next_tab': 'Go to the next tab',
+        'previous_tab': 'Go to the previous tab',
         'toggle_fullscreen': 'Toggle fullscreen',
         'toggle_maximize': 'Maximize',
         'toggle_hide_ui': 'Hide UI',

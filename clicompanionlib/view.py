@@ -332,20 +332,6 @@ class MainWindow(gtk.Window):
                     self.cmd_notebook.get_command()[0]).run())
         self.button_box.connect('add_tab',
                 lambda *x: self.term_notebook.add_tab())
-        ## right click menu event capture
-        # Allow enable drag and drop of rows including row move
-#        self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
-#                                                TARGETS,
-#                                                gtk.gdk.ACTION_DEFAULT |
-#                                                gtk.gdk.ACTION_COPY)
-#        self.treeview.enable_model_drag_dest(TARGETS,
-#                                                gtk.gdk.ACTION_DEFAULT)
-#
-#        self.treeview.connect ("drag_data_get", self.drag_data_get_event)
-#        self.treeview.connect ("drag_data_received",
-#                self.drag_data_received_event)
-#        self.treeview.connect("drag_drop", self.on_drag_drop )
-
         ## show everything
         self.show_all()
         ## set the focus on the terminal
@@ -468,6 +454,12 @@ class MainWindow(gtk.Window):
     def close_tab(self):
         self.term_notebook.quit_tab()
 
+    def next_tab(self):
+        self.term_notebook.next_tab()
+
+    def previous_tab(self):
+        self.term_notebook.prev_tab()
+
     def toggle_hide_ui(self):
         if self.hiddenui:
             self.show_ui()
@@ -478,15 +470,19 @@ class MainWindow(gtk.Window):
         if self.hiddenui:
             return
         dbg('Hide UI')
+        self.set_border_width(0)
         self.l_vbox.remove(self.term_notebook)
         self.remove(self.vpane)
         self.add(self.term_notebook)
         self.hiddenui = True
+        ## set the focus on the terminal
+        self.term_notebook.focus()
 
     def show_ui(self):
         if not self.hiddenui:
             return
         dbg('Show UI')
+        self.set_border_width(5)
         self.remove(self.term_notebook)
         btns = self.l_vbox.get_children()[0]
         self.l_vbox.remove(btns)
@@ -494,12 +490,16 @@ class MainWindow(gtk.Window):
         self.l_vbox.pack_start(btns, False, False, 0)
         self.add(self.vpane)
         self.hiddenui = False
+        ## set the focus on the terminal
+        self.term_notebook.focus()
 
     def toggle_maximize(self):
         if not self.maximized:
             self.maximize()
         else:
             self.unmaximize()
+        ## set the focus on the terminal
+        self.term_notebook.focus()
         self.maximized = not self.maximized
 
     def toggle_fullscreen(self):
@@ -516,70 +516,8 @@ class MainWindow(gtk.Window):
             self.unfullscreen()
             self.set_border_width(5)
         self.fullscr = not self.fullscr
-
-    ### TODO: pass these functions to the LocalCommandList class
-    def on_drag_drop(self, treeview, *x):
-        '''
-        Stop the signal when in search mode
-        '''
-        if self.FILTER:
-            treeview.stop_emission('drag_drop')
-
-    def drag_data_get_event(self, treeview, context, selection, target_id,
-                            etime):
-        """
-        Executed on dragging
-        """
-        treeselection = treeview.get_selection()
-        model, iter = treeselection.get_selected()
-        data = model.get(iter, 0, 1, 2)
-        selection.set(selection.target, 8, '\t'.join(data))
-
-    def drag_data_received_event(self, treeview, context, x, y, selection,
-            info, etime):
-        """
-        Executed when dropping.
-        """
-        global CMNDS
-        ## if we are in a search, do nothing
-        if self.FILTER == 1:
-            return
-        model = treeview.get_model()
-        ## get the destination
-        drop_info = treeview.get_dest_row_at_pos(x, y)
-        if drop_info:
-            path, position = drop_info
-            iter = model.get_iter(path)
-            dest = list(model.get(iter, 0, 1, 2))
-
-        ## parse all the incoming commands
-        for data in selection.data.split('\n'):
-            # if we got an empty line skip it
-            if not data.replace('\r', ''):
-                continue
-            # format the incoming string
-            orig = data.replace('\r', '').split('\t', 2)
-            orig = [fld.strip() for fld in orig]
-            # fill the empty fields
-            if len(orig) < 3:
-                orig = orig + ('', ) * (3 - len(orig))
-            dbg('Got drop of command %s' % '_\t_'.join(orig))
-
-            if drop_info:
-                if (position == gtk.TREE_VIEW_DROP_BEFORE
-                        or position == gtk.TREE_VIEW_DROP_INTO_OR_BEFORE):
-                    dbg('\t to before dest %s' % '_\t_'.join(dest))
-                    CMNDS.drag_n_drop(orig, dest, before=True)
-                else:
-                    dbg('\t to after dest %s' % '_\t_'.join(dest))
-                    CMNDS.drag_n_drop(orig, dest, before=False)
-            else:
-                dbg('\t to the end')
-                CMNDS[len(CMNDS)] = orig
-        if context.action == gtk.gdk.ACTION_MOVE:
-            context.finish(True, True, etime)
-        self.sync_cmnds()
-        CMNDS.save()
+        ## set the focus on the terminal
+        self.term_notebook.focus()
 
     def main(self):
         try:
