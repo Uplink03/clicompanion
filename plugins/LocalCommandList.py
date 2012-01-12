@@ -38,6 +38,8 @@ except:
 from clicompanionlib.utils import dbg
 import clicompanionlib.plugins as plugins
 
+CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
+
 ## Targets for the Drag and Drop
 TARGETS = [
     ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),

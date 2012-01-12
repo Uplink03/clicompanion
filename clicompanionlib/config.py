@@ -40,7 +40,6 @@ from clicompanionlib.utils import dbg
 
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
-CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
 
 
 ## All the options (except keybindings) passed as name: (default, test), where
@@ -86,6 +85,8 @@ DEFAULT_KEY_BINDINGS = {
         'toggle_fullscreen': 'F12',
         'toggle_maximize': 'F11',
         'toggle_hide_ui': 'F9',
+        'copy': 'shift+ctrl+C',
+        'paste': 'shift+ctrl+V',
         }
 
 ### funcname : labelname
@@ -106,6 +107,8 @@ KEY_BINDINGS = {
         'toggle_fullscreen': 'Toggle fullscreen',
         'toggle_maximize': 'Maximize',
         'toggle_hide_ui': 'Hide UI',
+        'copy': 'Copy the selected text',
+        'paste': 'Paste the text in the terminal',
         }
 
 

@@ -56,7 +56,7 @@ class TerminalTab(gtk.ScrolledWindow):
                              ()),
     }
 
-    def __init__(self, title, config, profile='default'):
+    def __init__(self, title, config, profile='default', directory=None):
         gtk.ScrolledWindow.__init__(self)
         self.config = config
         self.title = title
@@ -67,10 +67,17 @@ class TerminalTab(gtk.ScrolledWindow):
         self.update_records = self.config.getboolean(self.profile,
                                         'update_login_records')
         dbg('Updating login records: ' + self.update_records.__repr__())
-        self.vte.fork_command(cc_utils.shell_lookup(),
-           logutmp=self.update_records,
-           logwtmp=self.update_records,
-           loglastlog=self.update_records)
+        if directory:
+            self.pid = self.vte.fork_command(cc_utils.shell_lookup(),
+                                         logutmp=self.update_records,
+                                         logwtmp=self.update_records,
+                                         loglastlog=self.update_records,
+                                         directory=directory)
+        else:
+            self.pid = self.vte.fork_command(cc_utils.shell_lookup(),
+                                         logutmp=self.update_records,
+                                         logwtmp=self.update_records,
+                                         loglastlog=self.update_records)
         self.vte.connect("button_press_event", self.copy_paste_menu)
         self.update_config()
         self.show_all()
@@ -354,11 +361,16 @@ class TerminalsNotebook(gtk.Notebook):
         if title == None:
             title = 'Tab %d' % self.gcp
 
-        newtab = TerminalTab(title, self.global_config)
-
+        cwd = None
         if self.get_n_pages() > 1:
             dbg('More than one tab, showing them.')
             self.set_show_tabs(True)
+            current_page = self.get_nth_page(self.get_current_page())
+            cwd = cc_utils.get_pid_cwd(current_page.pid)
+        if cwd:
+            newtab = TerminalTab(title, self.global_config, directory=cwd)
+        else:
+            newtab = TerminalTab(title, self.global_config)
         label = self.create_tab_label(title, newtab)
         self.insert_page(newtab, label, self.get_n_pages() - 1)
         self.set_current_page(self.get_n_pages() - 2)
@@ -453,3 +465,13 @@ class TerminalsNotebook(gtk.Notebook):
         if not config:
             config = self.global_config
         tab.update_config(config)
+
+    def copy(self):
+        page = self.get_current_page()
+        term = self.get_nth_page(page)
+        term.vte.copy_clipboard()
+
+    def paste(self, text):
+        page = self.get_current_page()
+        term = self.get_nth_page(page)
+        term.vte.feed_child(text)

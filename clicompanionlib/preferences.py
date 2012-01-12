@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 #
 # preferences.py - Preferences dialogs for clicompanion
-#                                                                                                             
+#
 # Copyright 2012 Duane Hinnen, Kenny Meyer, Marcos Vanettai, Marek Bardoński,
 #                David Caro <david.caro.estevez@gmail.com>
-#                                                                                                             
-# This program is free software: you can redistribute it and/or modify it       
-# under the terms of the GNU General Public License version 3, as published     
-# by the Free Software Foundation.                                                                            
-#                                                                                                             
-# This program is distributed in the hope that it will be useful, but           
-# WITHOUT ANY WARRANTY; without even the implied warranties of                  
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR            
-# PURPOSE.  See the GNU General Public License for more details.                
-#                                                                                                             
-# You should have received a copy of the GNU General Public License along       
-# with this program.  If not, see <http://www.gnu.org/licenses/>.               
-#    
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 ############################################
 ## The preferences window is a popup that shows all the configuration options
 ## allowing the user to change them, also handles the profiles creatin and
