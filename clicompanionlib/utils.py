@@ -253,3 +253,14 @@ class Borg:
 
     def __init__(self):
         self.__dict__ = self.__shared_state
+
+
+def get_pid_cwd(pid):
+    """Extract the cwd of a PID from proc, given the PID and the /proc path to
+    insert it into, e.g. /proc/%s/cwd"""
+    try:
+        cwd = os.path.realpath('/proc/%s/cwd' % pid)
+    except Exception, ex:
+        dbg('Unable to get cwd for PID %s: %s' % (pid, ex))
+        cwd = '/'
+    return cwd
