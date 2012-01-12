@@ -84,7 +84,7 @@ DEFAULT_KEY_BINDINGS = {
         'toggle_maximize': 'F11',
         'toggle_hide_ui': 'F9',
         'copy': 'shift+ctrl+C',
-        'paste': 'shift+ctrl+C',
+        'paste': 'shift+ctrl+V',
         }
 
 ### funcname : labelname
