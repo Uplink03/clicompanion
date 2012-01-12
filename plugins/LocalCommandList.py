@@ -24,6 +24,7 @@ import os
 import pygtk
 pygtk.require('2.0')
 import gobject
+import collections
 
 try:
     import gtk
@@ -344,7 +345,7 @@ class LocalCommandList(plugins.TabPlugin):
             orig = [fld.strip() for fld in orig]
             # fill the empty fields
             if len(orig) < 3:
-                orig = orig + ('', ) * (3 - len(orig))
+                orig = list(orig) + ['', ] * (3 - len(orig))
             dbg('Got drop of command %s' % '_\t_'.join(orig))
 
             if drop_info:
@@ -357,9 +358,8 @@ class LocalCommandList(plugins.TabPlugin):
                     self.cmnds.drag_n_drop(orig, dest, before=False)
             else:
                 dbg('\t to the end')
-                self.cmnds[len(cmnds)] = orig
-        if context.action == gtk.gdk.ACTION_MOVE:
-            context.finish(True, True, etime)
+                self.cmnds[len(self.cmnds)] = orig
+        context.finish(True, True, time)
         self.sync_cmnds()
 
     def main(self):
