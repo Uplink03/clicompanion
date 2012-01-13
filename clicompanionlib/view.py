@@ -462,6 +462,12 @@ class MainWindow(gtk.Window):
     def previous_tab(self):
         self.term_notebook.prev_tab()
 
+    def move_tab_right(self):
+        self.term_notebook.move_tab_right()
+
+    def move_tab_left(self):
+        self.term_notebook.move_tab_left()
+
     def copy(self):
         self.term_notebook.copy()
 
