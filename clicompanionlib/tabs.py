@@ -62,6 +62,7 @@ class TerminalTab(gtk.ScrolledWindow):
         self.title = title
         self.profile = 'profile::' + profile
         self.vte = vte.Terminal()
+        self.matches = {}
         self.add(self.vte)
         self.vte.connect("child-exited", lambda *x: self.emit('quit'))
         self.update_records = self.config.getboolean(self.profile,
@@ -78,8 +79,9 @@ class TerminalTab(gtk.ScrolledWindow):
                                          logutmp=self.update_records,
                                          logwtmp=self.update_records,
                                          loglastlog=self.update_records)
-        self.vte.connect("button_press_event", self.copy_paste_menu)
+        self.vte.connect("button_press_event", self.on_click)
         self.update_config()
+        self.update_url_matches()
         self.show_all()
 
     def update_config(self, config=None, preview=False):
@@ -206,7 +208,63 @@ class TerminalTab(gtk.ScrolledWindow):
         self.vte.set_allow_bold(config.getboolean(self.profile, 'bold_text'))
         self.vte.set_word_chars(config.get(self.profile, 'sel_word'))
 
-    def copy_paste_menu(self, vte, event):
+    def check_for_url(self, event):
+        """Check if the mouse is over a URL"""
+        return (self.vte.match_check(int(event.x / self.vte.get_char_width()),
+            int(event.y / self.vte.get_char_height())))
+
+    def prepare_url(self, urlmatch):
+        """Prepare a URL from a VTE match"""
+        url = urlmatch[0]
+        match = urlmatch[1]
+
+        if match == self.matches['email'] and url[0:7] != 'mailto:':
+            url = 'mailto:' + url
+        elif match == self.matches['addr_only'] and url[0:3] == 'ftp':
+            url = 'ftp://' + url
+        elif match == self.matches['addr_only']:
+            url = 'http://' + url
+        elif match in self.matches.values():
+            pass
+        return(url)
+
+    def open_url(self, url, prepare=False):
+        """Open a given URL, conditionally unpacking it from a VTE match"""
+        oldstyle = False
+
+        if prepare == True:
+            url = self.prepare_url(url)
+        dbg('URL: %s (prepared: %s)' % (url, prepare))
+
+        if gtk.gtk_version < (2, 14, 0) or \
+           not hasattr(gtk, 'show_uri') or \
+           not hasattr(gtk.gdk, 'CURRENT_TIME'):
+            oldstyle = True
+
+        if oldstyle == False:
+            try:
+                gtk.show_uri(None, url, gtk.gdk.CURRENT_TIME)
+            except:
+                oldstyle = True
+
+        if oldstyle == True:
+            dbg('Old gtk (%s,%s,%s), calling xdg-open' % gtk.gtk_version)
+            try:
+                subprocess.Popen(["xdg-open", url])
+            except:
+                dbg('xdg-open did not work, falling back to webbrowser.open')
+                import webbrowser
+                webbrowser.open(url)
+
+    def on_click(self, vte, event):
+        ## left click
+        if event.button == 1:
+            # Ctrl+leftclick on a URL should open it
+            if event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK:
+                url = self.check_for_url(event)
+                if url:
+                    self.open_url(url, prepare=True)
+        ## Rght click menu
         if event.button == 3:
             time = event.time
             ## right-click popup menu Copy
@@ -305,6 +363,52 @@ class TerminalTab(gtk.ScrolledWindow):
         dbg(profile)
         self.profile = 'profile::' + profile
         self.update_config()
+
+    def update_url_matches(self, posix = True):
+        """Update the regexps used to match URLs"""
+        userchars = "-A-Za-z0-9"
+        passchars = "-A-Za-z0-9,?;.:/!%$^*&~\"#'"
+        hostchars = "-A-Za-z0-9"
+        pathchars = "-A-Za-z0-9_$.+!*(),;:@&=?/~#%'\""
+        schemes   = "(news:|telnet:|nntp:|file:/|https?:|ftps?:|webcal:)"
+        user      = "[" + userchars + "]+(:[" + passchars + "]+)?"
+        urlpath   = "/[" + pathchars + "]*[^]'.}>) \t\r\n,\\\"]"
+
+        if posix:
+            dbg('Trying POSIX URL regexps')
+            lboundry = "[[:<:]]"
+            rboundry = "[[:>:]]"
+        else: # GNU
+            dbg('Trying GNU URL regexps')
+            lboundry = "\\<"
+            rboundry = "\\>"
+
+        self.matches['full_uri'] = self.vte.match_add(lboundry + schemes +
+                "//(" + user + "@)?[" + hostchars  +".]+(:[0-9]+)?(" +
+                urlpath + ")?" + rboundry + "/?")
+
+        if self.matches['full_uri'] == -1:
+            if posix:
+                print 'POSIX failed, trying GNU'
+                self.update_url_matches(posix = False)
+            else:
+                print 'Failed adding URL matches'
+        else:
+            self.matches['voip'] = self.vte.match_add(lboundry +
+                    '(callto:|h323:|sip:)' + "[" + userchars + "+][" +
+                    userchars + ".]*(:[0-9]+)?@?[" + pathchars + "]+" +
+                    rboundry)
+            self.matches['addr_only'] = self.vte.match_add (lboundry +
+                    "(www|ftp)[" + hostchars + "]*\.[" + hostchars +
+                    ".]+(:[0-9]+)?(" + urlpath + ")?" + rboundry + "/?")
+            self.matches['email'] = self.vte.match_add (lboundry +
+                    "(mailto:)?[a-zA-Z0-9][a-zA-Z0-9.+-]*@[a-zA-Z0-9]" +
+                            "[a-zA-Z0-9-]*\.[a-zA-Z0-9][a-zA-Z0-9-]+" +
+                            "[.a-zA-Z0-9-]*" + rboundry)
+            self.matches['nntp'] = self.vte.match_add (lboundry +
+                  """news:[-A-Z\^_a-z{|}~!"#$%&'()*+,./0-9;:=?`]+@""" +
+                            "[-A-Za-z0-9.]+(:[0-9]+)?" + rboundry)
+
 
 
 class TerminalsNotebook(gtk.Notebook):

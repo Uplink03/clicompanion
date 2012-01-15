@@ -205,3 +205,16 @@ class PluginConfig(Plugin):
     def __init__(self, config):
         Plugin.__init__(self)
         self.config = config
+
+class URLPlugin(Plugin):
+    '''
+    Plugion that matches an url in the screen and executes some action.
+    '''
+    __capabilities__ = [ 'URL' ]
+
+    ## This is the regexp that will trigger the callback
+    match = ['']
+
+    def callback(self, url):
+        ## When the regexp is found, this function will be called
+        pass
