@@ -33,6 +33,16 @@ class FileMenu(gtk.MenuBar):
                              ()),
          'cancel_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
+         'stop_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
+         'resume_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
+         'background_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
+         'foreground_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
+         'bgrun_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
          'add_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
          'remove_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -51,83 +61,112 @@ class FileMenu(gtk.MenuBar):
 
     def __init__(self, config):
         gtk.MenuBar.__init__(self)
-        menu = gtk.Menu()
-        #color = gtk.gdk.Color(65555, 62000, 65555)
-        #menu.modify_bg(gtk.STATE_NORMAL, color)
-        root_menu = gtk.MenuItem(_("File"))
-        root_menu.set_submenu(menu)
-
-        menu2 = gtk.Menu()
-        #color = gtk.gdk.Color(65555, 62000, 60000)
-        #menu2.modify_bg(gtk.STATE_NORMAL, color)
-        root_menu2 = gtk.MenuItem(_("Help"))
-        root_menu2.set_submenu(menu2)
 
         ##FILE MENU ##
-        ## Make 'Run' menu entry
-        menu_item1 = gtk.MenuItem(_("Run Command"))
-        menu.append(menu_item1)
-        menu_item1.connect("activate", lambda *x: self.emit('run_command'))
-        menu_item1.show()
-
-        ## Make 'Cancel' menu entry
-        menu_item_cancel = gtk.MenuItem(_("Cancel Command"))
-        menu.append(menu_item_cancel)
-        menu_item_cancel.connect("activate", lambda *x: self.emit('cancel_command'))
-        menu_item_cancel.show()
-
-        ## Make 'Add' file menu entry
-        menu_item2 = gtk.MenuItem(_("Add Command"))
-        menu.append(menu_item2)
-        menu_item2.connect("activate", lambda *x: self.emit('add_command'))
-        menu_item2.show()
-
-        ## Make 'Remove' file menu entry
-        menu_item3 = gtk.MenuItem(_("Remove Command"))
-        menu.append(menu_item3)
-        menu_item3.connect("activate", lambda *x: self.emit('remove_command'))
-        menu_item3.show()
-
-        ## Make 'Add Tab' file menu entry
-        menu_item4 = gtk.MenuItem(_("Add Tab"))
-        menu.append(menu_item4)
-        menu_item4.connect("activate", lambda *x: self.emit('add_tab'))
-        menu_item4.show()
-
-        ## Make 'Close Tab' file menu entry
-        menu_item4 = gtk.MenuItem(_("Close Tab"))
-        menu.append(menu_item4)
-        menu_item4.connect("activate", lambda *x: self.emit('close_tab'))
-        menu_item4.show()
-
+        file_menu = gtk.MenuItem(_("File"))
+        menu = gtk.Menu()
+        file_menu.set_submenu(menu)
         ## Make 'User Preferences' file menu entry
         menu_item5 = gtk.MenuItem(_("Preferences"))
         menu.append(menu_item5)
         menu_item5.connect("activate", lambda *x: self.emit('preferences'))
-        menu_item5.show()
-
         ## Make 'Quit' file menu entry
         menu_item6 = gtk.MenuItem(_("Quit"))
         menu.append(menu_item6)
         menu_item6.connect("activate", lambda *x: self.emit('quit'))
-        menu_item6.show()
+
+        ## Make 'Process' menu entry
+        p_menu = gtk.MenuItem(_("Process"))
+        proc_menu = gtk.Menu()
+        p_menu.set_submenu(proc_menu)
+        ## Submenu Abort
+        subitem = gtk.ImageMenuItem(gtk.STOCK_STOP)
+        subitem.set_label(_('Abort (Ctrl+c)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('cancel_command'))
+        ## Submenu Pause
+        subitem = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PAUSE)
+        subitem.set_label(_('Pause (Ctrl+s)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('stop_command'))
+        ## Submenu Resume
+        subitem = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
+        subitem.set_label(_('Resume (Ctrl+q)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('resume_command'))
+        ## Submenu Background Suspend
+        subitem = gtk.ImageMenuItem(gtk.STOCK_GOTO_BOTTOM)
+        subitem.set_label(_('Stop and Background (Ctrl+z)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('background_command'))
+        ## Submenu Resume
+        subitem = gtk.ImageMenuItem(gtk.STOCK_GO_UP)
+        subitem.set_label(_('Foreground (%)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('foreground_command'))
+        ## Submenu Resume
+        subitem = gtk.ImageMenuItem(gtk.STOCK_GO_DOWN)
+        subitem.set_label(_('Run background (% &)'))
+        proc_menu.add(subitem)
+        subitem.connect('activate',
+                            lambda *x: self.emit('bgrun_command'))
+
+
+        ## Command menu
+        c_menu = gtk.MenuItem(_("Command"))
+        com_menu = gtk.Menu()
+        c_menu.set_submenu(com_menu)
+        ## Make 'Run' menu entry
+        menu_item1 = gtk.MenuItem(_("Run Command"))
+        com_menu.append(menu_item1)
+        menu_item1.connect("activate", lambda *x: self.emit('run_command'))
+        ## Make 'Add' file menu entry
+        menu_item2 = gtk.MenuItem(_("Add Command"))
+        com_menu.append(menu_item2)
+        menu_item2.connect("activate", lambda *x: self.emit('add_command'))
+        ## Make 'Remove' file menu entry
+        menu_item3 = gtk.MenuItem(_("Remove Command"))
+        com_menu.append(menu_item3)
+        menu_item3.connect("activate", lambda *x: self.emit('remove_command'))
+
+        ## Terminal menu
+        t_menu = gtk.MenuItem(_("Terminal"))
+        term_menu = gtk.Menu()
+        t_menu.set_submenu(term_menu)
+        ## Make 'Add Tab' file menu entry
+        menu_item4 = gtk.MenuItem(_("Add Tab"))
+        term_menu.append(menu_item4)
+        menu_item4.connect("activate", lambda *x: self.emit('add_tab'))
+        ## Make 'Close Tab' file menu entry
+        menu_item4 = gtk.MenuItem(_("Close Tab"))
+        term_menu.append(menu_item4)
+        menu_item4.connect("activate", lambda *x: self.emit('close_tab'))
+
 
         ## HELP MENU ##
+        help_menu = gtk.MenuItem(_("Help"))
+        menu2 = gtk.Menu()
+        help_menu.set_submenu(menu2)
         ## Make 'About' file menu entry
         menu_item11 = gtk.MenuItem(_("About"))
         menu2.append(menu_item11)
         menu_item11.connect("activate", lambda *x: cc_helpers.show_about())
-        menu_item11.show()
-
         ## Make 'Help' file menu entry
         menu_item22 = gtk.MenuItem(_("Help-online"))
         menu2.append(menu_item22)
         menu_item22.connect("activate", lambda *x: webbrowser.open(
                                         "http://launchpad.net/clicompanion"))
-        menu_item22.show()
 
-        self.append(root_menu)  # Menu bar(file)
-        self.append(root_menu2)  # Menu bar(help)
+        self.append(file_menu) 
+        self.append(c_menu)
+        self.append(p_menu)
+        self.append(t_menu)
+        self.append(help_menu)
         self.show_all()
 
 
