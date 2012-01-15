@@ -31,6 +31,8 @@ class FileMenu(gtk.MenuBar):
     __gsignals__ = {
          'run_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
+         'cancel_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
          'add_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
          'remove_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -67,6 +69,12 @@ class FileMenu(gtk.MenuBar):
         menu.append(menu_item1)
         menu_item1.connect("activate", lambda *x: self.emit('run_command'))
         menu_item1.show()
+
+        ## Make 'Cancel' menu entry
+        menu_item_cancel = gtk.MenuItem(_("Cancel Command"))
+        menu.append(menu_item_cancel)
+        menu_item_cancel.connect("activate", lambda *x: self.emit('cancel_command'))
+        menu_item_cancel.show()
 
         ## Make 'Add' file menu entry
         menu_item2 = gtk.MenuItem(_("Add Command"))
@@ -127,6 +135,8 @@ class Buttons(gtk.Frame):
     __gsignals__ = {
          'run_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
+         'cancel_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
          'add_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
          'remove_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -156,6 +166,13 @@ class Buttons(gtk.Frame):
         bbox.add(buttonRun)
         buttonRun.connect("clicked", lambda *x: self.emit('run_command'))
         buttonRun.set_tooltip_text(_("Click to run a highlighted command"))
+
+        # Cancel button
+        buttonCancel = gtk.Button(stock=gtk.STOCK_CANCEL)
+        bbox.add(buttonCancel)
+        buttonCancel.connect("clicked", lambda *x: self.emit('cancel_command'))
+        buttonCancel.set_tooltip_text(_("Click to cancel the running command"))
+        
         # Add button
         buttonAdd = gtk.Button(stock=gtk.STOCK_ADD)
         bbox.add(buttonAdd)

@@ -76,6 +76,8 @@ class CommandsNotebook(gtk.Notebook):
     __gsignals__ = {
          'run_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              (str, str, str)),
+         'cancel_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
          'add_tab': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              ()),
          'preferences': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -117,6 +119,8 @@ class CommandsNotebook(gtk.Notebook):
         ##All the available signals for the plugins
         tab.connect('run_command',
                 lambda wg, *args: self.run_command(*args))
+        tab.connect('cancel_command',
+                lambda wg, *args: self.cancel_command(*args))
         tab.connect('add_command',
                 lambda wg, *args: self.commandstab.add_command(*args))
         tab.connect('remove_command',
@@ -157,6 +161,10 @@ class CommandsNotebook(gtk.Notebook):
             dbg('running command %s' % cmd)
             self.emit('run_command', cmd, ui, desc)
 
+    def cancel_command(self):
+        dbg('cancelling command')
+        self.emit('cancel_command')
+            
     def add_command(self):
         if self.get_current_page() == 0:
             self.commandstab.add_command()
@@ -299,6 +307,8 @@ class MainWindow(gtk.Window):
         ## signals
         self.cmd_notebook.connect('run_command',
             lambda wdg, *args: self.term_notebook.run_command(*args))
+        self.cmd_notebook.connect('cancel_command',
+            lambda wdg, *args: self.term_notebook.cancel_command(*args))
         self.cmd_notebook.connect('show_man',
                 lambda wgt, cmd: cc_helpers.ManPage(cmd).run())
         self.cmd_notebook.connect('quit', lambda *x: gtk.main_quit())
@@ -311,6 +321,8 @@ class MainWindow(gtk.Window):
         menu_bar.connect('quit', lambda *x: gtk.main_quit())
         menu_bar.connect('run_command',
                 lambda *x: self.cmd_notebook.run_command())
+        menu_bar.connect('cancel_command',
+                lambda *x: self.cmd_notebook.cancel_command())
         menu_bar.connect('add_command',
                 lambda *x: self.cmd_notebook.add_command())
         menu_bar.connect('edit_command',
@@ -323,6 +335,8 @@ class MainWindow(gtk.Window):
         self.button_box.connect('quit', lambda *x: gtk.main_quit())
         self.button_box.connect('run_command',
                 lambda *x: self.cmd_notebook.run_command())
+        self.button_box.connect('cancel_command',
+                lambda *x: self.cmd_notebook.cancel_command())
         self.button_box.connect('add_command',
                 lambda *x: self.cmd_notebook.add_command())
         self.button_box.connect('edit_command',
@@ -440,6 +454,9 @@ class MainWindow(gtk.Window):
 
     def run_command(self):
         self.cmd_notebook.run_command()
+
+    def cancel_command(self):
+        self.cmd_notebook.cancel_command()
 
     def add_command(self):
         self.cmd_notebook.add_command()

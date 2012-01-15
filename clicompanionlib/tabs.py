@@ -301,6 +301,9 @@ class TerminalTab(gtk.ScrolledWindow):
         self.show()
         self.grab_focus()
 
+    def cancel_command(self):
+        self.vte.feed_child(chr(3))
+
     def change_profile(self, profile):
         dbg(profile)
         self.profile = 'profile::' + profile
@@ -451,6 +454,12 @@ class TerminalsNotebook(gtk.Notebook):
         pagenum = self.get_current_page()
         page = self.get_nth_page(pagenum)
         page.run_command(cmd, ui, desc)
+        self.focus()
+
+    def cancel_command(self):
+        pagenum = self.get_current_page()
+        page = self.get_nth_page(pagenum)
+        page.cancel_command()
         self.focus()
 
     def update_all_term_config(self, config=None):

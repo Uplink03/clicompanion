@@ -148,6 +148,8 @@ class TabPlugin(Plugin):
     __gsignals__ = {
          'run_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              (str, str, str)),
+         'cancel_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                             ()),
          'add_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
                              (str, str, str)),
          'remove_command': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
