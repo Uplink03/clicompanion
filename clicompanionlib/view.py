@@ -341,7 +341,7 @@ class MainWindow(gtk.Window):
         self.button_box.connect('run_command',
                 lambda *x: self.cmd_notebook.run_command())
         self.button_box.connect('cancel_command',
-                lambda *x: self.cmd_notebook.cancel_command())
+                lambda *x: self.term_notebook.cancel_command())
         self.button_box.connect('add_command',
                 lambda *x: self.cmd_notebook.add_command())
         self.button_box.connect('edit_command',
@@ -461,7 +461,7 @@ class MainWindow(gtk.Window):
         self.cmd_notebook.run_command()
 
     def cancel_command(self):
-        self.cmd_notebook.cancel_command()
+        self.term_notebook.cancel_command()
 
     def add_command(self):
         self.cmd_notebook.add_command()
