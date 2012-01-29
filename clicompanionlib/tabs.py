@@ -42,6 +42,7 @@ from clicompanionlib.utils import dbg
 import clicompanionlib.utils as cc_utils
 import clicompanionlib.helpers as cc_helpers
 import clicompanionlib.preferences as cc_pref
+import clicompanionlib.config as cc_conf
 
 
 class TerminalTab(gtk.ScrolledWindow):
@@ -83,7 +84,6 @@ class TerminalTab(gtk.ScrolledWindow):
                                          loglastlog=self.update_records)
         self.vte.connect("button_press_event", self.on_click)
         self.update_config()
-        self.load_url_plugins()
         self.show_all()
 
     def update_config(self, config=None, preview=False):
@@ -209,6 +209,8 @@ class TerminalTab(gtk.ScrolledWindow):
 
         self.vte.set_allow_bold(config.getboolean(self.profile, 'bold_text'))
         self.vte.set_word_chars(config.get(self.profile, 'sel_word'))
+        self.vte.match_clear_all()
+        self.load_url_plugins()
 
     def check_for_match(self, event):
         """
@@ -396,7 +398,8 @@ class TerminalTab(gtk.ScrolledWindow):
 
     def load_url_plugins(self):
         for pg_name, pg_class in self.pluginloader.get_plugins(['URL']):
-            self.matches[pg_name] = (pg_class(self.config), [])
+            pg_conf = cc_conf.CLIConfigView(pg_name, self.config)
+            self.matches[pg_name] = (pg_class(pg_conf), [])
             for match in self.matches[pg_name][0].matches:
                 dbg('Adding match %s for plugin %s' % (match, pg_name))
                 self.matches[pg_name][1].append(self.vte.match_add(match))
