@@ -223,7 +223,8 @@ class MainWindow(gtk.Window):
 
         ## set various parameters on the main window (size, etc)
         self.init_config()
-        self.term_notebook = cc_tabs.TerminalsNotebook(self.config)
+        self.term_notebook = cc_tabs.TerminalsNotebook(self.config,
+                                                        self.pluginloader)
 
         ###########################
         #### Here we create the commands notebook for the expander

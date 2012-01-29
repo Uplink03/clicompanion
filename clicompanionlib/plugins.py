@@ -47,6 +47,7 @@ import gtk
 import sys
 import os
 import inspect
+import webbrowser
 from clicompanionlib.utils import dbg
 
 
@@ -97,7 +98,7 @@ class PluginLoader:
                 if capability in capabilities \
                 and plugin in self.allowed:
                     plugins.append((plugin, pclass))
-                    dbg('Matching plugin %s for %s' % (plugin, capability))
+                    dbg('Matching plugin %s for capability %s' % (plugin, capability))
         return plugins
 
     def get_plugin_conf(self, plugin):
@@ -212,9 +213,35 @@ class URLPlugin(Plugin):
     '''
     __capabilities__ = [ 'URL' ]
 
-    ## This is the regexp that will trigger the callback
-    match = ['']
 
-    def callback(self, url):
+    def __init__(self, config):
+        Plugin.__init__(self)
+        self.config = config
+        ## This is the regexp that will trigger the callback
+        matches = ['']
+
+    def callback(self, url, matchnum):
         ## When the regexp is found, this function will be called
         pass
+
+    def open_url(self, url):
+        """
+        Open a given URL, generic for all the URL plugins to use
+        """
+        oldstyle = False
+        if gtk.gtk_version < (2, 14, 0) or \
+           not hasattr(gtk, 'show_uri') or \
+           not hasattr(gtk.gdk, 'CURRENT_TIME'):
+            oldstyle = True
+        if not oldstyle:
+            try:
+                gtk.show_uri(None, url, gtk.gdk.CURRENT_TIME)
+            except:
+                oldstyle = True
+        if oldstyle:
+            dbg('Old gtk (%s,%s,%s), calling xdg-open' % gtk.gtk_version)
+            try:
+                subprocess.Popen(["xdg-open", url])
+            except:
+                dbg('xdg-open did not work, falling back to webbrowser.open')
+                webbrowser.open(url)

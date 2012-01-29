@@ -56,9 +56,11 @@ class TerminalTab(gtk.ScrolledWindow):
                              ()),
     }
 
-    def __init__(self, title, config, profile='default', directory=None):
+    def __init__(self, title, config, profile='default', directory=None,
+                    pluginloader=None):
         gtk.ScrolledWindow.__init__(self)
         self.config = config
+        self.pluginloader = pluginloader
         self.title = title
         self.profile = 'profile::' + profile
         self.vte = vte.Terminal()
@@ -81,7 +83,7 @@ class TerminalTab(gtk.ScrolledWindow):
                                          loglastlog=self.update_records)
         self.vte.connect("button_press_event", self.on_click)
         self.update_config()
-        self.update_url_matches()
+        self.load_url_plugins()
         self.show_all()
 
     def update_config(self, config=None, preview=False):
@@ -208,62 +210,30 @@ class TerminalTab(gtk.ScrolledWindow):
         self.vte.set_allow_bold(config.getboolean(self.profile, 'bold_text'))
         self.vte.set_word_chars(config.get(self.profile, 'sel_word'))
 
-    def check_for_url(self, event):
-        """Check if the mouse is over a URL"""
+    def check_for_match(self, event):
+        """
+        Check if the mouse is over a URL
+        """
         return (self.vte.match_check(int(event.x / self.vte.get_char_width()),
             int(event.y / self.vte.get_char_height())))
 
-    def prepare_url(self, urlmatch):
-        """Prepare a URL from a VTE match"""
-        url = urlmatch[0]
-        match = urlmatch[1]
-
-        if match == self.matches['email'] and url[0:7] != 'mailto:':
-            url = 'mailto:' + url
-        elif match == self.matches['addr_only'] and url[0:3] == 'ftp':
-            url = 'ftp://' + url
-        elif match == self.matches['addr_only']:
-            url = 'http://' + url
-        elif match in self.matches.values():
-            pass
-        return(url)
-
-    def open_url(self, url, prepare=False):
-        """Open a given URL, conditionally unpacking it from a VTE match"""
-        oldstyle = False
-
-        if prepare == True:
-            url = self.prepare_url(url)
-        dbg('URL: %s (prepared: %s)' % (url, prepare))
-
-        if gtk.gtk_version < (2, 14, 0) or \
-           not hasattr(gtk, 'show_uri') or \
-           not hasattr(gtk.gdk, 'CURRENT_TIME'):
-            oldstyle = True
-
-        if oldstyle == False:
-            try:
-                gtk.show_uri(None, url, gtk.gdk.CURRENT_TIME)
-            except:
-                oldstyle = True
-
-        if oldstyle == True:
-            dbg('Old gtk (%s,%s,%s), calling xdg-open' % gtk.gtk_version)
-            try:
-                subprocess.Popen(["xdg-open", url])
-            except:
-                dbg('xdg-open did not work, falling back to webbrowser.open')
-                import webbrowser
-                webbrowser.open(url)
+    def run_match_callback(self, match):
+        url = match[0]
+        match = match[1]
+        for plg, m_plg in self.matches.items():
+            if match in m_plg[1]:
+                dbg('Matched %s for url %s' % (plg, url))
+                matchnum = m_plg[1].index(match)
+                m_plg[0].callback(url, matchnum)
 
     def on_click(self, vte, event):
         ## left click
         if event.button == 1:
             # Ctrl+leftclick on a URL should open it
             if event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK:
-                url = self.check_for_url(event)
-                if url:
-                    self.open_url(url, prepare=True)
+                match = self.check_for_match(event)
+                if match:
+                    self.run_match_callback(match)
         ## Rght click menu
         if event.button == 3:
             time = event.time
@@ -364,51 +334,12 @@ class TerminalTab(gtk.ScrolledWindow):
         self.profile = 'profile::' + profile
         self.update_config()
 
-    def update_url_matches(self, posix = True):
-        """Update the regexps used to match URLs"""
-        userchars = "-A-Za-z0-9"
-        passchars = "-A-Za-z0-9,?;.:/!%$^*&~\"#'"
-        hostchars = "-A-Za-z0-9"
-        pathchars = "-A-Za-z0-9_$.+!*(),;:@&=?/~#%'\""
-        schemes   = "(news:|telnet:|nntp:|file:/|https?:|ftps?:|webcal:)"
-        user      = "[" + userchars + "]+(:[" + passchars + "]+)?"
-        urlpath   = "/[" + pathchars + "]*[^]'.}>) \t\r\n,\\\"]"
-
-        if posix:
-            dbg('Trying POSIX URL regexps')
-            lboundry = "[[:<:]]"
-            rboundry = "[[:>:]]"
-        else: # GNU
-            dbg('Trying GNU URL regexps')
-            lboundry = "\\<"
-            rboundry = "\\>"
-
-        self.matches['full_uri'] = self.vte.match_add(lboundry + schemes +
-                "//(" + user + "@)?[" + hostchars  +".]+(:[0-9]+)?(" +
-                urlpath + ")?" + rboundry + "/?")
-
-        if self.matches['full_uri'] == -1:
-            if posix:
-                print 'POSIX failed, trying GNU'
-                self.update_url_matches(posix = False)
-            else:
-                print 'Failed adding URL matches'
-        else:
-            self.matches['voip'] = self.vte.match_add(lboundry +
-                    '(callto:|h323:|sip:)' + "[" + userchars + "+][" +
-                    userchars + ".]*(:[0-9]+)?@?[" + pathchars + "]+" +
-                    rboundry)
-            self.matches['addr_only'] = self.vte.match_add (lboundry +
-                    "(www|ftp)[" + hostchars + "]*\.[" + hostchars +
-                    ".]+(:[0-9]+)?(" + urlpath + ")?" + rboundry + "/?")
-            self.matches['email'] = self.vte.match_add (lboundry +
-                    "(mailto:)?[a-zA-Z0-9][a-zA-Z0-9.+-]*@[a-zA-Z0-9]" +
-                            "[a-zA-Z0-9-]*\.[a-zA-Z0-9][a-zA-Z0-9-]+" +
-                            "[.a-zA-Z0-9-]*" + rboundry)
-            self.matches['nntp'] = self.vte.match_add (lboundry +
-                  """news:[-A-Z\^_a-z{|}~!"#$%&'()*+,./0-9;:=?`]+@""" +
-                            "[-A-Za-z0-9.]+(:[0-9]+)?" + rboundry)
-
+    def load_url_plugins(self):
+        for pg_name, pg_class in self.pluginloader.get_plugins(['URL']):
+            self.matches[pg_name] = (pg_class(self.config), [])
+            for match in self.matches[pg_name][0].matches:
+                dbg('Adding match %s for plugin %s' % (match, pg_name))
+                self.matches[pg_name][1].append(self.vte.match_add(match))
 
 
 class TerminalsNotebook(gtk.Notebook):
@@ -419,11 +350,12 @@ class TerminalsNotebook(gtk.Notebook):
                              ()),
     }
 
-    def __init__(self, config):
+    def __init__(self, config, pluginloader):
         gtk.Notebook.__init__(self)
         #definition gcp - global page count, how many pages have been created
         self.gcp = 0
         self.global_config = config
+        self.pluginloader = pluginloader
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
         ## tooltip for "Add Tab" tab
@@ -472,9 +404,11 @@ class TerminalsNotebook(gtk.Notebook):
             current_page = self.get_nth_page(self.get_current_page())
             cwd = cc_utils.get_pid_cwd(current_page.pid)
         if cwd:
-            newtab = TerminalTab(title, self.global_config, directory=cwd)
+            newtab = TerminalTab(title, self.global_config, directory=cwd,
+                                    pluginloader=self.pluginloader)
         else:
-            newtab = TerminalTab(title, self.global_config)
+            newtab = TerminalTab(title, self.global_config,
+                                    pluginloader=self.pluginloader)
         label = self.create_tab_label(title, newtab)
         self.insert_page(newtab, label, self.get_n_pages() - 1)
         self.set_current_page(self.get_n_pages() - 2)
