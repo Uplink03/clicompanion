@@ -251,7 +251,7 @@ class TerminalTab(gtk.ScrolledWindow):
             menuPopup3.set_label(_('Rename'))
             popupMenu.add(menuPopup3)
             menuPopup3.connect('activate', lambda x: self.rename())
-            ## right-click popup menu Add Tab
+            ## right-click popup menu Configure
             menuPopup3 = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
             menuPopup3.set_label(_('Configure'))
             popupMenu.add(menuPopup3)
@@ -261,6 +261,48 @@ class TerminalTab(gtk.ScrolledWindow):
             menuPopup3.set_label(_('Add tab'))
             popupMenu.add(menuPopup3)
             menuPopup3.connect('activate', lambda x: self.emit('add_tab'))
+            ## right-click popup menu Process
+            menu_signal = gtk.ImageMenuItem(gtk.STOCK_JUMP_TO)
+            menu_signal.set_label(_('Process'))
+            submenu_signal = gtk.Menu()
+            menu_signal.set_submenu(submenu_signal)
+            popupMenu.add(menu_signal)
+            ## Submenu Abort
+            subitem = gtk.ImageMenuItem(gtk.STOCK_STOP)
+            subitem.set_label(_('Abort (Ctrl+c)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.cancel_command())
+            ## Submenu Pause
+            subitem = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PAUSE)
+            subitem.set_label(_('Pause (Ctrl+s)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.stop_command())
+            ## Submenu Resume
+            subitem = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
+            subitem.set_label(_('Resume (Ctrl+q)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.resume_command())
+            ## Submenu Background Suspend
+            subitem = gtk.ImageMenuItem(gtk.STOCK_GOTO_BOTTOM)
+            subitem.set_label(_('Stop and Background (Ctrl+z)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.background_command())
+            ## Submenu Foreground
+            subitem = gtk.ImageMenuItem(gtk.STOCK_GO_UP)
+            subitem.set_label(_('Foreground (%)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.foreground_command())
+            ## Submenu Background run
+            subitem = gtk.ImageMenuItem(gtk.STOCK_GO_DOWN)
+            subitem.set_label(_('Run in background (% &)'))
+            submenu_signal.add(subitem)
+            subitem.connect('activate',
+                                lambda *x: self.bgrun_command())
             ## right-click popup menu Profiles
             menuit_prof = gtk.MenuItem()
             menuit_prof.set_label(_('Profiles'))
@@ -328,6 +370,24 @@ class TerminalTab(gtk.ScrolledWindow):
         self.vte.feed_child(cmd + "\n")  # send command
         self.show()
         self.grab_focus()
+
+    def cancel_command(self):
+        self.vte.feed_child(chr(3))
+
+    def stop_command(self):
+        self.vte.feed_child(chr(19))
+
+    def resume_command(self):
+        self.vte.feed_child(chr(17))
+
+    def background_command(self):
+        self.vte.feed_child(chr(26))
+
+    def foreground_command(self):
+        self.vte.feed_child('%\n')
+
+    def bgrun_command(self):
+        self.vte.feed_child('% &\n')
 
     def change_profile(self, profile):
         dbg(profile)
@@ -483,12 +543,37 @@ class TerminalsNotebook(gtk.Notebook):
         if self.get_n_pages() == 1:
             self.emit('quit')
 
-    def run_command(self, cmd, ui, desc):
-        ## get the current notebook page so the function knows which terminal
-        ## to run the command in.
+    def get_page(self):
+        ## get the current notebook page
         pagenum = self.get_current_page()
-        page = self.get_nth_page(pagenum)
-        page.run_command(cmd, ui, desc)
+        return self.get_nth_page(pagenum)
+
+    def run_command(self, cmd, ui, desc):
+        self.get_page().run_command(cmd, ui, desc)
+        self.focus()
+
+    def cancel_command(self):
+        self.get_page().cancel_command()
+        self.focus()
+
+    def stop_command(self):
+        self.get_page().stop_command()
+        self.focus()
+
+    def resume_command(self):
+        self.get_page().resume_command()
+        self.focus()
+
+    def background_command(self):
+        self.get_page().background_command()
+        self.focus()
+
+    def foreground_command(self):
+        self.get_page().foreground_command()
+        self.focus()
+
+    def bgrun_command(self):
+        self.get_page().bgrun_command()
         self.focus()
 
     def update_all_term_config(self, config=None):
@@ -505,11 +590,7 @@ class TerminalsNotebook(gtk.Notebook):
         tab.update_config(config)
 
     def copy(self):
-        page = self.get_current_page()
-        term = self.get_nth_page(page)
-        term.vte.copy_clipboard()
+        self.get_page().vte.copy_clipboard()
 
     def paste(self, text):
-        page = self.get_current_page()
-        term = self.get_nth_page(page)
-        term.vte.feed_child(text)
+        self.get_page().vte.feed_child(text)

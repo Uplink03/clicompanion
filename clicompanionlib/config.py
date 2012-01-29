@@ -73,6 +73,7 @@ DEFAULTS = {'profile': {"scrollb": ('500', 'int'),
 ## shift+ctrl+D (not shift+ctrl+d). And the function keys go uppercase (F10).
 DEFAULT_KEY_BINDINGS = {
         'run_command': 'F4',
+        'cancel_command': 'ctrl+C',
         'add_command': 'F5',
         'remove_command': 'F6',
         'edit_command': 'unused',
@@ -95,6 +96,7 @@ DEFAULT_KEY_BINDINGS = {
 ## actibated
 KEY_BINDINGS = {
         'run_command': 'Run command',
+        'cancel_command': 'Cancel command',
         'add_command': 'Add command',
         'remove_command': 'Remove command',
         'edit_command': 'Edit command',

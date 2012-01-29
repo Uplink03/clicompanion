@@ -297,21 +297,37 @@ class MainWindow(gtk.Window):
         self.vpane.pack2(self.l_vbox, True, True)
         self.add(self.vpane)
 
-        ## signals
+        ## signals from the tab plugins (LocalCommandsList and so)
         self.cmd_notebook.connect('run_command',
             lambda wdg, *args: self.term_notebook.run_command(*args))
         self.cmd_notebook.connect('show_man',
                 lambda wgt, cmd: cc_helpers.ManPage(cmd).run())
         self.cmd_notebook.connect('quit', lambda *x: gtk.main_quit())
+        ## Signals from the terminals notebook
         self.term_notebook.connect('quit', lambda *x: gtk.main_quit())
         self.term_notebook.connect('preferences', lambda *x: self.edit_pref())
+        ## expander
         self.expander.connect('notify::expanded',
                 lambda *x: self.expanded_cb())
+        ## Signals on the main window
         self.connect("delete_event", self.delete_event)
         self.connect("key-press-event", self.key_clicked)
+        ## Signals from the menus
         menu_bar.connect('quit', lambda *x: gtk.main_quit())
         menu_bar.connect('run_command',
                 lambda *x: self.cmd_notebook.run_command())
+        menu_bar.connect('cancel_command',
+                lambda *x: self.term_notebook.cancel_command())
+        menu_bar.connect('stop_command',
+                lambda *x: self.term_notebook.stop_command())
+        menu_bar.connect('resume_command',
+                lambda *x: self.term_notebook.resume_command())
+        menu_bar.connect('background_command',
+                lambda *x: self.term_notebook.background_command())
+        menu_bar.connect('foreground_command',
+                lambda *x: self.term_notebook.foreground_command())
+        menu_bar.connect('bgrun_command',
+                lambda *x: self.term_notebook.bgrun_command())
         menu_bar.connect('add_command',
                 lambda *x: self.cmd_notebook.add_command())
         menu_bar.connect('edit_command',
@@ -321,9 +337,12 @@ class MainWindow(gtk.Window):
         menu_bar.connect('preferences', lambda *x: self.edit_pref())
         menu_bar.connect('add_tab', lambda *x: self.term_notebook.add_tab())
         menu_bar.connect('close_tab', lambda *x: self.term_notebook.quit_tab())
+        ## signals from the buttons
         self.button_box.connect('quit', lambda *x: gtk.main_quit())
         self.button_box.connect('run_command',
                 lambda *x: self.cmd_notebook.run_command())
+        self.button_box.connect('cancel_command',
+                lambda *x: self.term_notebook.cancel_command())
         self.button_box.connect('add_command',
                 lambda *x: self.cmd_notebook.add_command())
         self.button_box.connect('edit_command',
@@ -441,6 +460,9 @@ class MainWindow(gtk.Window):
 
     def run_command(self):
         self.cmd_notebook.run_command()
+
+    def cancel_command(self):
+        self.term_notebook.cancel_command()
 
     def add_command(self):
         self.cmd_notebook.add_command()
