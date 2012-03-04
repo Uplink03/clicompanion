@@ -44,10 +44,14 @@ class LaunchpadURL(plugins.URLPlugin):
     __info__ = ('This plugins enables launchpad urls to be matched.')
     __title__ = 'Launchpad URLS'
 
+    pathchars = "-A-Za-z0-9_.+?/~#"
+    nonums = "-A-Za-z_.+?/~#"
+
     def __init__(self, config):
         plugins.URLPlugin.__init__(self, config)
         self.matches = ['lp:[0-9]+',
-                        'lp:.*']
+                        'lp:[' + self.pathchars + ']*[' \
+                        + self.nonums + '][' + self.pathchars + ']*']
 
     def callback(self, url, matchnum):
         dbg('Openeing launchpad url ' + url)
