@@ -60,7 +60,7 @@ DEFAULTS = {'profile': {"scrollb": ('500', 'int'),
                          "update_login_records": ("True", 'bool'),
                         },
              'general': {"debug": ('False', 'bool'),
-                         "plugins": ('LocalCommandList, CommandLineFU', 'str')
+                         "plugins": ('LocalCommandList, CommandLineFU, StandardURLs', 'str')
                         },
              'LocalCommandList': {"cheatsheet":
                                (os.path.expanduser("~/.clicompanion2"), 'str'),

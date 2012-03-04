@@ -17,4 +17,6 @@ plugins/clfu.py
 plugins/CommandLineFU.py
 plugins/__init__.py
 plugins/LocalCommandList.py
+plugins/StandardURLs.py
+plugins/LaunchpadURL.py
 

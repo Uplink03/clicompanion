@@ -42,6 +42,7 @@ from clicompanionlib.utils import dbg
 import clicompanionlib.utils as cc_utils
 import clicompanionlib.helpers as cc_helpers
 import clicompanionlib.preferences as cc_pref
+import clicompanionlib.config as cc_conf
 
 
 class TerminalTab(gtk.ScrolledWindow):
@@ -56,12 +57,15 @@ class TerminalTab(gtk.ScrolledWindow):
                              ()),
     }
 
-    def __init__(self, title, config, profile='default', directory=None):
+    def __init__(self, title, config, profile='default', directory=None,
+                    pluginloader=None):
         gtk.ScrolledWindow.__init__(self)
         self.config = config
+        self.pluginloader = pluginloader
         self.title = title
         self.profile = 'profile::' + profile
         self.vte = vte.Terminal()
+        self.matches = {}
         self.add(self.vte)
         self.vte.connect("child-exited", lambda *x: self.emit('quit'))
         self.update_records = self.config.getboolean(self.profile,
@@ -78,7 +82,7 @@ class TerminalTab(gtk.ScrolledWindow):
                                          logutmp=self.update_records,
                                          logwtmp=self.update_records,
                                          loglastlog=self.update_records)
-        self.vte.connect("button_press_event", self.copy_paste_menu)
+        self.vte.connect("button_press_event", self.on_click)
         self.update_config()
         self.show_all()
 
@@ -205,8 +209,34 @@ class TerminalTab(gtk.ScrolledWindow):
 
         self.vte.set_allow_bold(config.getboolean(self.profile, 'bold_text'))
         self.vte.set_word_chars(config.get(self.profile, 'sel_word'))
+        self.vte.match_clear_all()
+        self.load_url_plugins()
 
-    def copy_paste_menu(self, vte, event):
+    def check_for_match(self, event):
+        """
+        Check if the mouse is over a URL
+        """
+        return (self.vte.match_check(int(event.x / self.vte.get_char_width()),
+            int(event.y / self.vte.get_char_height())))
+
+    def run_match_callback(self, match):
+        url = match[0]
+        match = match[1]
+        for plg, m_plg in self.matches.items():
+            if match in m_plg[1]:
+                dbg('Matched %s for url %s' % (plg, url))
+                matchnum = m_plg[1].index(match)
+                m_plg[0].callback(url, matchnum)
+
+    def on_click(self, vte, event):
+        ## left click
+        if event.button == 1:
+            # Ctrl+leftclick on a URL should open it
+            if event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK:
+                match = self.check_for_match(event)
+                if match:
+                    self.run_match_callback(match)
+        ## Rght click menu
         if event.button == 3:
             time = event.time
             ## right-click popup menu Copy
@@ -366,6 +396,14 @@ class TerminalTab(gtk.ScrolledWindow):
         self.profile = 'profile::' + profile
         self.update_config()
 
+    def load_url_plugins(self):
+        for pg_name, pg_class in self.pluginloader.get_plugins(['URL']):
+            pg_conf = cc_conf.CLIConfigView(pg_name, self.config)
+            self.matches[pg_name] = (pg_class(pg_conf), [])
+            for match in self.matches[pg_name][0].matches:
+                dbg('Adding match %s for plugin %s' % (match, pg_name))
+                self.matches[pg_name][1].append(self.vte.match_add(match))
+
 
 class TerminalsNotebook(gtk.Notebook):
     __gsignals__ = {
@@ -375,11 +413,12 @@ class TerminalsNotebook(gtk.Notebook):
                              ()),
     }
 
-    def __init__(self, config):
+    def __init__(self, config, pluginloader):
         gtk.Notebook.__init__(self)
         #definition gcp - global page count, how many pages have been created
         self.gcp = 0
         self.global_config = config
+        self.pluginloader = pluginloader
         ## The "Add Tab" tab
         add_tab_button = gtk.Button("+")
         ## tooltip for "Add Tab" tab
@@ -428,9 +467,11 @@ class TerminalsNotebook(gtk.Notebook):
             current_page = self.get_nth_page(self.get_current_page())
             cwd = cc_utils.get_pid_cwd(current_page.pid)
         if cwd:
-            newtab = TerminalTab(title, self.global_config, directory=cwd)
+            newtab = TerminalTab(title, self.global_config, directory=cwd,
+                                    pluginloader=self.pluginloader)
         else:
-            newtab = TerminalTab(title, self.global_config)
+            newtab = TerminalTab(title, self.global_config,
+                                    pluginloader=self.pluginloader)
         label = self.create_tab_label(title, newtab)
         self.insert_page(newtab, label, self.get_n_pages() - 1)
         self.set_current_page(self.get_n_pages() - 2)
