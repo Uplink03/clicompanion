@@ -1,0 +1,151 @@
+dpkg -l ?	package	Find version of a package
+df -h		File system disk space usage
+free -m		Show RAM usage
+ps aux | grep ?	search string	Search active processes for search string
+iwconfig		Display wireless network information
+ifconfig -a		Displays the status of the currently active interfaces
+lsb_release -a		What version of Ubuntu do I have?
+uname -a		What kernel am I running
+sudo apt-get update && sudo apt-get upgrade		Refresh update info and update all packages 
+sudo apt-get clean		Clear out all packages in /var/cache/apt/archives
+sudo apt-get autoclean		Clear out obsolete packages(packages with a newer release)
+apt-cache search ?	package	Find information on a package (not installed)
+sudo lshw		List hardware 
+lspci		List all PCI devices
+aplay -l		List all soundcards and digital audio devices
+cat ?	path	Read File & Print to Standard Output
+ls ? 	path	List Folders Contents
+ls -lSr ?	path	Show files by size, biggest last
+mv ? ?	sourcePath, destinationPath	Move (Rename) Files
+cp ? ?	sourcePath, destinationPath	Copy File from sourcePath to destinationPath
+sudo lspci		attached PCI devices
+chmod ? ?	permissions, file	Change access permissions, change mode
+chown ? ?	owner	group, file	Change the owner and/or group of each given file
+dmesg		Print kernel & driver messages
+history		Command History
+history | grep -i ?	command	search history for a command
+locate ?	file	Find files (updatedb to update DB)
+sudo updatedb		update the database for locate
+which ?	command	Show full path name of command
+find -maxdepth 1 -type f | xargs grep -F ?	string	Search all regular files for 'string' in this dir
+gpg -c ?	file	Encypt a file
+gpg ?	file.gpg	Decrypt a file
+tar -cvf ? ?	Destination.tar  Source	Compress(tar) Source into Destination
+tar -cvzf ? ?	Destination.tar.gz  Source	Compress(tar.gz) Source into Destination
+tar -cjvf ? ?	Destination.tar.bz2  Source	Compress(tar.bz2) Source into Destination
+tar xvf ?	file	decompress/extract .tar
+tar xvzf ?	file	decompress/extract tar.gz
+tar xjvf ?	file	decompress/extract a  tar.bz2
+sudo dpkg --configure -a		help fix broken packages
+sudo apt-get -f install		help fix broken packages
+top		display Linux tasks
+netstat		Print network connections and interface statistics
+sudo fdisk -l ?	disk(usually /dev/sda)	List partition tables for specified devices
+sudo ufw enable		Enable netfilter firewall
+sudo ufw allow ?	port	Open a port in netfilter firewall
+sudo ufw deny ?	port	Close a port in netfilter firewall
+sudo ufw disable		Disable netfilter firewall
+cat ? ? | sort | uniq > ? 	file1, file2, file3	combine, sort and remove duplicates from 2 files
+dpkg-query -W -f='${Installed-Size;10}\t${Package}\n' | sort -k1,1n		List all installed packages by size
+apropos ?	command or package	search the manual page names and descriptions
+ip addr		Display info about active network interfaces
+ip route		Display currently active routing table
+dpkg -L ? 	Package name	List all files installed by a given package
+dpkg -S $(which ?) 	command name	List which package installed given command
+dpkg -S ?	path (example /etc/wgetrc)	List which package installed given file or directory
+dpkg-deb -I ?	.deb package file	Display information about given .deb file
+dpkg-deb -c ?	.deb package file	List contents of given .deb file
+dpkg-source -x ?	.dsc source package file	Extract source package to current directory
+sudo dpkg-reconfigure ?	Package name	Reconfigures given installed package
+sudo dpkg -i ?	.deb package file	Installs given .deb package
+find . -type d		List all directories under current directory
+find . -size +?	File size (example 10M)	List all files under current directory over given size
+find . -mtime 0		List all files under current directory modified in last 24 hours
+find . -mtime +?	Number of days	List all files under current directory modified more than given number of days ago
+find . -newer ?	filename	List all files under current directory newer than given file
+find . ! -newer ?	filename	List all files under current directory older than given file
+find . ! -user $USER 		List all files under current directory not owned by current user
+find . -user ?	Username	List all files under current directory owned by given user
+find . -perm -2 ! -type l		List all world-writeable files and directories under current directory
+mount		List all mounted filesysystems
+mount -t ?	Filesystem type (example ext4)	List all mounted filesystems of given type
+sudo umount ?	Device or mount point	Un-mount the filesystem from the given device or mount point
+sudo mount -av		Mount all automatically mounted filesystems (listed in /etc/fstab)
+sudo mount ? ?	device, mount point	Mount given device at given mount point
+sudo fdisk -l /dev/sda		List partition table of first hard drive /dev/sda
+sudo fdisk -l ?	Device name (example /dev/sdb)	List partition table of given device
+du -sh .		Display total size of all files and directories under current directory
+du -skxc * .[^.]* |sort -n|tail -20		List disk usage in Kbytes of largest 20 files or subdirectories under current dir in current filesystem
+du -skxc * .[^.]* |sort -n		List disk usage in Kbytes of all files and directories under current directory in current filesystem
+du -smxc * .[^.]* |sort -n|tail -20		List disk usage in Mbytes of largest 20 files or subdirectories under current dir in current filesystem
+du -smxc * .[^.]* |sort -n		List disk usage in Mbytes of all files and directories under current directory in current filesystem
+wget ?	File URL (example http://example.com/somefile.html)	Download single given file using http, ftp or https
+wget -m ? 	Site URL (example http://example.com)	Recursively download entire given site
+ls -ltr		List files, most recently modified last
+ls -lAd .[^.]*		List all files and directories starting with a dot (all hidden files and directories)
+sudo lsof -c ?	command name	List files opened by processes beginning with given command name
+sudo lsof +D ?	directory	List open files under given directory
+sudo lsof -i		List open (Internet) network sockets
+sudo lsof -N		List open NFS files
+sudo lsof -U		List open Unix domain files (Unix sockets)
+tar axf ?	Compressed tar archive (example somefile.tar.bz2)	Extract given compressed tar archive to current directory
+tar atf ?	Compressed tar archive (example somefile.tar.gz)	Test given compressed tar archive integrity
+tar jcf ? ?	Compressed tar archive filename (example myfiles.tar.bz2),File or directory spec	Create .tar.bz2 compressed archive of given filespec
+zip -r ? ?	Zip file name (example myfiles.zip),file or directory spec	Create .zip compressed archive of given filespec
+unzip ?	Zip file name	Extract given compressed zip archive into current directory
+gzip -9 ?	Filename	Compress given file using gzip, adding a .gz suffix to its name
+bzip2 -9 ?	Filename	Compress given file using bzip2b, adding a .bz2 suffix to its name
+gunzip ?	Filename (example myfile.gz)	Decompress given gzipped file, removing .gz suffix
+bunzip2 ?	Filename (example somefile.bz2)	Decompress given bzip2'ed file, removing .bz2 suffix
+gunzip -t ?	Filename (example myfile.gz)	Test compression of given gzipped file
+bunzip2 -t ?	Filename (example myfile.bz2)	Test compression of given bzip2'ed file
+cd $OLDPWD		Change directory to previously used directory
+pushd ?	directory	Change to given directory, remembering current directory on stack
+popd		Change to topmost directory on stack created by pushd
+pwd		List current directory
+cd		Change to home directory
+sudo apt-get update		Update database of available packages
+sudo apt-get install ?	Package	Install given package and its dependencies
+sudo apt-get remove ?	Package	Remove given package
+sudo apt-get auto-remove		Remove all packages installed as dependencies which are no longer needed
+apt-get source ?	Package	Download and install given source package into current directory
+date		Display local date and time in local display format
+date -R		Display local date and time in RFC2822 format
+date -u		Display UTC time in local display format
+date -u +%s		Display UTC time in number of seconds past the epoch
+ntpq -p		List NTP time sources and their offsets
+smbstatus		List current status of local SAMBA server
+smbclient -L \\\\? -N	Hostname	List shares and related information about SMB server on given host
+testparm -s		Test and display current SAMBA configuration
+sudo service ? stop	Service name	Stop given service
+sudo service ? start	Service name	Start given service
+sudo service ? restart	Service name	Restart given service
+sudo service ? status	Service name	Show status of given service
+jobs		List current jobs
+fg ?	jobspec (example %1)	Run given job the foreground
+bg ?	jobspec (example %1)	Run given job the background
+suspend		Suspend the currently running shell
+md5sum ?	filename or wildcard	Display MD5 checksum of given file(s)
+sha1sum ?	filename or wildcard	Display SHA-1 checksum of given file(s)
+gpg --list-keys --list-options show-photos ?	key id	Display specified GnuPG key, with photo if present
+gpg --list-keys 		Display GnuPG keys
+gpg --clearsign ?	filename	Create a clearsigned copy of given filename with a .asc suffix
+gpg -ea -r ? ?	Key ID, filename	Create encrypted armoured copy of given file with a .asc suffix, for decryption by user with given GnuPG key id
+gpg -d ?	filename	Decrypt and display given file
+gpg -c ?	filename	Encrypt given file using symetric cipher and prompt for passphrase, result in filename.gpg
+gpg --keyserver keyserver.ubuntu.com --recv-keys ?	Key ID	Import public key with given key ID from Ubuntu keyserver
+top		Interactively display running processes (q to quit)
+top -n1		Display a snapshot of currently running processes
+htop		Display configurable interactive process viewer (q to quit)
+vmstat 5		Display information about virtual memory (process, swap, disk activity, etc.) every 5 seconds (Ctrl-C to quit)
+iostat 5		Display information about io activity every 5 seconds (Ctrl-C to quit)
+sudo jnettop -i eth0		Display information about network traffic (q to quit)
+uptime		Display how long system has been running and current load averages
+sudo apt-get install packaging-dev		Installs all the usual basic Debian/Ubuntu development and packaging tools
+rmadison -u ubuntu ?	package name	Display versions of given source package in all releases of Ubuntu
+rmadison -u debian ?	package name	Display versions of given source package in all releases of Debian
+rmadison -u ubuntu -s precise ?	package name	Display version of given source package in Precise version of Ubuntu
+rmadison -u debian -s unstable ?	package name	Display version of given source package in Debian unstable
+sudoedit ?	filename	Edit filename with root priviledges
+sudo visudo		Edit sudo configuration file
+
