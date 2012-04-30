@@ -20,13 +20,19 @@
 import sys
 import glob
 from distutils.core import setup
+import platform
+import shutil
 try:
     from DistUtilsExtra.command import *
 except ImportError:
     print "This program needs python's DistUtilsExtra module to run, see https://launchpad.net/python-distutils-extra"
     sys.exit(1)
 
-
+distribution = platform.linux_distribution()
+if distribution[0] == 'Ubuntu':
+	shutil.copy2('data/clicompanion2.config.ubuntu', 'data/clicompanion2.config')
+elif distribution[0] == 'debian':
+	shutil.copy2('data/clicompanion2.config.debian', 'data/clicompanion2.config')
 
 
 setup(  name='clicompanion',
@@ -37,12 +43,14 @@ setup(  name='clicompanion',
         scripts=['clicompanion'],
         packages=['clicompanionlib', 'plugins'],
         data_files=[('/etc/clicompanion.d/', ['data/clicompanion2.config']),
-        ('/usr/share/pixmaps', ['data/clicompanion.16.png']),
-        ('/usr/share/applications', ['data/clicompanion.desktop']),
-        ('/usr/share/clicompanion/locale/', glob.glob('locale/*/LC_MESSAGES/*.mo')),
-         ],
+            ('/etc/clicompanion.d/', ['data/clicompanion2.config.debian']),
+            ('/etc/clicompanion.d/', ['data/clicompanion2.config.ubuntu']),
+            ('/usr/share/pixmaps', ['data/clicompanion.16.png']),
+            ('/usr/share/applications', ['data/clicompanion.desktop']),
+            ('/usr/share/clicompanion/locale/', glob.glob('locale/*/LC_MESSAGES/*.mo')),
+            ],
          
-        cmdclass = { 'build'       : build_extra.build_extra,
-                     'build_i18n' :  build_i18n.build_i18n,
-        },  
+        cmdclass={ 'build'       : build_extra.build_extra,
+                    'build_i18n' :  build_i18n.build_i18n,
+		         },  
         )
