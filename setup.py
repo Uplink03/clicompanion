@@ -30,10 +30,9 @@ except ImportError:
 
 distribution = platform.linux_distribution()
 if distribution[0] == 'Ubuntu':
-	shutil.copy2('data/clicompanion2.config.ubuntu', 'data/clicompanion2.config')
+    shutil.copy2('data/clicompanion2.config.ubuntu', 'data/clicompanion2.config')
 elif distribution[0] == 'debian':
-	shutil.copy2('data/clicompanion2.config.debian', 'data/clicompanion2.config')
-
+    shutil.copy2('data/clicompanion2.config.debian', 'data/clicompanion2.config')
 
 setup(  name='clicompanion',
         version='1.1',

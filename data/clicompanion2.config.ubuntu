@@ -148,4 +148,3 @@ rmadison -u ubuntu -s precise ?	package name	Display version of given source pac
 rmadison -u debian -s unstable ?	package name	Display version of given source package in Debian unstable
 sudoedit ?	filename	Edit filename with root priviledges
 sudo visudo		Edit sudo configuration file
-
