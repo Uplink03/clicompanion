@@ -139,7 +139,7 @@ class CommandsNotebook(gtk.Notebook):
         dbg('filtering by %s' % filter_str)
         page.filter(filter_str)
 
-    def set_netbook(netbookmode=False):
+    def set_netbook(self, netbookmode=False):
         if netbookmode:
             self.set_size_request(700, 200)
         else:
