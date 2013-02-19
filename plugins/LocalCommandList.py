@@ -485,7 +485,7 @@ class Cheatsheet:
             else:
                 # Oops! Looks like there's no default cheatsheet.
                 # Then, create an empty cheatsheet.
-                open(self.ceatsheet, 'w').close()
+                open(self.cheatsheet, 'w').close()
         try:
             dbg('Reading cheatsheet from file %s' % self.cheatsheet)
             with open(self.cheatsheet, 'r') as ch_fd:
