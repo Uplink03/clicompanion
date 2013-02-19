@@ -23,26 +23,31 @@ from distutils.core import setup
 try:
     from DistUtilsExtra.command import *
 except ImportError:
-    print "This program needs python's DistUtilsExtra module to run, see https://launchpad.net/python-distutils-extra"
+    print ("This program needs python's DistUtilsExtra module to run,"
+            " see https://launchpad.net/python-distutils-extra"
+            )
     sys.exit(1)
 
 
 
 
-setup(  name='clicompanion',
-        version='1.1',
-        description='Run Terminal commands from a GUI. Store commands for later use.',
-        author='Duane Hinnen',
-        author_email='duanedesign@gmail.com',
-        scripts=['clicompanion'],
-        packages=['clicompanionlib', 'plugins'],
-        data_files=[('/etc/clicompanion.d/', ['data/clicompanion2.config']),
+setup(
+    name='clicompanion',
+    version='1.1',
+    description='Run Terminal commands from a GUI. Store commands for later use.',
+    author='Duane Hinnen',
+    author_email='duanedesign@gmail.com',
+    scripts=['clicompanion'],
+    packages=['clicompanionlib', 'plugins'],
+    data_files=[
+        ('/etc/clicompanion.d/', ['data/clicompanion2.config']),
         ('/usr/share/pixmaps', ['data/clicompanion.16.png']),
         ('/usr/share/applications', ['data/clicompanion.desktop']),
         ('/usr/share/clicompanion/locale/', glob.glob('locale/*/LC_MESSAGES/*.mo')),
-         ],
-         
-        cmdclass = { 'build'       : build_extra.build_extra,
-                     'build_i18n' :  build_i18n.build_i18n,
-        },  
-        )
+        ],
+
+    cmdclass = {
+        'build'       : build_extra.build_extra,
+        'build_i18n' :  build_i18n.build_i18n,
+        },
+    )

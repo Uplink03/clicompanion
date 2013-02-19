@@ -30,7 +30,8 @@ import re
 try:
     import gconf
 except ImportError:
-    pass
+    gconf = False
+
 
 
 ## set to True if you want to see more logs
@@ -211,13 +212,15 @@ def replace(cmnd, num, ran):
 def get_system_font(callback=None):
     """Look up the system font"""
     global gconf_cli
-    if 'gconf' not in globals():
+    if not gconf:
         return 'Monospace 10'
     else:
         if not gconf_cli:
             gconf_cli = gconf.client_get_default()
         value = gconf_cli.get(
                     '/desktop/gnome/interface/monospace_font_name')
+        if not value:
+            return 'Monospace 10'
         system_font = value.get_string()
         if callback:
             gconf_cli.notify_add(
