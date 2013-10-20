@@ -139,7 +139,7 @@ class CommandsNotebook(gtk.Notebook):
         dbg('filtering by %s' % filter_str)
         page.filter(filter_str)
 
-    def set_netbook(netbookmode=False):
+    def set_netbook(self, netbookmode=False):
         if netbookmode:
             self.set_size_request(700, 200)
         else:
@@ -221,14 +221,14 @@ class MainWindow(gtk.Window):
         ## two sections, the menus and search box and the expander with the
         ## commands notebook and in the botom, the terminals notebook
 
+        ###########################
+        #### Here we create the commands notebook for the expander
+        self.cmd_notebook = CommandsNotebook(config, self.pluginloader)
+
         ## set various parameters on the main window (size, etc)
         self.init_config()
         self.term_notebook = cc_tabs.TerminalsNotebook(self.config,
                                                         self.pluginloader)
-
-        ###########################
-        #### Here we create the commands notebook for the expander
-        self.cmd_notebook = CommandsNotebook(config, self.pluginloader)
 
         ## Create the menus and the searchbox
         ## hbox for menu and search Entry
