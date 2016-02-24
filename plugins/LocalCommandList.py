@@ -184,6 +184,10 @@ class LocalCommandList(plugins.TabPlugin):
             cmd, ui, desc = self.get_command()
         if cmd == None:
             return
+        remove_command_win = RemoveCommandWindow()
+        removed = remove_command_win.run()
+        if not removed:
+            return
         self.cmnds.del_by_value(cmd, ui, desc)
         self.sync_cmnds()
 
@@ -614,6 +618,24 @@ class Cheatsheet:
             else:
                 self.commands.append(cmd1)
 
+
+class RemoveCommandWindow(gtk.MessageDialog):
+    def __init__(self):
+        gtk.MessageDialog.__init__(self,
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_WARNING,
+            gtk.BUTTONS_YES_NO,
+            None)
+
+        self.set_markup(_("Are you sure you want to delete this command?"))
+
+    def run(self):
+        result = gtk.MessageDialog.run(self)
+        self.destroy()
+        if result == gtk.RESPONSE_YES:
+            return True
+        return False
 
 
 ## Add command dialog box
