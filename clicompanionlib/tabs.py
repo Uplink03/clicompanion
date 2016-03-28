@@ -37,7 +37,6 @@ import re
 import view
 import gobject
 import pango
-import gconf
 from clicompanionlib.utils import dbg
 import clicompanionlib.utils as cc_utils
 import clicompanionlib.helpers as cc_helpers

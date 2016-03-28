@@ -25,7 +25,9 @@ import shutil
 try:
     from DistUtilsExtra.command import *
 except ImportError:
-    print "This program needs python's DistUtilsExtra module to run, see https://launchpad.net/python-distutils-extra"
+    print ("This program needs python's DistUtilsExtra module to run,"
+            " see https://launchpad.net/python-distutils-extra"
+            )
     sys.exit(1)
 
 distribution = platform.linux_distribution()
