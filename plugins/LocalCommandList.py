@@ -425,6 +425,7 @@ class LocalCommandListConfig(plugins.PluginConfig):
         if distribution[0] == 'debian':
             self.show_warning()    
         shutil.copy2('/etc/clicompanion.d/clicompanion2.config.ubuntu', os.path.expanduser('~') + '/.clicompanion2')
+        self.emit('reload')
         self.show_information()
          
     def revert_cheatsheet_to_debian_version(self, btn):
@@ -432,6 +433,7 @@ class LocalCommandListConfig(plugins.PluginConfig):
         if distribution[0] == 'Ubuntu':
             self.show_warning()    
         shutil.copy2('/etc/clicompanion.d/clicompanion2.config.debian', os.path.expanduser('~') + '/.clicompanion2')
+        self.emit('reload')
         self.show_information()
 
     def show_warning(self):
@@ -452,7 +454,7 @@ class LocalCommandListConfig(plugins.PluginConfig):
                      gtk.MESSAGE_INFO,
                      gtk.BUTTONS_CLOSE,
                      message_format=_('Information'))
-        dlg.format_secondary_text(_('Cheatsheet was changed. Restart application to see results'))
+        dlg.format_secondary_text(_('Cheatsheet was changed.'))
         dlg.run()
         dlg.destroy()
 
