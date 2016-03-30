@@ -25,6 +25,8 @@ import pygtk
 pygtk.require('2.0')
 import gobject
 import collections
+import platform
+import shutil
 
 try:
     import gtk
@@ -183,6 +185,10 @@ class LocalCommandList(plugins.TabPlugin):
         if not cmd:
             cmd, ui, desc = self.get_command()
         if cmd == None:
+            return
+        remove_command_win = RemoveCommandWindow()
+        removed = remove_command_win.run()
+        if not removed:
             return
         self.cmnds.del_by_value(cmd, ui, desc)
         self.sync_cmnds()
@@ -388,7 +394,17 @@ class LocalCommandListConfig(plugins.PluginConfig):
         self.file_btn.connect('clicked', self.select_file)
         hbox.pack_end(self.file_btn, False, False, 8)
         self.pack_start(hbox, False, False, 8)
-
+        hbox2 = gtk.HBox()
+        hbox3 = gtk.HBox()
+        self.file_btn2 = gtk.Button("Revert cheatsheet to clean Ubuntu version")
+        self.file_btn3 = gtk.Button("Revert cheatsheet to clean Debian version")
+        self.file_btn2.connect('clicked', self.revert_cheatsheet_to_ubuntu_version)
+        self.file_btn3.connect('clicked', self.revert_cheatsheet_to_debian_version)
+        hbox2.pack_start(self.file_btn2)
+        hbox3.pack_start(self.file_btn3)
+        self.pack_start(hbox2, False, False, 8)
+        self.pack_start(hbox3, False, False, 8)
+        
     def select_file(self, btn):
         chooser = CHFileSelector()
         resp = chooser.run()
@@ -403,7 +419,44 @@ class LocalCommandListConfig(plugins.PluginConfig):
             self.remove(child)
         self.draw_all()
         self.show_all()
+        
+    def revert_cheatsheet_to_ubuntu_version(self, btn):
+        distribution = platform.linux_distribution()
+        if distribution[0] == 'debian':
+            self.show_warning()    
+        shutil.copy2('/etc/clicompanion.d/clicompanion2.config.ubuntu', os.path.expanduser('~') + '/.clicompanion2')
+        self.emit('reload')
+        self.show_information()
+         
+    def revert_cheatsheet_to_debian_version(self, btn):
+        distribution = platform.linux_distribution()
+        if distribution[0] == 'Ubuntu':
+            self.show_warning()    
+        shutil.copy2('/etc/clicompanion.d/clicompanion2.config.debian', os.path.expanduser('~') + '/.clicompanion2')
+        self.emit('reload')
+        self.show_information()
 
+    def show_warning(self):
+        dlg = gtk.MessageDialog(
+                     None,
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                     gtk.MESSAGE_ERROR,
+                     gtk.BUTTONS_CLOSE,
+                     message_format=_('Warning!'))
+        dlg.format_secondary_text(_('You are changing cheatsheet to version for another distribution'))
+        dlg.run()
+        dlg.destroy()
+        
+    def show_information(self):
+        dlg = gtk.MessageDialog(
+                     None,
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                     gtk.MESSAGE_INFO,
+                     gtk.BUTTONS_CLOSE,
+                     message_format=_('Information'))
+        dlg.format_secondary_text(_('Cheatsheet was changed.'))
+        dlg.run()
+        dlg.destroy()
 
 class CHFileSelector(gtk.FileChooserDialog):
     '''
@@ -614,6 +667,24 @@ class Cheatsheet:
             else:
                 self.commands.append(cmd1)
 
+
+class RemoveCommandWindow(gtk.MessageDialog):
+    def __init__(self):
+        gtk.MessageDialog.__init__(self,
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_WARNING,
+            gtk.BUTTONS_YES_NO,
+            None)
+
+        self.set_markup(_("Are you sure you want to delete this command?"))
+
+    def run(self):
+        result = gtk.MessageDialog.run(self)
+        self.destroy()
+        if result == gtk.RESPONSE_YES:
+            return True
+        return False
 
 
 ## Add command dialog box
