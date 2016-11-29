@@ -27,6 +27,7 @@ import gobject
 import collections
 import platform
 import shutil
+import subprocess
 
 try:
     import gtk
@@ -159,11 +160,18 @@ class LocalCommandList(plugins.TabPlugin):
         desc = ''.join(model[lst_index][2])
         return cmd, ui, desc
 
+    def check_command(self, cmd):
+        try:
+            output = subprocess.check_output('type '+cmd[0], shell=True)
+        except:
+            self.show_warning_uninstalled_command(cmd)
+
     def add_command(self, cmd='', ui='', desc=''):
         add_cmd_win = AddCommandWindow(cmd, ui, desc)
         new_cmd = add_cmd_win.run()
         if not new_cmd:
             return
+        self.check_command(new_cmd)
         self.cmnds.append(*new_cmd)
         self.sync_cmnds()
 
@@ -178,6 +186,7 @@ class LocalCommandList(plugins.TabPlugin):
             return
         index = self.cmnds.index(cmd, ui, desc)
         del self.cmnds[index]
+        self.check_command(edited_cmd)
         self.cmnds.insert(*edited_cmd, pos=index)
         self.sync_cmnds()
 
@@ -369,6 +378,18 @@ class LocalCommandList(plugins.TabPlugin):
                 self.cmnds[len(self.cmnds)] = orig
         context.finish(True, True, time)
         self.sync_cmnds()
+
+    def show_warning_uninstalled_command(self, cmd):
+        dlg = gtk.MessageDialog(
+                     None,
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                     gtk.MESSAGE_ERROR,
+                     gtk.BUTTONS_CLOSE,
+                     message_format=_('Warning!'))
+        dlg.format_secondary_text(_('The command you are adding is not installed in the system: ') + cmd[0] + \
+                                  _('\n\nTo install it, use the following command: \n\n apt-get install ') + cmd[0])
+        dlg.run()
+        dlg.destroy()
 
     def main(self):
         try:
