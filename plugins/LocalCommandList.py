@@ -54,7 +54,7 @@ TARGETS = [
 
 class LocalCommandList(plugins.TabPlugin):
     '''
-    Tab with the list of local stored commands, the ponly signals that should
+    Tab with the list of local stored commands, the only signals that should
     get emited (right now) are the run_command and show_man. The other can be
     processed inhouse
     '''
@@ -92,6 +92,7 @@ class LocalCommandList(plugins.TabPlugin):
         self.add_text_col('Description', 2)
         self.treeview.set_tooltip_column(2)
         self.treeview.set_reorderable(True)
+
         ## open with top command selected
         selection = self.treeview.get_selection()
         selection.select_path(0)
@@ -130,6 +131,9 @@ class LocalCommandList(plugins.TabPlugin):
         col.add_attribute(render, 'text', n)
         col.set_resizable(True)
         col.set_sort_column_id(n)
+        col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        col.set_min_width(20)
+        col.set_fixed_width(230)
         self.treeview.append_column(col)
 
     def sync_cmnds(self, rld=False, filt_str=None):
