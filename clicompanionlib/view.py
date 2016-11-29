@@ -199,7 +199,6 @@ class CommandsNotebook(gtk.Notebook):
                 dbg('Reloading plugin %s' % plugin)
                 self.loaded_plugins[plugin].reload(
                         self.config.get_plugin_conf(plugin))
-        self.show_all()
 
 
 class MainWindow(gtk.Window):
