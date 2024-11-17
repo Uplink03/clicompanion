@@ -28,21 +28,24 @@
 # will be added.
 #
 
-import os
-import pygtk
-pygtk.require('2.0')
-import gtk
-import vte
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+
+from gi.repository import Gtk as gtk
+from gi.repository import Vte as vte
+from gi.repository import Gdk as gdk
 import re
-import view
-import gobject
-import pango
-from clicompanionlib.utils import dbg
+from gi.repository import GObject as gobject
+from gi.repository import Pango as pango
+from clicompanionlib.utils import dbg, parse_rgba
 import clicompanionlib.utils as cc_utils
 import clicompanionlib.helpers as cc_helpers
 import clicompanionlib.preferences as cc_pref
 import clicompanionlib.config as cc_conf
 
+from gi.repository import GLib
 
 class TerminalTab(gtk.ScrolledWindow):
     __gsignals__ = {
@@ -66,21 +69,23 @@ class TerminalTab(gtk.ScrolledWindow):
         self.vte = vte.Terminal()
         self.matches = {}
         self.add(self.vte)
-        self.vte.connect("child-exited", lambda *x: self.emit('quit'))
+        self.vte.connect("child-exited", lambda *x: dbg(x))
         self.update_records = self.config.getboolean(self.profile,
                                         'update_login_records')
         dbg('Updating login records: ' + self.update_records.__repr__())
-        if directory:
-            self.pid = self.vte.fork_command(cc_utils.shell_lookup(),
-                                         logutmp=self.update_records,
-                                         logwtmp=self.update_records,
-                                         loglastlog=self.update_records,
-                                         directory=directory)
-        else:
-            self.pid = self.vte.fork_command(cc_utils.shell_lookup(),
-                                         logutmp=self.update_records,
-                                         logwtmp=self.update_records,
-                                         loglastlog=self.update_records)
+        self.pid = self.vte.spawn_async(
+            vte.PtyFlags.DEFAULT,
+            directory,
+            [cc_utils.shell_lookup()],
+            None,
+            GLib.SpawnFlags.DEFAULT,
+            None,
+            (None, ),
+            -1,
+            None,
+            None,
+            None,
+        )
         self.vte.connect("button_press_event", self.on_click)
         self.update_config()
         self.show_all()
@@ -102,11 +107,11 @@ class TerminalTab(gtk.ScrolledWindow):
         try:
             config_scrollback = config.getint(self.profile, 'scrollb')
         except ValueError:
-            print _("WARNING: Invalid value for property '%s', int expected:"
+            print(_("WARNING: Invalid value for property '%s', int expected:"
                     " got '%s', using default '%s'") % (
                         'scrollb',
                         config.get(self.profile, 'scrollb'),
-                        config.get('DEFAULT', 'scrollb'))
+                        config.get('DEFAULT', 'scrollb')))
             config.set(self.profile, 'scrollb',
                         config.get('DEFAULT', 'scrollb'))
             config_scrollback = config.getint('DEFAULT', 'scrollb')
@@ -119,12 +124,12 @@ class TerminalTab(gtk.ScrolledWindow):
         palette = []
         for color in colors:
             if color:
-                palette.append(gtk.gdk.color_parse(color))
+                palette.append(parse_rgba(color))
 
         #### Colors
         if config.getboolean(self.profile, 'use_system_colors'):
-            config_color_fore = self.vte.get_style().text[gtk.STATE_NORMAL]
-            config_color_back = self.vte.get_style().base[gtk.STATE_NORMAL]
+            config_color_fore = self.vte.get_style().text[gtk.StateType.Normal]
+            config_color_back = self.vte.get_style().base[gtk.StateType.Normal]
         else:
             color_scheme = config.get(self.profile, 'color_scheme')
             if color_scheme != 'Custom':
@@ -134,29 +139,29 @@ class TerminalTab(gtk.ScrolledWindow):
                 bgcolor = config.get(self.profile, 'colorb')
 
             try:
-                config_color_fore = gtk.gdk.color_parse(fgcolor)
-            except ValueError, e:
-                print _("WARNING: Invalid value for property '%s':"
+                config_color_fore = parse_rgba(fgcolor)
+            except ValueError as e:
+                print(_("WARNING: Invalid value for property '%s':"
                         " got '%s', using default '%s'.") % (
                             'colorf',
                             fgcolor,
-                            config.get('DEFAULT', 'colorf'))
+                            config.get('DEFAULT', 'colorf')))
                 config.set(self.profile, 'colorf',
                             config.get('DEFAULT', 'colorf'))
-                config_color_fore = gtk.gdk.color_parse(config.get('DEFAULT',
+                config_color_fore = parse_rgba(config.get('DEFAULT',
                                                             'colorf'))
 
             try:
-                config_color_back = gtk.gdk.color_parse(bgcolor)
-            except ValueError, e:
-                print _("WARNING: Invalid value for property '%s':"
+                config_color_back = parse_rgba(bgcolor)
+            except ValueError as e:
+                print(_("WARNING: Invalid value for property '%s':"
                         " got '%s', using default '%s'.") % (
                             'colorb',
                             bgcolor,
-                            config.get('DEFAULT', 'colorb'))
+                            config.get('DEFAULT', 'colorb')))
                 config.set(self.profile, 'colorb',
                         config.get('DEFAULT', 'colorb'))
-                config_color_back = gtk.gdk.color_parse(config.get('DEFAULT',
+                config_color_back = parse_rgba(config.get('DEFAULT',
                                                         'colorb'))
         self.vte.set_colors(config_color_fore, config_color_back, palette)
 
@@ -165,10 +170,10 @@ class TerminalTab(gtk.ScrolledWindow):
         if config_encoding.upper() not in [enc.upper()
                                           for enc, desc
                                           in cc_utils.encodings]:
-            print _("WARNING: Invalid value for property '%s':"
+            print(_("WARNING: Invalid value for property '%s':"
                     " got '%s', using default '%s'") \
                     % ('encoding', config_encoding,
-                        config.get('DEFAULT', 'encoding'))
+                        config.get('DEFAULT', 'encoding')))
             config.set(self.profile, 'encoding',
                         config.get('DEFAULT', 'encoding'))
             config_encoding = config.get('DEFAULT', 'encoding')
@@ -182,17 +187,16 @@ class TerminalTab(gtk.ScrolledWindow):
             fontname = config.get(self.profile, 'font')
         font = pango.FontDescription(fontname)
         if not font or not fontname:
-            print _("WARNING: Invalid value for property '%s':"
+            print(_("WARNING: Invalid value for property '%s':"
                     " got '%s', using default '%s'") % (
                         'font',
                         fontname,
-                        cc_utils.get_system_font())
+                        cc_utils.get_system_font()))
             config.set('DEFAULT', 'font', c_utils.get_system_font())
             fontname = config.get('DEFAULT', 'font')
         font = pango.FontDescription(fontname)
         if font:
-            self.vte.set_font_full(font,
-                                  config.getboolean(self.profile, 'antialias'))
+            self.vte.set_font(font)
 
         update_records = config.getboolean(self.profile,
                                            'update_login_records')
@@ -207,8 +211,8 @@ class TerminalTab(gtk.ScrolledWindow):
                loglastlog=update_records)
 
         self.vte.set_allow_bold(config.getboolean(self.profile, 'bold_text'))
-        self.vte.set_word_chars(config.get(self.profile, 'sel_word'))
-        self.vte.match_clear_all()
+        self.vte.set_word_char_exceptions(config.get(self.profile, 'sel_word'))
+        self.vte.match_remove_all()
         self.load_url_plugins()
 
     def check_for_match(self, event):
@@ -231,7 +235,7 @@ class TerminalTab(gtk.ScrolledWindow):
         ## left click
         if event.button == 1:
             # Ctrl+leftclick on a URL should open it
-            if event.state & gtk.gdk.CONTROL_MASK == gtk.gdk.CONTROL_MASK:
+            if event.state & gdk.ModifierType.CONTROL_MASK == gdk.ModifierType.CONTROL_MASK:
                 match = self.check_for_match(event)
                 if match:
                     self.run_match_callback(match)
@@ -325,22 +329,22 @@ class TerminalTab(gtk.ScrolledWindow):
             menuPopup3.connect('activate', lambda x: self.emit('quit'))
             ## Show popup menu
             popupMenu.show_all()
-            popupMenu.popup(None, None, None, event.button, time)
+            popupMenu.popup_at_pointer()
             return True
 
     def rename(self):
         dlg = gtk.Dialog("Enter the new name",
                    None,
-                   gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                   (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-                    gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+                   gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                   (gtk.STOCK_CANCEL, gtk.ResponseType.REJECT,
+                    gtk.STOCK_OK, gtk.ResponseType.ACCEPT))
         entry = gtk.Entry()
-        entry.connect("activate", lambda *x: dlg.response(gtk.RESPONSE_ACCEPT))
+        entry.connect("activate", lambda *x: dlg.response(gtk.ResponseType.ACCEPT))
         entry.set_text(self.title)
-        dlg.vbox.pack_start(entry)
+        dlg.vbox.pack_start(entry, True, True, 0)
         dlg.show_all()
         response = dlg.run()
-        if response == gtk.RESPONSE_ACCEPT:
+        if response == gtk.ResponseType.ACCEPT:
             text = entry.get_text()
             self.emit('rename', text)
         dlg.destroy()
@@ -356,7 +360,7 @@ class TerminalTab(gtk.ScrolledWindow):
         of {0[1]}, {0[1]}, {0[2]}
         '''
         ## find how many ?(user arguments) are in command
-        match = re.findall('\?', cmd)
+        match = re.findall('\\?', cmd)
         if match:
             num = len(match)
             ran = 0
@@ -368,27 +372,27 @@ class TerminalTab(gtk.ScrolledWindow):
             cmd = cmd_info_win.run()
             if cmd == None:
                 return
-        self.vte.feed_child(cmd + "\n")  # send command
+        self.vte.feed_child(bytes(cmd + "\n", 'UTF-8'))  # send command
         self.show()
         self.grab_focus()
 
     def cancel_command(self):
-        self.vte.feed_child(chr(3))
+        self.vte.feed_child(bytes(chr(3), 'ASCII'))
 
     def stop_command(self):
-        self.vte.feed_child(chr(19))
+        self.vte.feed_child(bytes(chr(19), 'ASCII'))
 
     def resume_command(self):
-        self.vte.feed_child(chr(17))
+        self.vte.feed_child(bytes(chr(17), 'ASCII'))
 
     def background_command(self):
-        self.vte.feed_child(chr(26))
+        self.vte.feed_child(bytes(chr(26), 'ASCII'))
 
     def foreground_command(self):
-        self.vte.feed_child('%\n')
+        self.vte.feed_child(bytes('%\n', 'UTF-8'))
 
     def bgrun_command(self):
-        self.vte.feed_child('% &\n')
+        self.vte.feed_child(bytes('% &\n', 'UTF-8'))
 
     def change_profile(self, profile):
         dbg(profile)
@@ -401,7 +405,9 @@ class TerminalTab(gtk.ScrolledWindow):
             self.matches[pg_name] = (pg_class(pg_conf), [])
             for match in self.matches[pg_name][0].matches:
                 dbg('Adding match %s for plugin %s' % (match, pg_name))
-                self.matches[pg_name][1].append(self.vte.match_add(match))
+
+                PCRE2_FLAGS = 1074398208  # PCRE2_UTF | PCRE2_NO_UTF_CHECK | PCRE2_UCP | PCRE2_MULTILINE
+                self.matches[pg_name][1].append(self.vte.match_add_regex(vte.Regex.new_for_match(match, len(match), PCRE2_FLAGS), 0))
 
 
 class TerminalsNotebook(gtk.Notebook):
@@ -489,17 +495,17 @@ class TerminalsNotebook(gtk.Notebook):
         ## Create the tab's labe with button
         box = gtk.HBox()
         label = gtk.Label(title)
-        box.pack_start(label, True, True)
+        box.pack_start(label, True, True, 0)
         ## x image for tab close button
-        close_image = gtk.image_new_from_stock(gtk.STOCK_CLOSE,
-                                               gtk.ICON_SIZE_MENU)
+        close_image = gtk.Image.new_from_stock(gtk.STOCK_CLOSE,
+                                               gtk.IconSize.MENU)
         ## close button
         closebtn = gtk.Button()
-        closebtn.set_relief(gtk.RELIEF_NONE)
+        closebtn.set_relief(gtk.ReliefStyle.NONE)
         closebtn.set_focus_on_click(True)
         closebtn.add(close_image)
         ## put button in a box and show box
-        box.pack_end(closebtn, False, False)
+        box.pack_end(closebtn, False, False, 0)
         box.show_all()
         closebtn.connect("clicked", lambda *x: self.close_tab(tab))
         return box
@@ -595,4 +601,4 @@ class TerminalsNotebook(gtk.Notebook):
         self.get_page().vte.copy_clipboard()
 
     def paste(self, text):
-        self.get_page().vte.feed_child(text)
+        self.get_page().vte.feed_child(bytes(text, 'UTF-8'))

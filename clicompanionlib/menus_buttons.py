@@ -21,8 +21,13 @@
 # This file contains the upper menus (class FileMenu), and the lower buttons
 # (class Buttons) used in the CLI Companion main window
 
-import gtk
-import gobject
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+
+from gi.repository import Gtk as gtk
+from gi.repository import GObject as gobject
 import webbrowser
 import clicompanionlib.helpers as cc_helpers
 

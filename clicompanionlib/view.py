@@ -25,29 +25,35 @@
 # CommandLineFU)
 
 
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+
+import sys
 import os
-import pygtk
-pygtk.require('2.0')
-import gobject
-import webbrowser
+from gi.repository import GObject as gobject
 
 # import vte and gtk or print error
 try:
-    import gtk
+    from gi.repository import Gtk as gtk
 except:
     ## do not use gtk, just print
-    print _("You need to install the python gtk bindings package"
-            "'python-gtk2'")
+    print(_("You need to install the python gtk bindings package"
+            "'python-gtk2'"))
     sys.exit(1)
 
 try:
-    import vte
+    from gi.repository import Vte as vte
 except:
-    error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR,
-        gtk.BUTTONS_OK,
+    error = gtk.MessageDialog(None, gtk.DialogFlags.MODAL, gtk.MessageType.ERROR,
+        gtk.ButtonsType.OK,
         _("You need to install 'python-vte' the python bindings for libvte."))
     error.run()
     sys.exit(1)
+
+from gi.repository import Gdk as gdk
+from gi.repository import GdkPixbuf as gdkPixbuf
 
 import clicompanionlib.menus_buttons as cc_menus_buttons
 import clicompanionlib.tabs as cc_tabs
@@ -57,13 +63,6 @@ import clicompanionlib.config as cc_config
 import clicompanionlib.helpers as cc_helpers
 import clicompanionlib.plugins as cc_plugins
 import clicompanionlib.preferences as cc_pref
-
-TARGETS = [
-    ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
-    ('text/plain', 0, 1),
-    ('TEXT', 0, 2),
-    ('STRING', 0, 3),
-    ]
 
 
 class CommandsNotebook(gtk.Notebook):
@@ -96,9 +95,9 @@ class CommandsNotebook(gtk.Notebook):
     def draw_all(self):
         ## Load the needed LocalCommandList plugin
         if 'LocalCommandList' not in self.pluginloader.plugins.keys():
-            print _("ERROR: LocalCommandList plugin is needed for the "
+            print(_("ERROR: LocalCommandList plugin is needed for the "
                     "execution of CLI Companion, please retore the plugin or "
-                    "reinstall.")
+                    "reinstall."))
             self.emit('quit')
         else:
             self.commandstab = self.pluginloader.plugins['LocalCommandList'](
@@ -203,7 +202,7 @@ class CommandsNotebook(gtk.Notebook):
 
 class MainWindow(gtk.Window):
     def __init__(self, config):
-        gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
+        gtk.Window.__init__(self, gtk.WindowType.TOPLEVEL)
         ###############
         ### Some state variables
         self.hiddenui = False
@@ -211,7 +210,7 @@ class MainWindow(gtk.Window):
         self.filtered = False
         self.fullscr = False
 
-        self.clipboard = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
+        self.clipboard = gtk.Clipboard.get(gdk.SELECTION_CLIPBOARD)
 
         self.config = config
 
@@ -236,7 +235,7 @@ class MainWindow(gtk.Window):
         #### The menus
         ## instantiate 'File' and 'Help' Drop Down Menu [menus_buttons.py]
         menu_bar = cc_menus_buttons.FileMenu(self.config)
-        self.menu_search_hbox.pack_start(menu_bar, True)
+        self.menu_search_hbox.pack_start(menu_bar, True, True, 0)
 
         #### the expander
         self.expander = gtk.Expander()
@@ -244,13 +243,13 @@ class MainWindow(gtk.Window):
         ## expander title
         expander_hbox = gtk.HBox()
         image = gtk.Image()
-        image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_BUTTON)
+        image.set_from_stock(gtk.STOCK_INDEX, gtk.IconSize.BUTTON)
         label = gtk.Label(_('Command List'))
         ## tooltip for the label of the expander
         expander_hbox.set_tooltip_text(_("Click to show/hide command list"))
         ## add expander widget to hbox
-        expander_hbox.pack_start(image, False, False)
-        expander_hbox.pack_start(label, True, False)
+        expander_hbox.pack_start(image, False, False, 0)
+        expander_hbox.pack_start(label, True, False, 0)
         self.expander.set_label_widget(expander_hbox)
         self.expander.set_expanded(True)
 
@@ -265,8 +264,8 @@ class MainWindow(gtk.Window):
         ## search box tooltip
         self.search_box.set_tooltip_text(_("Search your list of commands"))
         self.search_hbox.pack_start(search_label, False, False, 8)
-        self.search_hbox.pack_end(self.search_box, True)
-        self.menu_search_hbox.pack_end(self.search_hbox, True)
+        self.search_hbox.pack_end(self.search_box, True, True, 0)
+        self.menu_search_hbox.pack_end(self.search_hbox, True, True, 0)
 
         ############################
         ## and now the terminals notebook
@@ -278,7 +277,7 @@ class MainWindow(gtk.Window):
         self.term_notebook.add_tab()
 
         ## buttons at bottom of main window [menus_buttons.py]
-        self.button_box = cc_menus_buttons.Buttons(10, gtk.BUTTONBOX_END)
+        self.button_box = cc_menus_buttons.Buttons(10, gtk.ButtonBoxStyle.END)
 
         ## pack everything
         ## vbox for search, notebook, buttonbar
@@ -382,15 +381,15 @@ class MainWindow(gtk.Window):
         else:
             self.currentpage = self.cmd_notebook.get_current_page()
             self.currentpos = self.vpane.get_position()
-            self.cmd_notebook.hide_all()
-            self.search_hbox.hide_all()
-            self.button_box.hide_all()
+            self.cmd_notebook.hide()
+            self.search_hbox.hide()
+            self.button_box.hide()
             self.vpane.set_position(0)
         return
 
     def init_config(self):
         ## Set the netbookmode if needed
-        screen = gtk.gdk.display_get_default().get_default_screen()
+        screen = gdk.Display.get_default().get_default_screen()
         height = screen.get_height()
         if height < 750:
             self.cmd_notebook.set_netbook(True)
@@ -399,15 +398,21 @@ class MainWindow(gtk.Window):
             self.set_default_size(700, 625)
         self.set_border_width(5)
         ## Sets the position of the window relative to the screen
-        self.set_position(gtk.WIN_POS_CENTER_ALWAYS)
+        self.set_position(gtk.WindowPosition.CENTER_ALWAYS)
         ## Allow user to resize window
         self.set_resizable(True)
 
         ## set Window title and icon
         self.set_title("CLI Companion")
-        icon = gtk.gdk.pixbuf_new_from_file(
-                "/usr/share/pixmaps/clicompanion.16.png")
-        self.set_icon(icon)
+
+        for dir in [
+            '/usr/share/pixmaps',
+            os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0]))),
+        ]:
+            pixmapPath = '{}/clicompanion.16.png'.format(dir);
+            if os.path.isfile(pixmapPath):
+                icon = gdkPixbuf.Pixbuf.new_from_file(pixmapPath)
+                self.set_icon(icon)
 
         ##For now TERM is hardcoded to xterm because of a change
         ##in libvte in Ubuntu Maverick

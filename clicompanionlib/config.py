@@ -30,13 +30,16 @@
 # name of the plugin that stores the config).
 
 
+import gi
+
+gi.require_version("Gtk", "3.0")
+
 import os
-import ConfigParser
-import collections
-import gtk
-import pango
+import configparser as ConfigParser
+from gi.repository import Gtk as gtk
+from gi.repository import Gdk as gdk
 import clicompanionlib.utils as cc_utils
-from clicompanionlib.utils import dbg
+from clicompanionlib.utils import dbg, parse_rgba
 
 CONFIGDIR = os.path.expanduser("~/.config/clicompanion/")
 CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
@@ -47,8 +50,8 @@ CONFIGFILE = os.path.expanduser("~/.config/clicompanion/config")
 ## the value (the function must throw an exception on fail)
 DEFAULTS = {'profile': {"scrollb": ('500', 'int'),
                          "color_scheme": ("Custom", 'str'),
-                         "colorf": ('#FFFFFF', gtk.gdk.color_parse),
-                         "colorb": ('#000000', gtk.gdk.color_parse),
+                         "colorf": ('#FFFFFF', parse_rgba),
+                         "colorb": ('#000000', parse_rgba),
                          "use_system_colors": ("False", 'bool'),
                          "encoding": ('UTF-8', 'encoding'),
                          "font": (cc_utils.get_system_font(), 'font'),
@@ -122,16 +125,16 @@ class CLIConfig(ConfigParser.RawConfigParser):
         if not os.path.exists(configdir):
             try:
                 os.makedirs(configdir)
-            except Exception, e:
-                print _('Unable to create config at dir %s (%s)') \
-                        % (configdir, e)
+            except Exception as e:
+                print(_('Unable to create config at dir %s (%s)') \
+                        % (configdir, e))
                 return False
         # set a number of default parameters, and fill the missing ones
         if os.path.isfile(self.conffile):
             self.read([self.conffile])
-            print _("INFO: Reading config file at %s.") % self.conffile
+            print(_("INFO: Reading config file at %s.") % self.conffile)
         else:
-            print _("INFO: Creating config file at %s.") % self.conffile
+            print(_("INFO: Creating config file at %s.") % self.conffile)
 
         for section in DEFAULTS.keys():
             fullsection = section + '::default'
@@ -160,22 +163,22 @@ class CLIConfig(ConfigParser.RawConfigParser):
             for option in self.options(section):
                 if section == 'keybindings':
                     if option not in KEY_BINDINGS.keys():
-                        print _("Option %s:%s not recognised, deleting." \
-                                % (section, option))
+                        print(_("Option %s:%s not recognised, deleting." \
+                                % (section, option)))
                         self.remove_option(section, option)
                 else:
                     if not '::' in section:
-                        print _("Deleting unrecognzed section %s." % section)
+                        print(_("Deleting unrecognzed section %s." % section))
                         self.remove_section(section)
                         break
                     secttype = section.split('::')[0]
                     if secttype not in DEFAULTS:
-                        print _("Deleting unrecognized section %s." % section)
+                        print(_("Deleting unrecognized section %s." % section))
                         self.remove_section(section)
                         break
                     if option not in DEFAULTS[secttype].keys():
-                        print _("Option %s:%s not recognised, deleting." \
-                                % (section, option))
+                        print(_("Option %s:%s not recognised, deleting." \
+                                % (section, option)))
                         self.remove_option(section, option)
                     else:
                         val = self.get(section, option)
@@ -211,16 +214,16 @@ class CLIConfig(ConfigParser.RawConfigParser):
                                 if not res:
                                     raise Exception
                             else:
-                                        print _("Wrong specification for "
+                                        print(_("Wrong specification for "
                                             "option %s in file %s") \
-                                            % (option, __file__)
-                        except Exception, e:
-                            print (_('ERROR: Wrong config value for %s: %s ') \
+                                            % (option, __file__))
+                        except Exception as e:
+                            print(_('ERROR: Wrong config value for %s: %s ') \
                                     % (option, val) +
                                     _(',using default one %s.') % defval)
                             self.set(section, option, defval)
 
-    def set(self, section, option, value):
+    def set(self, section, option, value = None):
         if section == 'DEFAULT':
             raise ConfigParser.NoSectionError(
                 'Section "DEFAULT" is not allowed. Use section '
@@ -229,7 +232,7 @@ class CLIConfig(ConfigParser.RawConfigParser):
             return ConfigParser.RawConfigParser.set(self, section,
                                                     option, value)
 
-    def get(self, section, option):
+    def get(self, section, option, raw = False, vars = None):
         if '::' in section:
             sectiontag = section.split('::')[0]
             if not self.has_option(section, option):
@@ -254,7 +257,7 @@ class CLIConfig(ConfigParser.RawConfigParser):
         if not conffile:
             conffile = self.conffile
         dbg('Saving conffile at %s' % conffile)
-        with open(conffile, 'wb') as f:
+        with open(conffile, 'w') as f:
             self.write(f)
 
     def get_plugin_conf(self, plugin):

@@ -25,10 +25,9 @@
 # Inspired by the commandlinefu module by Olivier Hervieu
 # <olivier.hervieu@gmail.com>, https://github.com/ohe/commandlinefu
 
-from base64 import encodestring
+from base64 import b64encode as encodestring
 from json import loads
-from httplib import HTTPConnection
-from urllib import urlencode
+from http.client import HTTPSConnection
 from re import search
 
 
@@ -63,12 +62,12 @@ DEBUG = False
 
 def dbg(string):
     if DEBUG:
-        print string
+        print(string)
 
 
 class CLFu:
     def __init__(self):
-        self.conn = HTTPConnection(CLFU_API_HOST)
+        self.conn = HTTPSConnection(CLFU_API_HOST)
         self.tags = {}
         self.page = 0
 
@@ -107,7 +106,7 @@ class CLFu:
                 self.conn.request('GET', request)
                 response = self.conn.getresponse().read()
                 return response
-            except socket.gaierror, e:
+            except socket.gaierror as e:
                 dbg('Connection failed: %s\nRetrying...' % e)
         return response or EMPTY[form]
 
@@ -119,11 +118,11 @@ class CLFu:
             if form == 'json':
                 try:
                     response = loads(response)
-                except ValueError, e:
+                except ValueError as e:
                     raise ValueError(
                         "Error parsing response from Commandlinefu web: "
                         "%s\nResponse:%s" % (e, response))
-                except TypeError, e:
+                except TypeError as e:
                     raise TypeError(
                         "Error parsing response from Commandlinefu"
                         "web: %s\nResponse:%s" % (e, response))
@@ -146,11 +145,11 @@ class CLFu:
                 try:
                     for cmd in loads(response):
                         yield cmd
-                except ValueError, e:
+                except ValueError as e:
                     raise ValueError(
                         "Error parsing response from Commandlinefu web: "
                         "%s\nResponse:%s" % (e, response))
-                except TypeError, e:
+                except TypeError as e:
                     raise TypeError(
                         "Error parsing response from Commandlinefu web: "
                         "%s\nResponse:%s" % (e, response))
@@ -215,14 +214,14 @@ class CLFu:
             yield response
 
     def get_tags(self):
-        response = self._send('get_tags', form='plain')
+        response = str(self._send('get_tags', form='plain'))
         tags_cloud = False
         self.tags = {}
         for line in response.split('\n'):
             if search('<div id="cloud"', line):
                 tags_cloud = True
             if tags_cloud and line.strip():
-                match = search('/(?P<tagid>\d+)/(?P<tagname>[^"]+)', line)
+                match = search('/(?P<tagid>\\d+)/(?P<tagname>[^"]+)', line)
                 if match:
                     newtag = match.groupdict()
                     self.tags[newtag['tagname']] = newtag['tagid']

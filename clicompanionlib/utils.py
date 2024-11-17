@@ -21,16 +21,18 @@
 # In this file are implemented some functions that do not need any clicompanion
 # class and can somehow be useful in more than one module.
 
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+
 import os
 import sys
-import gtk
+from gi.repository import Gdk as gdk
 import pwd
 import inspect
 import re
-try:
-    import gconf
-except ImportError:
-    gconf = False
+from gi.repository import Gio
 
 
 
@@ -169,8 +171,8 @@ def dbg(log):
         if DEBUGMETHODS != [] and method not in DEBUGMETHODS:
             return
         try:
-            print >> sys.stderr, "%s::%s: %s%s" % (classname, method,
-                                                    log, extra)
+            print("%s::%s: %s%s" % (classname, method,
+                                                    log, extra), file=sys.stderr)
         except IOError:
             pass
 
@@ -212,42 +214,37 @@ def replace(cmnd, num, ran):
 def get_system_font(callback=None):
     """Look up the system font"""
     global gconf_cli
-    if not gconf:
+    if not gconf_cli:
+        gconf_cli = Gio.Settings.new('org.gnome.desktop.interface')
+    value = gconf_cli.get_value('monospace-font-name')
+    if not value:
         return 'Monospace 10'
-    else:
-        if not gconf_cli:
-            gconf_cli = gconf.client_get_default()
-        value = gconf_cli.get(
-                    '/desktop/gnome/interface/monospace_font_name')
-        if not value:
-            return 'Monospace 10'
-        system_font = value.get_string()
-        if callback:
-            gconf_cli.notify_add(
-                        '/desktop/gnome/interface/monospace_font_name',
-                        callback)
-        return system_font
+    system_font = value.get_string()
+    if callback:
+        gconf_cli.connect('changed', lambda key, **x: callback if key == 'monospace-font-name' else None)
+    return system_font
 
 
 ## WARNING: the altgr key is detected as a normal key
 def get_keycomb(event):
-    keyname = gtk.gdk.keyval_name(event.keyval)
-    if event.state & gtk.gdk.CONTROL_MASK:
+    keyname = gdk.keyval_name(event.keyval)
+    if event.state & gdk.ModifierType.CONTROL_MASK:
         keyname = 'ctrl+' + keyname
-    if event.state & gtk.gdk.MOD1_MASK:
+    if event.state & gdk.ModifierType.MOD1_MASK:
         keyname = 'alt+' + keyname
-    if event.state & gtk.gdk.SHIFT_MASK:
+    if event.state & gdk.ModifierType.SHIFT_MASK:
         keyname = 'shift+' + keyname
     return keyname
 
 
-## WARNING: the altgr key is detected as shift
 def only_modifier(event):
-    key = gtk.gdk.keyval_name(event.keyval)
-    return 'shift' in key.lower() \
-        or 'control' in key.lower() \
-        or 'super' in key.lower() \
-        or 'alt' in key.lower()
+    key = gdk.keyval_name(event.keyval)
+    return key in [
+        'Alt_L', 'Alt_R',
+        'Control_L', 'Control_R',
+        'Shift_L', 'Shift_R',
+        'Super_L', 'Super_R',
+    ]
 
 
 ### Singleton implementation (kind of)
@@ -263,7 +260,13 @@ def get_pid_cwd(pid):
     insert it into, e.g. /proc/%s/cwd"""
     try:
         cwd = os.path.realpath('/proc/%s/cwd' % pid)
-    except Exception, ex:
+    except Exception as ex:
         dbg('Unable to get cwd for PID %s: %s' % (pid, ex))
         cwd = '/'
     return cwd
+
+def parse_rgba(rgba):
+    color = gdk.RGBA()
+    if not color.parse(rgba):
+        raise ValueError
+    return color

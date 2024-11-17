@@ -19,19 +19,22 @@
 #
 
 
-import os
-import pygtk
-pygtk.require('2.0')
-import gobject
+import gi
+
+gi.require_version("Gtk", "3.0")
+
+import sys
 import webbrowser
 
 try:
-    import gtk
+    from gi.repository import Gtk as gtk
 except:
     ## do not use gtk, just print
-    print _("You need to install the python gtk bindings package"
-            "'python-gtk2'")
+    print(_("You need to install the python gtk bindings package"
+            "'python-gtk2'"))
     sys.exit(1)
+
+from gi.repository import GdkPixbuf as gdkPixbuf
 
 from clicompanionlib.utils import dbg
 import clfu as cc_clf
@@ -43,7 +46,7 @@ class CommandLineFU(plugins.TabPlugin):
     Tab with all the commandlinefu commands and search options
     '''
     __authors__ = 'David Caro <david.caro.estevez@gmail.com>'
-    __info__ = ('This plugin crates a tab on the commands list that allows you'
+    __plugin_info__ = ('This plugin crates a tab on the commands list that allows you'
         ' to search commands on the CommandlineFU website '
         '(www.commandlinefu.com).')
     __title__ = 'CommandlineFU Commands'
@@ -61,7 +64,7 @@ class CommandLineFU(plugins.TabPlugin):
         self.pack_start(hbox, False, False, 0)
 
         ## combobox for selecting command tag
-        self.tags_box = gtk.combo_box_new_text()
+        self.tags_box = gtk.ComboBoxText()
         self.tags_box.append_text('Update')
         self.tags_box.append_text('None')
         self.tags_box.set_active(1)
@@ -70,7 +73,7 @@ class CommandLineFU(plugins.TabPlugin):
         hbox.pack_start(self.tags_box, False, False, 0)
 
         ## time range combobox
-        self.trange_box = gtk.combo_box_new_text()
+        self.trange_box = gtk.ComboBoxText()
         ## populate time ranges, no http call needed
         for timerange in self.clfu.get_timeranges():
             self.trange_box.append_text(timerange)
@@ -85,7 +88,7 @@ class CommandLineFU(plugins.TabPlugin):
 
         ## add the commands list
         sw = gtk.ScrolledWindow()
-        self.liststore = gtk.ListStore(gtk.gdk.Pixbuf, gtk.gdk.Pixbuf,
+        self.liststore = gtk.ListStore(gdkPixbuf.Pixbuf, gdkPixbuf.Pixbuf,
                                 str, str, int, str)
         self.treeview = gtk.TreeView(gtk.TreeModelSort(self.liststore))
         sw.add(self.treeview)
@@ -132,7 +135,7 @@ class CommandLineFU(plugins.TabPlugin):
         self.add_text_col('Votes', 4)
 
     def populate_tags(self):
-        dbg('Poulating clf tags')
+        dbg('Populating clf tags')
         tag = self.tags_box.get_active_text()
         if tag == "Update":
             self.tags_box.set_model(gtk.ListStore(str))
@@ -182,9 +185,9 @@ class CommandLineFU(plugins.TabPlugin):
                     and filter_str not in command['summary']:
                         continue
                 add_btn = self.treeview.render_icon(stock_id=gtk.STOCK_ADD,
-                                 size=gtk.ICON_SIZE_SMALL_TOOLBAR)
+                                 size=gtk.IconSize.SMALL_TOOLBAR)
                 link_btn = self.treeview.render_icon(stock_id=gtk.STOCK_INFO,
-                                 size=gtk.ICON_SIZE_SMALL_TOOLBAR)
+                                 size=gtk.IconSize.SMALL_TOOLBAR)
                 self.liststore.append((add_btn, link_btn,
                         command['command'], command['summary'],
                         int(command['votes']), command['url']))
@@ -278,5 +281,5 @@ class CommandLineFU(plugins.TabPlugin):
                     lambda wg, url: webbrowser.open(url), data[3])
                 # Show popup menu
                 popupMenu.show_all()
-                popupMenu.popup(None, None, None, event.button, time)
+                popupMenu.popup_at_pointer()
                 return True

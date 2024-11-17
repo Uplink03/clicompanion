@@ -17,19 +17,18 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import sys
 
+import gi
 
-import pygtk
-pygtk.require('2.0')
-import gobject
-import webbrowser
+gi.require_version("Gtk", "3.0")
 
 try:
-    import gtk
+    from gi.repository import Gtk as gtk
 except:
     ## do not use gtk, just print
-    print _("You need to install the python gtk bindings package"
-            "'python-gtk2'")
+    print(_("You need to install the python gtk bindings package"
+            "'python-gtk2'"))
     sys.exit(1)
 
 from clicompanionlib.utils import dbg
@@ -41,7 +40,7 @@ class LaunchpadURL(plugins.URLPlugin):
     Match launchpad urls and open them on the browser
     '''
     __authors__ = 'David Caro <david.caro.estevez@gmail.com>'
-    __info__ = ('This plugins enables launchpad urls to be matched.')
+    __plugin_info__ = ('This plugins enables launchpad urls to be matched.')
     __title__ = 'Launchpad URLS'
 
     pathchars = "-A-Za-z0-9_.+?/~#"

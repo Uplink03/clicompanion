@@ -39,13 +39,15 @@
 ## 'profile::default', the will have all the default options (if it is not
 ## found, it will be created with the harcoded options inside the code.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
+import gi
+
+gi.require_version("Gtk", "3.0")
+
+from gi.repository import Gtk as gtk
+from gi.repository import GObject as gobject
 import clicompanionlib.config as cc_config
 import clicompanionlib.utils as cc_utils
-from clicompanionlib.utils import dbg
+from clicompanionlib.utils import dbg, parse_rgba
 
 COLOR_SCHEMES = {
         'Grey on Black': ['#aaaaaa', '#000000'],
@@ -104,7 +106,7 @@ class ProfGeneralTab(gtk.VBox):
                                                 + self.profile, 'antialias'))
         ## 'sel_word'
         sel_word_box = gtk.HBox()
-        sel_word_box.pack_start(gtk.Label('Select-by-word characters:'))
+        sel_word_box.pack_start(gtk.Label('Select-by-word characters:'), True, True, 0)
         self.sel_word_text = gtk.Entry()
         self.sel_word_text.set_text(self.config.get('profile::'
                                                 + self.profile, 'sel_word'))
@@ -178,7 +180,7 @@ class ProfColorsTab(gtk.VBox):
         ## 'color_scheme'
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label('Color scheme:'), False, False, 8)
-        self.colsch_combo = gtk.combo_box_new_text()
+        self.colsch_combo = gtk.ComboBoxText()
         color_scheme = self.config.get('profile::' + self.profile,
                                         'color_scheme')
         self.colsch_combo.append_text('Custom')
@@ -228,17 +230,17 @@ class ProfColorsTab(gtk.VBox):
         if color_scheme != 'Custom':
             self.colorb.set_sensitive(False)
             self.colorf.set_sensitive(False)
-            self.colorf.set_color(gtk.gdk.color_parse(
-                    COLOR_SCHEMES[color_scheme][0]))
-            self.colorb.set_color(gtk.gdk.color_parse(
-                    COLOR_SCHEMES[color_scheme][1]))
+            self.colorf.set_color(parse_rgba(
+                    COLOR_SCHEMES[color_scheme][0]).to_color())
+            self.colorb.set_color(parse_rgba(
+                    COLOR_SCHEMES[color_scheme][1]).to_color())
         else:
             self.colorb.set_sensitive(True)
             self.colorf.set_sensitive(True)
-            self.colorf.set_color(gtk.gdk.color_parse(
-                    self.config.get('profile::' + self.profile, 'colorf')))
-            self.colorb.set_color(gtk.gdk.color_parse(
-                    self.config.get('profile::' + self.profile, 'colorb')))
+            self.colorf.set_color(parse_rgba(
+                    self.config.get('profile::' + self.profile, 'colorf')).to_color())
+            self.colorb.set_color(parse_rgba(
+                    self.config.get('profile::' + self.profile, 'colorb')).to_color())
 
     def update_custom_color(self):
         color_scheme = self.colsch_combo.get_active_text()
@@ -332,7 +334,7 @@ class ProfilesTab(gtk.HBox):
 
         vbox.pack_start(self.proflist, True, True, 0)
         vbox.pack_start(hbox, False, False, 0)
-        self.pack_start(vbox)
+        self.pack_start(vbox, True, True, 0)
 
         self.tabs.append(('General', ProfGeneralTab(config)))
         self.tabs.append(('Colors', ProfColorsTab(config)))
@@ -343,12 +345,12 @@ class ProfilesTab(gtk.HBox):
             self.options.append_page(tab, gtk.Label(_(name)))
 
         self.proflist.connect('cursor-changed', lambda *x: self.update_tabs())
-        self.pack_start(self.options)
+        self.pack_start(self.options, True, True, 0)
 
     def get_img_box(self, text, img):
         box = gtk.HBox()
         image = gtk.Image()
-        image.set_from_stock(img, gtk.ICON_SIZE_BUTTON)
+        image.set_from_stock(img, gtk.IconSize.BUTTON)
         label = gtk.Label(text)
         box.pack_start(image, False, False, 0)
         box.pack_start(label, False, False, 0)
@@ -375,7 +377,10 @@ class ProfilesTab(gtk.HBox):
                 if section == 'profile::default':
                     self.proflist.set_cursor_on_cell(
                         model.get_path(last),
-                        self.proflist.get_column(0))
+                        self.proflist.get_column(0),
+                        None,
+                        False,
+                    )
                 self.gprofs += 1
 
     def update_tabs(self):
@@ -398,9 +403,12 @@ class ProfilesTab(gtk.HBox):
         iterator = model.append(('New Profile %d' % self.gprofs,))
         self.render.set_property('editable', True)
         self.proflist.grab_focus()
-        self.proflist.set_cursor_on_cell(model.get_path(iterator),
-                self.proflist.get_column(0),
-                start_editing=True)
+        self.proflist.set_cursor_on_cell(
+            model.get_path(iterator),
+            self.proflist.get_column(0),
+            None,
+            True,
+        )
 
     def added_profile(self, path, text):
         dbg('Added profile %s' % text)
@@ -440,13 +448,13 @@ class KeybindingsTab(gtk.VBox):
             hbox.pack_start(btn, False, False, 8)
             del_btn = gtk.Button()
             del_img = gtk.Image()
-            del_img.set_from_stock(gtk.STOCK_CLEAR, gtk.ICON_SIZE_BUTTON)
+            del_img.set_from_stock(gtk.STOCK_CLEAR, gtk.IconSize.BUTTON)
             del_btn.add(del_img)
             del_btn.connect('clicked',
                 lambda wg, func: self.get_key(func, 'not used'), kb_func)
             hbox.pack_start(del_btn, False, False, 8)
             hbox.pack_start(lbl, True, True, 8)
-            self.pack_start(hbox)
+            self.pack_start(hbox, True, True, 0)
 
     def update(self):
         for child in self.children():
@@ -461,7 +469,7 @@ class KeybindingsTab(gtk.VBox):
             return
         self.md = gtk.Dialog("Press the new key for '%s'" % func,
                     None,
-                    gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+                    gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT)
         lbl = gtk.Label('Press a key')
         self.md.get_content_area().pack_start((lbl), True, True, 0)
         lbl.set_size_request(100, 100)
@@ -612,11 +620,11 @@ class PluginsTab(gtk.HBox):
         info = self.plugins.get_info(plugin)
         authors = self.plugins.get_authors(plugin)
         page = gtk.TextView()
-        page.set_wrap_mode(gtk.WRAP_WORD)
+        page.set_wrap_mode(gtk.WrapMode.WORD)
         page.set_editable(False)
         buffer = page.get_buffer()
         scrolled_window = gtk.ScrolledWindow()
-        scrolled_window.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        scrolled_window.set_policy(gtk.PolicyType.NEVER, gtk.PolicyType.AUTOMATIC)
         scrolled_window.add(page)
         iter = buffer.get_iter_at_offset(0)
         buffer.insert(iter, info + '\n\nAuthors:\n' + authors)
@@ -645,9 +653,9 @@ class PluginsTab(gtk.HBox):
     def show_warning(self):
         dlg = gtk.MessageDialog(
                      None,
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     gtk.MESSAGE_ERROR,
-                     gtk.BUTTONS_CLOSE,
+                     gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                     gtk.MessageType.ERROR,
+                     gtk.ButtonsType.CLOSE,
                      message_format=_('Can\'t disable "LocalCommandList'))
         dlg.format_secondary_text(_('The plugin "LocalCommandList is the main'
             ' plugin for CLI Companion, and can\'t be disalbed, sorry.'))
@@ -667,9 +675,9 @@ class PreferencesWindow(gtk.Dialog):
     def __init__(self, config, plugins):
         gtk.Dialog.__init__(self, _("User Preferences"),
                      None,
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                      gtk.STOCK_OK, gtk.RESPONSE_OK))
+                     gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                     (gtk.STOCK_CANCEL, gtk.ResponseType.CANCEL,
+                      gtk.STOCK_OK, gtk.ResponseType.OK))
         self.config = config
         self.plugins = plugins
         self.config_bkp = self.config.get_config_copy()
@@ -698,7 +706,7 @@ class PreferencesWindow(gtk.Dialog):
     def run(self):
         self.show_all()
         response = gtk.Dialog.run(self)
-        if response == gtk.RESPONSE_OK:
+        if response == gtk.ResponseType.OK:
             for i in range(self.tabs.get_n_pages()):
                 self.tabs.get_nth_page(i).save_all()
             config = self.config

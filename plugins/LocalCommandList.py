@@ -18,34 +18,39 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import sys
 
+import gi
+
+gi.require_version("Gtk", "3.0")
 
 import os
-import pygtk
-pygtk.require('2.0')
-import gobject
 import collections
 import platform
 import shutil
 import subprocess
 
 try:
-    import gtk
+    from gi.repository import  Gtk as gtk
 except:
     ## do not use gtk, just print
-    print _("You need to install the python gtk bindings package"
-             "'python-gtk2'")
+    print(_("You need to install the python gtk bindings package"
+            "'python-gtk2'"))
     sys.exit(1)
+
+from gi.repository import Gdk as gdk
 
 ## we should try to absolutely detach it from the clicompanion libs someday
 from clicompanionlib.utils import dbg
 import clicompanionlib.plugins as plugins
 
 CONFIG_ORIG = "/etc/clicompanion.d/clicompanion2.config"
+if not os.path.exists(CONFIG_ORIG):
+    CONFIG_ORIG = os.path.abspath(os.path.dirname(os.path.realpath(sys.argv[0]))) + 'data/clicompanion2.config.ubuntu',
 
 ## Targets for the Drag and Drop
 TARGETS = [
-    ('MY_TREE_MODEL_ROW', gtk.TARGET_SAME_WIDGET, 0),
+    ('MY_TREE_MODEL_ROW', gtk.TargetFlags.SAME_WIDGET, 0),
     ('text/plain', 0, 1),
     ('TEXT', 0, 2),
     ('STRING', 0, 3),
@@ -63,7 +68,7 @@ class LocalCommandList(plugins.TabPlugin):
                    'Marcos Vanettai\n'
                    'Marek Bardoński\n'
                    'David Caro <david.caro.estevez@gmail.com>\n')
-    __info__ = ('This is the main plugin for the CLI Companion, the one that '
+    __plugin_info__ = ('This is the main plugin for the CLI Companion, the one that '
                 'handles the locally stored commands.')
     __title__ = 'Local Commands'
 
@@ -96,7 +101,7 @@ class LocalCommandList(plugins.TabPlugin):
         ## open with top command selected
         selection = self.treeview.get_selection()
         selection.select_path(0)
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(gtk.SelectionMode.SINGLE)
         ### double-click
         self.treeview.connect("row-activated", self.event_clicked)
         ##press enter to run command
@@ -105,12 +110,12 @@ class LocalCommandList(plugins.TabPlugin):
         ## Right click event
         self.treeview.connect("button_press_event", self.right_click)
         # Allow enable drag and drop of rows including row move
-        self.treeview.enable_model_drag_source( gtk.gdk.BUTTON1_MASK,
+        self.treeview.enable_model_drag_source( gdk.ModifierType.BUTTON1_MASK,
                                                 TARGETS,
-                                                gtk.gdk.ACTION_DEFAULT |
-                                                gtk.gdk.ACTION_COPY)
+                                                gdk.DragAction.DEFAULT |
+                                                gdk.DragAction.COPY)
         self.treeview.enable_model_drag_dest(TARGETS,
-                                                gtk.gdk.ACTION_DEFAULT)
+                                                gdk.DragAction.DEFAULT)
 
         self.treeview.connect ("drag_data_get", self.drag_data_get_event)
         self.treeview.connect ("drag_data_received",
@@ -120,7 +125,7 @@ class LocalCommandList(plugins.TabPlugin):
 
         sw = gtk.ScrolledWindow()
         sw.add(self.treeview)
-        self.pack_start(sw)
+        self.pack_start(sw, True, True, 0)
         self.show_all()
 
     def add_text_col(self, colname, n=0):
@@ -131,7 +136,7 @@ class LocalCommandList(plugins.TabPlugin):
         col.add_attribute(render, 'text', n)
         col.set_resizable(True)
         col.set_sort_column_id(n)
-        col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        col.set_sizing(gtk.TreeViewColumnSizing.FIXED)
         col.set_min_width(20)
         col.set_fixed_width(230)
         self.treeview.append_column(col)
@@ -214,9 +219,9 @@ class LocalCommandList(plugins.TabPlugin):
 
     def event_key_pressed(self, event):
         ## press enter to run a command
-        keyname = gtk.gdk.keyval_name(event.keyval)
+        keyname = gdk.keyval_name(event.keyval)
         dbg('Key %s pressed' % keyname)
-        if event.type == gtk.gdk.KEY_PRESS:
+        if event.type == gdk.EventType.KEY_PRESS:
             if keyname == 'Return':
                 cmd, ui, desc = self.get_command()
                 if cmd:
@@ -305,7 +310,7 @@ class LocalCommandList(plugins.TabPlugin):
                 lambda *x: self.load_file())
             # Show popup menu
             popupMenu.show_all()
-            popupMenu.popup(None, None, None, event.button, time)
+            popupMenu.popup_at_pointer()
             return True
 
     def load_file(self):
@@ -386,9 +391,9 @@ class LocalCommandList(plugins.TabPlugin):
     def show_warning_uninstalled_command(self, cmd):
         dlg = gtk.MessageDialog(
                      None,
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     gtk.MESSAGE_ERROR,
-                     gtk.BUTTONS_CLOSE,
+                     gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                     gtk.MessageType.ERROR,
+                     gtk.ButtonsType.CLOSE,
                      message_format=_('Warning!'))
         dlg.format_secondary_text(_('The command you are adding is not installed in the system: ') + cmd[0] + \
                                   _('\n\nTo install it, use the following command: \n\n apt-get install ') + cmd[0])
@@ -413,7 +418,7 @@ class LocalCommandListConfig(plugins.PluginConfig):
 
     def draw_all(self):
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label('Cheatsheet file:'))
+        hbox.pack_start(gtk.Label('Cheatsheet file:'), True, True, 0)
         self.file_btn = gtk.Button(
                             self.config.get('default', 'cheatsheet'))
         self.file_btn.connect('clicked', self.select_file)
@@ -425,8 +430,8 @@ class LocalCommandListConfig(plugins.PluginConfig):
         self.file_btn3 = gtk.Button("Revert cheatsheet to clean Debian version")
         self.file_btn2.connect('clicked', self.revert_cheatsheet_to_ubuntu_version)
         self.file_btn3.connect('clicked', self.revert_cheatsheet_to_debian_version)
-        hbox2.pack_start(self.file_btn2)
-        hbox3.pack_start(self.file_btn3)
+        hbox2.pack_start(self.file_btn2, False, False, 0)
+        hbox3.pack_start(self.file_btn3, False, False, 0)
         self.pack_start(hbox2, False, False, 8)
         self.pack_start(hbox3, False, False, 8)
         
@@ -464,9 +469,9 @@ class LocalCommandListConfig(plugins.PluginConfig):
     def show_warning(self):
         dlg = gtk.MessageDialog(
                      None,
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     gtk.MESSAGE_ERROR,
-                     gtk.BUTTONS_CLOSE,
+                     gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                     gtk.MessageType.ERROR,
+                     gtk.ButtonsType.CLOSE,
                      message_format=_('Warning!'))
         dlg.format_secondary_text(_('You are changing cheatsheet to version for another distribution'))
         dlg.run()
@@ -475,9 +480,9 @@ class LocalCommandListConfig(plugins.PluginConfig):
     def show_information(self):
         dlg = gtk.MessageDialog(
                      None,
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     gtk.MESSAGE_INFO,
-                     gtk.BUTTONS_CLOSE,
+                     gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                     gtk.MessageType.INFO,
+                     gtk.ButtonsType.CLOSE,
                      message_format=_('Information'))
         dlg.format_secondary_text(_('Cheatsheet was changed.'))
         dlg.run()
@@ -491,9 +496,9 @@ class CHFileSelector(gtk.FileChooserDialog):
         gtk.FileChooserDialog.__init__(self,
             'Select cheatsheet file',
             None,
-            gtk.FILE_CHOOSER_ACTION_OPEN,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-            gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            gtk.FileChooserAction.OPEN,
+            (gtk.STOCK_CANCEL, gtk.ResponseType.CANCEL,
+            gtk.STOCK_OPEN, gtk.ResponseType.OK))
         filter = gtk.FileFilter()
         filter.set_name("All files")
         filter.add_pattern("*")
@@ -509,7 +514,7 @@ class CHFileSelector(gtk.FileChooserDialog):
     def run(self):
         newfile = None
         resp = gtk.FileChooserDialog.run(self)
-        if resp == gtk.RESPONSE_OK:
+        if resp == gtk.ResponseType.OK:
             newfile = self.get_filename()
         self.destroy()
         return newfile
@@ -567,7 +572,7 @@ class Cheatsheet:
         try:
             dbg('Reading cheatsheet from file %s' % self.cheatsheet)
             with open(self.cheatsheet, 'r') as ch_fd:
-                ## try to detect if the line is a old fashines config line
+                ## try to detect if the line is an old-fashioned config line
                 ## (separated by ':'), when saved will rewrite it
                 no_tabs = True
                 some_colon = False
@@ -588,9 +593,9 @@ class Cheatsheet:
                 if no_tabs and some_colon:
                     ## None of the commands had tabs, and all had ':' in the
                     ## cmd... most probably old config style
-                    print _("Detected old cheatsheet style at") \
-                            + " %s" % self.cheatsheet \
-                            + _(", parsing to new one.")
+                    print(_("Detected old cheatsheet style at")
+                          + " %s" % self.cheatsheet
+                          + _(", parsing to new one."))
                     for i in range(len(self.commands)):
                         cmd, ui, desc = self.commands[i]
                         cmd, ui, desc = [l.strip()
@@ -598,9 +603,9 @@ class Cheatsheet:
                                             * (3 - len(cmd.split(':', 2)))
                         self.commands[i] = [cmd, ui, desc]
                     self.save()
-        except IOError, e:
-            print _("Error while loading cheatfile") + \
-                    " %s: %s" % (self.cheatsheet, e)
+        except IOError as e:
+            print(_("Error while loading cheatfile") +
+                  " %s: %s" % (self.cheatsheet, e))
 
     def save(self, cheatfile=None):
         '''
@@ -614,11 +619,11 @@ class Cheatsheet:
         elif not cheatfile:
             return False
         try:
-            with open(cheatfile, 'wb') as ch_fd:
+            with open(cheatfile, 'w') as ch_fd:
                 for command in self.commands:
                     ch_fd.write('\t'.join(command) + '\n')
-        except IOError, e:
-            print _("Error writing cheatfile") + " %s: %s" % (cheatfile, e)
+        except IOError as e:
+            print(_("Error writing cheatfile") + " %s: %s" % (cheatfile, e))
             return False
         return True
 
@@ -637,7 +642,7 @@ class Cheatsheet:
         else:
             try:
                 self.insert(*value, pos=key)
-            except ValueError, e:
+            except ValueError as e:
                 raise ValueError('Value must be a container with three items, '
                                 'but got %s' % value)
 
@@ -697,9 +702,9 @@ class RemoveCommandWindow(gtk.MessageDialog):
     def __init__(self):
         gtk.MessageDialog.__init__(self,
             None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_WARNING,
-            gtk.BUTTONS_YES_NO,
+            gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+            gtk.MessageType.WARNING,
+            gtk.ButtonsType.YES_NO,
             None)
 
         self.set_markup(_("Are you sure you want to delete this command?"))
@@ -707,7 +712,7 @@ class RemoveCommandWindow(gtk.MessageDialog):
     def run(self):
         result = gtk.MessageDialog.run(self)
         self.destroy()
-        if result == gtk.RESPONSE_YES:
+        if result == gtk.ResponseType.YES:
             return True
         return False
 
@@ -718,9 +723,9 @@ class AddCommandWindow(gtk.MessageDialog):
         ## Create Dialog object
         gtk.MessageDialog.__init__(self,
             None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK,
+            gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+            gtk.MessageType.QUESTION,
+            gtk.ButtonsType.OK,
             None)
 
         ## primaary text
@@ -735,11 +740,11 @@ class AddCommandWindow(gtk.MessageDialog):
         self.desc_txt.set_text(desc)
         ## allow the user to press enter to do ok
         self.cmd_txt.connect("activate",
-                lambda *x: self.response(gtk.RESPONSE_OK))
+                lambda *x: self.response(gtk.ResponseType.OK))
         self.ui_txt.connect("activate",
-                lambda *x: self.response(gtk.RESPONSE_OK))
+                lambda *x: self.response(gtk.ResponseType.OK))
         self.desc_txt.connect("activate",
-                lambda *x: self.response(gtk.RESPONSE_OK))
+                lambda *x: self.response(gtk.ResponseType.OK))
 
         ## create three labels
         hbox1 = gtk.HBox()
@@ -754,7 +759,7 @@ class AddCommandWindow(gtk.MessageDialog):
         hbox2.pack_start(self.desc_txt, True, 5, 5)
 
         ## cancel button
-        self.add_button(_('Cancel'), gtk.RESPONSE_DELETE_EVENT)
+        self.add_button(_('Cancel'), gtk.ResponseType.DELETE_EVENT)
         ## some secondary text
         self.format_secondary_markup(
             _("When entering a command use question marks(?) as placeholders "
@@ -776,7 +781,7 @@ class AddCommandWindow(gtk.MessageDialog):
         while not result:
             ## Show the dialog
             result = gtk.MessageDialog.run(self)
-            if result == gtk.RESPONSE_OK:
+            if result == gtk.ResponseType.OK:
                 ## user text assigned to a variable
                 cmd = self.cmd_txt.get_text()
                 ui = self.ui_txt.get_text()
@@ -790,8 +795,8 @@ class AddCommandWindow(gtk.MessageDialog):
         return command
 
     def show_nocmd_error(self):
-        error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, \
-            gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        error = gtk.MessageDialog(None, gtk.DialogFlags.MODAL, \
+            gtk.MessageType.ERROR, gtk.ButtonsType.OK,
             _("You need to enter at least a command."))
         error.connect('response', lambda err, *x: err.destroy())
         error.run()

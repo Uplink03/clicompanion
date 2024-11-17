@@ -24,11 +24,14 @@
 ## that aren't directly related with a class, like the edit comand popup or the
 ## about popup, but are too small to be kept in a separate file
 
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("Vte", "2.91")
+
 import os
 import re
-import pygtk
-pygtk.require('2.0')
-import gtk
+from gi.repository import Gtk as gtk
 import subprocess as sp
 import shlex
 from clicompanionlib.utils import dbg
@@ -45,23 +48,22 @@ class ManPage(gtk.Dialog):
         notebook = gtk.Notebook()
         notebook.set_scrollable(True)
         notebook.popup_enable()
-        notebook.set_properties(group_id=0, tab_vborder=0,
-                                tab_hborder=1, tab_pos=gtk.POS_TOP)
+        notebook.set_properties(group_name=None, tab_pos=gtk.PositionType.TOP)
         ## create a tab for each command
         for command in self.get_commands():
             scrolled_page = gtk.ScrolledWindow()
-            scrolled_page.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+            scrolled_page.set_policy(gtk.PolicyType.NEVER, gtk.PolicyType.AUTOMATIC)
             tab = gtk.HBox()
             tab_label = gtk.Label(command)
             tab_label.show()
-            tab.pack_start(tab_label)
+            tab.pack_start(tab_label, True, True, 0)
             page = gtk.TextView()
-            page.set_wrap_mode(gtk.WRAP_WORD)
+            page.set_wrap_mode(gtk.WrapMode.WORD)
             page.set_editable(False)
             page.set_cursor_visible(False)
             try:
-                manpage = sp.check_output(["man", command])
-            except sp.CalledProcessError, e:
+                manpage = sp.check_output(["man", command], encoding='UTF-8')
+            except sp.CalledProcessError as e:
                 manpage = _('Failed to get manpage for command '
                             '"%s"\nReason:\n%s') % (command, e)
             textbuffer = page.get_buffer()
@@ -72,7 +74,7 @@ class ManPage(gtk.Dialog):
         self.vbox.pack_start(notebook, True, True, 0)
         button = gtk.Button("close")
         button.connect_object("clicked", lambda *x: self.destroy(), self)
-        button.set_flags(gtk.CAN_DEFAULT)
+        button.set_can_default(True)
         self.action_area.pack_start(button, True, True, 0)
         button.grab_default()
         self.set_default_size(500, 600)
@@ -100,7 +102,7 @@ class ManPage(gtk.Dialog):
                 else:
                     if part in ['||', '&&', '&', '|']:
                         next_part = True
-        except Exception, e:
+        except Exception as e:
             return [self.cmd]
         return commands
 
@@ -124,20 +126,20 @@ class CommandInfoWindow(gtk.MessageDialog):
         self.cmd, self.ui, self.desc = cmd, ui, desc
         gtk.MessageDialog.__init__(self,
             None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK_CANCEL,
+            gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+            gtk.MessageType.QUESTION,
+            gtk.ButtonsType.OK_CANCEL,
             None)
         self.set_markup(_("This command requires more information."))
         ## create the text input field
         self.entry = gtk.Entry()
         ## allow the user to press enter to do ok
         self.entry.connect("activate", lambda *x: self.response(
-                                                    gtk.RESPONSE_OK))
+                                                    gtk.ResponseType.OK))
         ## create a horizontal box to pack the entry and a label
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label(self.ui + ":"), False, 5, 5)
-        hbox.pack_end(self.entry)
+        hbox.pack_end(self.entry, True, True, 0)
         ## some secondary text
         self.format_secondary_markup(_("Please provide a " + self.ui))
         ## add it and show it
@@ -150,7 +152,7 @@ class CommandInfoWindow(gtk.MessageDialog):
         result = False
         while not result:
             result = gtk.MessageDialog.run(self)
-            if result == gtk.RESPONSE_OK:
+            if result == gtk.ResponseType.OK:
                 ui = self.entry.get_text().strip()
                 dbg('Got ui "%s"' % ui)
                 if not ui:
@@ -166,8 +168,8 @@ class CommandInfoWindow(gtk.MessageDialog):
         return cmd
 
     def show_error(self):
-        error = gtk.MessageDialog(None, gtk.DIALOG_MODAL, \
-            gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+        error = gtk.MessageDialog(None, gtk.DialogFlags.MODAL, \
+            gtk.MessageType.ERROR, gtk.ButtonsType.OK,
             _("You need to enter full input. Space separated."))
         error.connect('response', lambda *x: error.destroy())
         error.run()
@@ -176,9 +178,9 @@ class CommandInfoWindow(gtk.MessageDialog):
 def choose_row_error():
     dialog = gtk.MessageDialog(
             None,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION,
-            gtk.BUTTONS_OK,
+            gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+            gtk.MessageType.QUESTION,
+            gtk.ButtonsType.OK,
             None)
     dialog.set_markup(_('You must choose a row to view the help'))
     dialog.show_all()

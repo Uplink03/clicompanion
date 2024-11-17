@@ -38,12 +38,16 @@
 ##
 ## About the plugins:
 ## The plugins have some attributes that should be set, like the __authors__,
-## and the __info__ attributes, that will be shown in the info page for the
+## and the __plugin_info__ attributes, that will be shown in the info page for the
 ## plugin, and the __title__ that will be the plugin name shown in the plugins
 ## list.
 
-import gobject
-import gtk
+import gi
+
+gi.require_version("Gtk", "3.0")
+
+from gi.repository import GObject as gobject
+from gi.repository import Gtk as gtk
 import sys
 import os
 import inspect
@@ -80,8 +84,8 @@ class PluginLoader:
                             dbg('    Found plugin %s' % cname)
                             self.plugins[cname] = mclass
                             continue
-            except Exception, ex:
-                print 'Error searching plugin file %s: %s' % (plugin, ex)
+            except Exception as ex:
+                print('Error searching plugin file %s: %s' % (plugin, ex))
 
     def enable(self, plugins):
         for plugin in plugins:
@@ -126,14 +130,14 @@ class PluginLoader:
 
     def get_info(self, plugin):
         if plugin in self.plugins.keys():
-            return self.plugins[plugin].__info__
+            return self.plugins[plugin].__plugin_info__
 
     def get_authors(self, plugin):
         if plugin in self.plugins.keys():
             return self.plugins[plugin].__authors__
 
 
-## To make all the classe sinherit from this one
+## To make all the classes inherit from this one
 class Plugin(gtk.VBox):
     def __init__(self):
         gtk.VBox.__init__(self)
@@ -169,7 +173,7 @@ class TabPlugin(Plugin):
     __capabilities__ = ['CommandTab']
     __title__ = ''
     __authors__ = ''
-    __info__ = ''
+    __plugin_info__ = ''
 
     def reload(self):
         '''

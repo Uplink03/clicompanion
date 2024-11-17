@@ -17,19 +17,18 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import sys
 
+import gi
 
-import pygtk
-pygtk.require('2.0')
-import gobject
-import webbrowser
+gi.require_version("Gtk", "3.0")
 
 try:
-    import gtk
+    from gi.repository import Gtk as gtk
 except:
     ## do not use gtk, just print
-    print _("You need to install the python gtk bindings package"
-            "'python-gtk2'")
+    print(_("You need to install the python gtk bindings package"
+            "'python-gtk2'"))
     sys.exit(1)
 
 from clicompanionlib.utils import dbg
@@ -41,7 +40,7 @@ class StandardURLs(plugins.URLPlugin):
     Match launchpad urls and open them on the browser
     '''
     __authors__ = 'David Caro <david.caro.estevez@gmail.com>'
-    __info__ = ('This plugins enables some common urls to be matched.')
+    __plugin_info__ = ('This plugins enables some common urls to be matched.')
     __title__ = 'Standard URLS'
 
     def __init__(self, config):
@@ -56,13 +55,13 @@ class StandardURLs(plugins.URLPlugin):
         user = "([" + userchars + "]+(:[" + passchars + "]+)?)?"
         urlpath = "/[" + pathchars + "]*[^]'.}>) \t\r\n,\\\"]"
         email = ("[a-zA-Z0-9][a-zA-Z0-9.+-]*@[a-zA-Z0-9][a-zA-Z0-9-]*"
-                "\.[a-zA-Z0-9][a-zA-Z0-9-]+[.a-zA-Z0-9-]*")
+                "\\.[a-zA-Z0-9][a-zA-Z0-9-]+[.a-zA-Z0-9-]*")
 
         lboundry = "\\<"
         rboundry = "\\>"
 
         ## http/https/ftp/ftps/webcal/nntp/telnet urls
-        self.matches.append(schemes + user + "[" + hostchars + "]*\.["
+        self.matches.append(schemes + user + "[" + hostchars + "]*\\.["
                             + hostchars + ".]+(:[0-9]+)?(" + urlpath + ")?")
         ## file
         self.matches.append('file:///[' + pathchars + "]*")
@@ -75,10 +74,10 @@ class StandardURLs(plugins.URLPlugin):
         ## mail
         self.matches.append("(mailto:)?" + email)
         ## news
-        self.matches.append('news:[-A-Z\^_a-z{|}~!"#$%&\'()*+'
+        self.matches.append('news:[-A-Z\\^_a-z{|}~!"#$%&\'()*+'
                         + ',./0-9;:=?`]+@' + "[-A-Za-z0-9.]+(:[0-9]+)?")
         ## General url (www.host.com or ftp.host.com)
-        self.matches.append("(www|ftp)[" + hostchars + "]*\.["
+        self.matches.append("(www|ftp)[" + hostchars + "]*\\.["
                 + hostchars + ".]+(:[0-9]+)?(" + urlpath + ")?/?")
 
     def callback(self, url, matchnum):
