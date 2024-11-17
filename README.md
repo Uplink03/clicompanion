@@ -11,7 +11,7 @@ Companion to store their extensive list of commands in a searchable list.
 
 ## How to run
 
-You will need to install GTK3 and VTE for Python.
+You will need to install GTK3 and VTE 2.91 for Python 3.
 
 Then, just run `python clicompanion` in the repository root.
 
