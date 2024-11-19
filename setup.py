@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2010 Duane Hinnen
 #
@@ -19,7 +19,7 @@
 
 import sys
 import glob
-from distutils.core import setup
+from setuptools import setup
 import platform
 import shutil
 try:
@@ -30,14 +30,14 @@ except ImportError:
             ))
     sys.exit(1)
 
-distribution = platform.linux_distribution()
-if distribution[0] == 'Ubuntu':
+distribution = platform.freedesktop_os_release()['ID']
+if distribution == 'ubuntu':
     shutil.copy2('data/clicompanion2.config.ubuntu', 'data/clicompanion2.config')
-elif distribution[0] == 'debian':
+elif distribution == 'debian':
     shutil.copy2('data/clicompanion2.config.debian', 'data/clicompanion2.config')
 
 setup(  name='clicompanion',
-        version='1.1',
+        version='2.0',
         description='Run Terminal commands from a GUI. Store commands for later use.',
         author='Duane Hinnen',
         author_email='duanedesign@gmail.com',

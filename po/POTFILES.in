@@ -1,0 +1,14 @@
+clicompanion
+clicompanionlib/config.py
+clicompanionlib/helpers.py
+clicompanionlib/menus_buttons.py
+clicompanionlib/plugins.py
+clicompanionlib/preferences.py
+clicompanionlib/tabs.py
+clicompanionlib/utils.py
+clicompanionlib/view.py
+plugins/clfu.py
+plugins/CommandLineFU.py
+plugins/LaunchpadURL.py
+plugins/LocalCommandList.py
+plugins/StandardURLs.py

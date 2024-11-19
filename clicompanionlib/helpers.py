@@ -110,12 +110,12 @@ class ManPage(gtk.Dialog):
 def show_about():
     dialog = gtk.AboutDialog()
     dialog.set_name('CLI Companion')
-    dialog.set_version('1.1')
+    dialog.set_version('2.0')
     dialog.set_authors([u'Duane Hinnen', u'Kenny Meyer', u'Marcos Vanettai',
                         u'Marek Bardoński', u'David Caro'])
     dialog.set_comments(_('This is a CLI Companion program.'))
-    dialog.set_license(_('Distributed under the GNU license. You can see it at'
-                         '<http://www.gnu.org/licenses/>.'))
+    dialog.set_license(_('Distributed under the GNU GPL v3 license. You can see it at '
+                         '<https://www.gnu.org/licenses/gpl-3.0.html>.'))
     dialog.run()
     dialog.destroy()
 

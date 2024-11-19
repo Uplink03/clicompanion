@@ -1,3 +1,9 @@
+clicompanion (2.0-1) noble; urgency=low
+
+  * Ported to Python 3, GTK 3, VTE 2.91
+
+ -- Radu Cristescu <radu.cx@gmail.com>  Mon, 18 Nov 2024 23:41:34 +0000
+
 clicompanion (1.2-3) wily; urgency=low
 
   * Multiple improvements and bugfixes

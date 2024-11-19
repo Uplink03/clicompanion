@@ -1,14 +1,14 @@
-# CLIcompanion i18n
-# Copyright 2010 Duane Hinnen, Kenny Meyer, Marcos Vanetta
-# This file is distributed under the same license as the clicompaninon package.
-# Duane Hinnen <duanedesign@ubuntu.com>, 2010.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-27 13:30+0000\n"
+"POT-Creation-Date: 2024-11-19 01:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,88 +17,592 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: clicompanion.py:66
-msgid "You need to install the python gtk bindings"
+#: ../clicompanionlib/config.py:129
+#, python-format
+msgid "Unable to create config at dir %s (%s)"
 msgstr ""
 
-#: clicompanion.py:75
-msgid "You need to install python bindings for libvte"
+#: ../clicompanionlib/config.py:135
+#, python-format
+msgid "INFO: Reading config file at %s."
 msgstr ""
 
-#: clicompanion.py:124
-msgid "This command requires more information"
+#: ../clicompanionlib/config.py:137
+#, python-format
+msgid "INFO: Creating config file at %s."
 msgstr ""
 
-#: clicompanion.py:136
+#: ../clicompanionlib/config.py:166 ../clicompanionlib/config.py:180
+#, python-format
+msgid "Option %s:%s not recognised, deleting."
+msgstr ""
+
+#: ../clicompanionlib/config.py:171
+#, python-format
+msgid "Deleting unrecognzed section %s."
+msgstr ""
+
+#: ../clicompanionlib/config.py:176
+#, python-format
+msgid "Deleting unrecognized section %s."
+msgstr ""
+
+#: ../clicompanionlib/config.py:198 ../clicompanionlib/config.py:211
+#, python-format
+msgid "Option %s is not valid."
+msgstr ""
+
+#: ../clicompanionlib/config.py:217
+#, python-format
+msgid "Wrong specification for option %s in file %s"
+msgstr ""
+
+#: ../clicompanionlib/config.py:221
+#, python-format
+msgid "ERROR: Wrong config value for %s: %s "
+msgstr ""
+
+#: ../clicompanionlib/config.py:223
+#, python-format
+msgid ",using default one %s."
+msgstr ""
+
+#: ../clicompanionlib/helpers.py:67
+#, python-format
+msgid ""
+"Failed to get manpage for command \"%s\"\n"
+"Reason:\n"
+"%s"
+msgstr ""
+
+#: ../clicompanionlib/helpers.py:73
+#, python-format
+msgid "Man page for %s"
+msgstr ""
+
+#: ../clicompanionlib/helpers.py:116
+msgid "This is a CLI Companion program."
+msgstr ""
+
+#: ../clicompanionlib/helpers.py:117
+msgid ""
+"Distributed under the GNU GPL v3 license. You can see it at <https://www.gnu."
+"org/licenses/gpl-3.0.html>."
+msgstr ""
+
+#: ../clicompanionlib/helpers.py:133
+msgid "This command requires more information."
+msgstr ""
+
+#. # some secondary text
+#: ../clicompanionlib/helpers.py:144
 msgid "Please provide a "
 msgstr ""
 
-#: clicompanion.py:167
-msgid "Add a command to your clicompanion dictionary"
+#: ../clicompanionlib/helpers.py:173
+msgid "You need to enter full input. Space separated."
 msgstr ""
 
-#: clicompanion.py:178 clicompanion.py:260 clicompanion.py:587
-msgid "Command"
+#: ../clicompanionlib/helpers.py:185
+msgid "You must choose a row to view the help"
 msgstr ""
 
-#: clicompanion.py:181 clicompanion.py:263
-msgid "User Input"
-msgstr ""
-
-#: clicompanion.py:185 clicompanion.py:267 clicompanion.py:589
-msgid "Description"
-msgstr ""
-
-#: clicompanion.py:191 clicompanion.py:273
-msgid ""
-"Please provide a command, description, and what type of user variable, if "
-"any, is required."
-msgstr ""
-
-#: clicompanion.py:246
-msgid "Edit the command in your clicompanion dictionary"
-msgstr ""
-
-#: clicompanion.py:573
-msgid "Search:"
-msgstr ""
-
-#: clicompanion.py:588
-msgid "User Argument"
-msgstr ""
-
-#: menus_buttons.py:11
+#. #FILE MENU ##
+#: ../clicompanionlib/menus_buttons.py:71
 msgid "File"
 msgstr ""
 
-#: menus_buttons.py:15 menus_buttons.py:60
-msgid "Help"
+#. # Make 'User Preferences' file menu entry
+#: ../clicompanionlib/menus_buttons.py:75
+msgid "Preferences"
 msgstr ""
 
-#: menus_buttons.py:20
-msgid "Run Command"
-msgstr ""
-
-#: menus_buttons.py:26
-msgid "Add Command"
-msgstr ""
-
-#: menus_buttons.py:32
-msgid "Remove Command"
-msgstr ""
-
-#: menus_buttons.py:38
+#. # Make 'Quit' file menu entry
+#: ../clicompanionlib/menus_buttons.py:79
 msgid "Quit"
 msgstr ""
 
-#: menus_buttons.py:45
+#. # Make 'Process' menu entry
+#: ../clicompanionlib/menus_buttons.py:84 ../clicompanionlib/tabs.py:271
+msgid "Process"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:89 ../clicompanionlib/tabs.py:277
+msgid "Abort (Ctrl+c)"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:95 ../clicompanionlib/tabs.py:283
+msgid "Pause (Ctrl+s)"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:101 ../clicompanionlib/tabs.py:289
+msgid "Resume (Ctrl+q)"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:107 ../clicompanionlib/tabs.py:295
+msgid "Stop and Background (Ctrl+z)"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:113 ../clicompanionlib/tabs.py:301
+msgid "Foreground (%)"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:119
+msgid "Run background (% &)"
+msgstr ""
+
+#. # Command menu
+#: ../clicompanionlib/menus_buttons.py:126 ../plugins/LocalCommandList.py:751
+msgid "Command"
+msgstr ""
+
+#. # Make 'Run' menu entry
+#: ../clicompanionlib/menus_buttons.py:130
+msgid "Run Command"
+msgstr ""
+
+#. # Make 'Add' file menu entry
+#: ../clicompanionlib/menus_buttons.py:134
+msgid "Add Command"
+msgstr ""
+
+#. # Make 'Remove' file menu entry
+#: ../clicompanionlib/menus_buttons.py:138
+msgid "Remove Command"
+msgstr ""
+
+#. # Terminal menu
+#: ../clicompanionlib/menus_buttons.py:143
+msgid "Terminal"
+msgstr ""
+
+#. # Make 'Add Tab' file menu entry
+#: ../clicompanionlib/menus_buttons.py:147
 msgid "Add Tab"
 msgstr ""
 
-#: menus_buttons.py:53
+#. # Make 'Close Tab' file menu entry
+#: ../clicompanionlib/menus_buttons.py:151
+msgid "Close Tab"
+msgstr ""
+
+#. # HELP MENU ##
+#: ../clicompanionlib/menus_buttons.py:157
+msgid "Help"
+msgstr ""
+
+#. # Make 'About' file menu entry
+#: ../clicompanionlib/menus_buttons.py:161
+#: ../clicompanionlib/preferences.py:614
 msgid "About"
 msgstr ""
 
-#: menus_buttons.py:88
-msgid "Run"
+#. # Make 'Help' file menu entry
+#: ../clicompanionlib/menus_buttons.py:165
+msgid "Help-online"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:212
+msgid "Click to run a highlighted command"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:218
+msgid "Click to cancel the running command"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:224
+msgid "Click to add a command to yourcommand list"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:230
+msgid "Click to edit a command in your command list"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:236
+msgid "Click to delete a command in your command list"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:242
+msgid "Click to get help with a command in your command list"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:250 ../clicompanionlib/tabs.py:266
+msgid "Add tab"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:252
+msgid "Click to add a terminal tab"
+msgstr ""
+
+#: ../clicompanionlib/menus_buttons.py:257
+msgid "Click to quit CLI Companion"
+msgstr ""
+
+#. # 'use_system_font'
+#: ../clicompanionlib/preferences.py:82
+msgid "Use system fixedwidth font"
+msgstr ""
+
+#. # 'bold_text'
+#: ../clicompanionlib/preferences.py:98
+msgid "Allow bold text"
+msgstr ""
+
+#. # 'antialias'
+#: ../clicompanionlib/preferences.py:103
+msgid "Anti-alias text"
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:121
+msgid "Update login records"
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:173
+msgid "Use colors from system theme"
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:608
+msgid "Configutarion"
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:659
+msgid "Can't disable \"LocalCommandList"
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:660
+msgid ""
+"The plugin \"LocalCommandList is the main plugin for CLI Companion, and "
+"can't be disalbed, sorry."
+msgstr ""
+
+#: ../clicompanionlib/preferences.py:676
+msgid "User Preferences"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:110
+#, python-format
+msgid ""
+"WARNING: Invalid value for property '%s', int expected: got '%s', using "
+"default '%s'"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:144 ../clicompanionlib/tabs.py:157
+#, python-format
+msgid "WARNING: Invalid value for property '%s': got '%s', using default '%s'."
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:173 ../clicompanionlib/tabs.py:190
+#, python-format
+msgid "WARNING: Invalid value for property '%s': got '%s', using default '%s'"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:256
+msgid "Rename"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:261
+msgid "Configure"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:307
+msgid "Run in background (% &)"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:313
+msgid "Profiles"
+msgstr ""
+
+#: ../clicompanionlib/tabs.py:327
+msgid "Close tab"
+msgstr ""
+
+#. # tooltip for "Add Tab" tab
+#: ../clicompanionlib/tabs.py:430
+msgid "Click to add another tab"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:49 ../clicompanionlib/utils.py:62
+#: ../clicompanionlib/utils.py:81 ../clicompanionlib/utils.py:95
+#: ../clicompanionlib/utils.py:118 ../clicompanionlib/utils.py:129
+msgid "Western"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:50 ../clicompanionlib/utils.py:82
+#: ../clicompanionlib/utils.py:96 ../clicompanionlib/utils.py:108
+#: ../clicompanionlib/utils.py:127
+msgid "Central European"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:51
+msgid "South European"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:52 ../clicompanionlib/utils.py:60
+#: ../clicompanionlib/utils.py:134
+msgid "Baltic"
+msgstr ""
+
+#. ["JOHAB", _("Korean")],
+#: ../clicompanionlib/utils.py:53 ../clicompanionlib/utils.py:83
+#: ../clicompanionlib/utils.py:97 ../clicompanionlib/utils.py:103
+#: ../clicompanionlib/utils.py:105 ../clicompanionlib/utils.py:110
+#: ../clicompanionlib/utils.py:128
+msgid "Cyrillic"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:54 ../clicompanionlib/utils.py:86
+#: ../clicompanionlib/utils.py:100 ../clicompanionlib/utils.py:107
+#: ../clicompanionlib/utils.py:133
+msgid "Arabic"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:55 ../clicompanionlib/utils.py:113
+#: ../clicompanionlib/utils.py:130
+msgid "Greek"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:56
+msgid "Hebrew Visual"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:57 ../clicompanionlib/utils.py:85
+#: ../clicompanionlib/utils.py:99 ../clicompanionlib/utils.py:116
+#: ../clicompanionlib/utils.py:132
+msgid "Hebrew"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:58 ../clicompanionlib/utils.py:84
+#: ../clicompanionlib/utils.py:98 ../clicompanionlib/utils.py:120
+#: ../clicompanionlib/utils.py:131
+msgid "Turkish"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:59
+msgid "Nordic"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:61
+msgid "Celtic"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:63 ../clicompanionlib/utils.py:119
+msgid "Romanian"
+msgstr ""
+
+#. ["UTF-7", _("Unicode")],
+#: ../clicompanionlib/utils.py:65
+msgid "Unicode"
+msgstr ""
+
+#. ["UTF-16", _("Unicode")],
+#. ["UCS-2", _("Unicode")],
+#. ["UCS-4", _("Unicode")],
+#: ../clicompanionlib/utils.py:69
+msgid "Armenian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:70 ../clicompanionlib/utils.py:71
+#: ../clicompanionlib/utils.py:75 ../clicompanionlib/utils.py:89
+msgid "Chinese Traditional"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:72
+msgid "Cyrillic/Russian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:73 ../clicompanionlib/utils.py:87
+#: ../clicompanionlib/utils.py:101 ../clicompanionlib/utils.py:122
+msgid "Japanese"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:74 ../clicompanionlib/utils.py:88
+#: ../clicompanionlib/utils.py:102 ../clicompanionlib/utils.py:125
+msgid "Korean"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:76 ../clicompanionlib/utils.py:77
+#: ../clicompanionlib/utils.py:78 ../clicompanionlib/utils.py:80
+#: ../clicompanionlib/utils.py:90 ../clicompanionlib/utils.py:91
+#: ../clicompanionlib/utils.py:92 ../clicompanionlib/utils.py:94
+msgid "Chinese Simplified"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:79 ../clicompanionlib/utils.py:93
+msgid "Georgian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:106 ../clicompanionlib/utils.py:121
+msgid "Cyrillic/Ukrainian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:109
+msgid "Croatian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:111
+msgid "Hindi"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:112
+msgid "Persian"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:114
+msgid "Gujarati"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:115
+msgid "Gurmukhi"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:117
+msgid "Icelandic"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:123 ../clicompanionlib/utils.py:126
+#: ../clicompanionlib/utils.py:135
+msgid "Vietnamese"
+msgstr ""
+
+#: ../clicompanionlib/utils.py:124
+msgid "Thai"
+msgstr ""
+
+#. # do not use gtk, just print
+#: ../clicompanionlib/view.py:42 ../plugins/CommandLineFU.py:33
+#: ../plugins/LaunchpadURL.py:30 ../plugins/LocalCommandList.py:37
+#: ../plugins/StandardURLs.py:30
+msgid "You need to install the python gtk bindings package'python-gtk2'"
+msgstr ""
+
+#: ../clicompanionlib/view.py:51
+msgid "You need to install 'python-vte' the python bindings for libvte."
+msgstr ""
+
+#: ../clicompanionlib/view.py:98
+msgid ""
+"ERROR: LocalCommandList plugin is needed for the execution of CLI Companion, "
+"please retore the plugin or reinstall."
+msgstr ""
+
+#: ../clicompanionlib/view.py:247
+msgid "Command List"
+msgstr ""
+
+#. # tooltip for the label of the expander
+#: ../clicompanionlib/view.py:249
+msgid "Click to show/hide command list"
+msgstr ""
+
+#. ### the search label
+#: ../clicompanionlib/view.py:259
+msgid "Search:"
+msgstr ""
+
+#. # search box tooltip
+#: ../clicompanionlib/view.py:265
+msgid "Search your list of commands"
+msgstr ""
+
+#: ../plugins/CommandLineFU.py:72
+msgid "Tag:"
+msgstr ""
+
+#: ../plugins/CommandLineFU.py:81
+msgid "From:"
+msgstr ""
+
+#: ../plugins/CommandLineFU.py:278
+msgid "Show online info"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:307
+msgid "Load another cheatsheet"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:397 ../plugins/LocalCommandList.py:475
+msgid "Warning!"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:398
+msgid "The command you are adding is not installed in the system: "
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:399
+msgid ""
+"\n"
+"\n"
+"To install it, use the following command: \n"
+"\n"
+" apt-get install "
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:476
+msgid "You are changing cheatsheet to version for another distribution"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:486
+msgid "Information"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:487
+msgid "Cheatsheet was changed."
+msgstr ""
+
+#. # None of the commands had tabs, and all had ':' in the
+#. # cmd... most probably old config style
+#: ../plugins/LocalCommandList.py:596
+msgid "Detected old cheatsheet style at"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:598
+msgid ", parsing to new one."
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:607
+msgid "Error while loading cheatfile"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:626
+msgid "Error writing cheatfile"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:710
+msgid "Are you sure you want to delete this command?"
+msgstr ""
+
+#. # primaary text
+#: ../plugins/LocalCommandList.py:732
+msgid "Add a command to your command list"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:754
+msgid "User Input"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:758
+msgid "Description"
+msgstr ""
+
+#. # cancel button
+#: ../plugins/LocalCommandList.py:762
+msgid "Cancel"
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:765
+msgid ""
+"When entering a command use question marks(?) as placeholders if user input "
+"is required when the command runs. Example: ls /any/directory would be "
+"entered as, ls ? .For each question mark(?) in your command, if any, use the "
+"User Input field to provide a hint for each variable. Using our example ls ? "
+"you could put directory as the User Input. Lastly provide a brief "
+"Description."
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:800
+msgid "You need to enter at least a command."
+msgstr ""
+
+#: ../plugins/LocalCommandList.py:813
+msgid "Edit a command in your command list"
 msgstr ""
