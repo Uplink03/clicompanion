@@ -11,6 +11,16 @@ Companion to store their extensive list of commands in a searchable list.
 
 ## How to run
 
+### Deb package
+
+If you're on Ubuntu 24.04, get the deb package from here: https://github.com/Uplink03/clicompanion/releases/
+
+Install: `apt install ~/Downloads/clicompanion_2.0-1_all.deb` (adjust depending on actual location)
+
+Run: `clicompanion`
+
+### Source
+
 You will need to install GTK3 and VTE 2.91 for Python 3.
 
 Then, just run `python clicompanion` in the repository root.
