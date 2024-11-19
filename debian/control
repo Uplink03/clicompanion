@@ -1,0 +1,27 @@
+Source: clicompanion
+Section: misc
+X-Python-Version: >=2.6
+Priority: optional
+Maintainer: Duane Hinnen <duanedesign@ubuntu.com>
+Uploaders: Jonathan Marsden <jmarsden@fastmail.fm>,
+ Matthew Byers <stlsaint@ubuntu.com>,
+ Marek Bardoński <bdfhjk@gmail.com>
+Build-Depends: debhelper (>= 7),
+ python (>= 2.6.6~3),
+ python-distutils-extra
+Standards-Version: 3.9.2
+Homepage: http://www.launchpad.net/clicompanion
+
+Package: clicompanion
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python-vte, python-gtk2, gtk2-engines-pixbuf, sudo
+Description: run terminal commands from a GUI storing commands for later use
+ CLI Companion is an application that is used as a complement to the Terminal.
+ .
+ People unfamiliar with the Terminal will find CLI Companion a useful
+ way to become acquainted with the Terminal. Using the built-in
+ commands new users can unlock the potential of the Terminal.
+ .
+ Experienced users can use CLI Companion’s add command feature to
+ build a command dictionary.  Store commands as you come across them,
+ and no more do you have to search for them.

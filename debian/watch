@@ -1,0 +1,7 @@
+version=3
+
+# FIXME: This is not a real release location for the 1.0 tarball... where *was* it released?
+#https://launchpad.net/~clicompanion-devs/+archive/clicompanion-nightlies/+files/clicompanion_(.*).orig.tar.gz
+
+# FIXME TOO: Using a temporary location for release tarballs until we learn the real one.
+ftp://ftp.jmarsden.org/pub/clicompanion/clicompanion-(.*).tar.bz2

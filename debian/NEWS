@@ -1,0 +1,12 @@
+clicompanion (1.1-1) unstable; urgency=low
+
+    CLI Companion uses a new format to store its commands. If you stored
+    commands in the old format you will need to migrate them to the new
+    format in order to use your commands with this and future versions of
+    CLI Companion. The new format uses ? as a place holder for User Input
+    required at command run time -- i.e. command 'ls <directory>' would now be
+    added to the Command List as ls ?. If you have questions additional information
+    can be found by going to Help --> Help in the application. You can also file
+    a Launchpad Question at https://answers.launchpad.net/clicompanion
+
+ -- Marek Bardoński <bdfhjk@gmail.com>  Thu, 03 Nov 2011 20:50:00 -0400

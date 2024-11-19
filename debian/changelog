@@ -1,0 +1,11 @@
+clicompanion (1.2-3) wily; urgency=low
+
+  * Multiple improvements and bugfixes
+
+ -- Marek Bardoński <bdfhjk@gmail.com>  Fri, 25 Mar 2016 15:50:14 +0100
+
+clicompanion (1.1-1) unstable; urgency=low
+
+  * Initial release. (Closes: #648942)
+
+ -- Marek Bardoński <bdfhjk@gmail.com>  Thu, 16 Nov 2011 11:42:13 -0400
